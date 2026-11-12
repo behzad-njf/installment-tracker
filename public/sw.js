@@ -6,6 +6,16 @@ const ASSETS = [
   '/index.html',
   '/favicon.png',
   '/manifest.json',
+  '/assets/geist-cyrillic-ext-wght-normal-DjL33-gN.woff2',
+  '/assets/geist-cyrillic-wght-normal-BEAKL7Jp.woff2',
+  '/assets/geist-latin-ext-wght-normal-DC-KSUi6.woff2',
+  '/assets/geist-latin-wght-normal-BgDaEnEv.woff2',
+  '/assets/geist-vietnamese-wght-normal-6IgcOCM7.woff2',
+  '/assets/index-BXaTdRZ8.css',
+  '/assets/index-DVC0vf88.js',
+  '/assets/vazirmatn-arabic-wght-normal-Cafbb7Zc.woff2',
+  '/assets/vazirmatn-latin-ext-wght-normal-tDTa1Fj6.woff2',
+  '/assets/vazirmatn-latin-wght-normal-BFexNX-K.woff2'
 ];
 
 self.addEventListener('install', (event) => {
@@ -30,6 +40,17 @@ self.addEventListener('fetch', (event) => {
 
   // Cache-first for same-origin assets (HTML, JS, CSS, fonts, icons).
   if (url.origin === self.location.origin) {
+    // SPA fallback: any navigation request (text/html) not in cache → serve index.html
+    const accept = request.headers.get('accept') || ''
+    if (accept.includes('text/html')) {
+      event.respondWith(
+        caches.match(request).then((cached) =>
+          cached || caches.match('/index.html')
+        )
+      )
+      return
+    }
+
     event.respondWith(
       caches.match(request).then((cached) =>
         cached || fetch(request).then((response) => {
