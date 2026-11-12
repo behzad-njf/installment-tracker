@@ -43,24 +43,25 @@ export function PaymentHistoryDialog({ loan, open, onOpenChange }: Props) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-[calc(100%-0.5rem)] sm:max-w-4xl">
-        <DialogHeader>
+      <DialogContent className="w-[calc(100%-0.5rem)] sm:max-w-4xl max-h-[85vh] flex flex-col">
+        <DialogHeader className="flex-shrink-0">
           <DialogTitle className="text-center text-base sm:text-lg">{t('loans.history')}</DialogTitle>
           <DialogDescription className="text-center text-[10px]">{loan.name}</DialogDescription>
         </DialogHeader>
-        {paymentCount > 0 && (
-          <div className="p-0.5 bg-muted border border-border rounded-lg text-center mb-0.5">
-            <p className="text-xs font-medium leading-tight">
-              {t('payments.summary', {
-                paidAmount: formatMoney(totalPaid, lang),
-                totalAmount: formatMoney(totalDebt, lang),
-                count: formatNumber(paymentCount, lang),
-              })}
-            </p>
-          </div>
-        )}
-        {/* Calendar-square grid: one tile per active month, no scroll — all months fit on screen */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-1">
+        <div className="flex-1 overflow-y-auto min-h-0 py-0.5">
+          {paymentCount > 0 && (
+            <div className="p-0.5 bg-muted border border-border rounded-lg text-center mb-0.5">
+              <p className="text-xs font-medium leading-tight">
+                {t('payments.summary', {
+                  paidAmount: formatMoney(totalPaid, lang),
+                  totalAmount: formatMoney(totalDebt, lang),
+                  count: formatNumber(paymentCount, lang),
+                })}
+              </p>
+            </div>
+          )}
+          {/* Calendar-square grid: one tile per active month, vertically scrollable */}
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-1">
           {months.map(monthIdx => {
             const payments = paymentsByMonth.get(monthIdx) ?? []
             const { year } = yearMonthOf(monthIdx)
@@ -119,6 +120,7 @@ export function PaymentHistoryDialog({ loan, open, onOpenChange }: Props) {
               </div>
             )
           })}
+        </div>
         </div>
         <DialogFooter className="border-t p-0.5">
           <Button
