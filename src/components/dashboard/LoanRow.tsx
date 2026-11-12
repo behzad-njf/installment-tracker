@@ -9,6 +9,7 @@ import {
   daysUntilLoanDeadline,
   isFullyPaidIn,
   isPartiallyPaidIn,
+  loanStatus,
   paidAmountIn,
   remainingInstallments,
 } from '@/lib/loans'
@@ -34,14 +35,18 @@ export function LoanRow({
   const { t } = useTranslation()
   const { lang } = useLocale()
 
+  const status = loanStatus(loan, month)
+  const finished = status === 'finished'
   const fullyPaid = isFullyPaidIn(loan, month)
   const partiallyPaid = isPartiallyPaidIn(loan, month)
   const paidAmount = fullyPaid || partiallyPaid ? paidAmountIn(loan, month) : 0
-  const statusLabel = fullyPaid
-    ? t('loans.status.paid')
-    : partiallyPaid
-      ? t('loans.status.partial')
-      : t('loans.status.unpaid')
+  const statusLabel = finished
+    ? t('loans.status.finished')
+    : fullyPaid
+      ? t('loans.status.paid')
+      : partiallyPaid
+        ? t('loans.status.partial')
+        : t('loans.status.unpaid')
   const totalPaid = loan.payments.reduce((sum, p) => sum + p.amount, 0)
   const totalDebt = loan.amount * Math.max(1, loan.duration)
   const remainingAmount = Math.max(0, totalDebt - totalPaid)
@@ -63,7 +68,7 @@ export function LoanRow({
       <TableCell>{formatNumber(loan.duration, lang)}</TableCell>
       <TableCell>
         <span className={`inline-block px-2 py-0.5 rounded text-xs font-medium ${
-          fullyPaid
+          finished || fullyPaid
             ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
             : partiallyPaid
               ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
@@ -82,17 +87,21 @@ export function LoanRow({
       <TableCell
         className={`text-center text-sm font-medium ${deadlineOverdue ? 'text-red-600 dark:text-red-400' : 'text-muted-foreground'}`}
       >
-        <div>{t('loans.deadlineDay', { day: formatNumber(loan.deadlineDay, lang) })}</div>
-        {deadlineInfo === null ? (
-          <div className="text-[10px] text-green-600 dark:text-green-400">
-            {t('loans.deadlinePaid')}
-          </div>
-        ) : deadlineOverdue ? (
-          <div className="text-[10px] text-red-600 dark:text-red-400">{t('loans.overdue')}</div>
-        ) : (
-          <div className="text-[10px] text-muted-foreground">
-            {t('loans.daysUntilDeadline', { days: formatNumber(deadlineInfo, lang) })}
-          </div>
+        {finished ? null : (
+          <>
+            <div>{t('loans.deadlineDay', { day: formatNumber(loan.deadlineDay, lang) })}</div>
+            {deadlineInfo === null ? (
+              <div className="text-[10px] text-green-600 dark:text-green-400">
+                {t('loans.deadlinePaid')}
+              </div>
+            ) : deadlineOverdue ? (
+              <div className="text-[10px] text-red-600 dark:text-red-400">{t('loans.overdue')}</div>
+            ) : (
+              <div className="text-[10px] text-muted-foreground">
+                {t('loans.daysUntilDeadline', { days: formatNumber(deadlineInfo, lang) })}
+              </div>
+            )}
+          </>
         )}
       </TableCell>
       <TableCell>
@@ -102,7 +111,7 @@ export function LoanRow({
             size="sm"
             variant="outline"
             onClick={() => onPay(loan.id, month)}
-            disabled={fullyPaid}
+            disabled={fullyPaid || finished}
           >
             {t('loans.pay')}
             {fullyPaid ? ' ' : ''}

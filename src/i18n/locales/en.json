@@ -81,7 +81,8 @@
     "status": {
       "paid": "Paid",
       "partial": "Partially paid",
-      "unpaid": "Unpaid"
+      "unpaid": "Unpaid",
+      "finished": "Finished"
     }
   },
   "payments": {
