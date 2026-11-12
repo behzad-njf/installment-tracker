@@ -1,4 +1,4 @@
-import { memo, useState } from 'react'
+import { memo, useState, useRef } from 'react'
 import { useLocale } from '@/hooks/useLocale'
 import { Label } from '@/components/ui/label'
 import {
@@ -24,61 +24,69 @@ export const JalaliDatePicker = memo(function JalaliDatePicker({ label, onChange
   const { year: curYear, month: curMonth } = yearMonthOf(currentMonthIndex())
   const curDay = currentDay()
 
-  const [jYear, setJYear] = useState(curYear)
-  const [jMonth, setJMonth] = useState(curMonth)
-  const [jDay, setJDay] = useState(curDay)
-
-  const daysCount = daysInJalaliMonth(jYear, jMonth)
-  const clampedDay = Math.min(jDay, daysCount)
+  const yearRef = useRef(curYear)
+  const monthRef = useRef(curMonth)
+  const dayRef = useRef(curDay)
+  const [daysCount, setDaysCount] = useState(daysInJalaliMonth(curYear, curMonth))
 
   const handleChange = () => {
-    const date = jalaliToDate(jYear, jMonth, clampedDay)
+    const date = jalaliToDate(yearRef.current, monthRef.current, Math.min(dayRef.current, daysCount))
     onChange(date.toISOString())
   }
+
+  const days = Array.from({ length: daysCount }, (_, i) => i + 1)
+  const months = Array.from({ length: 12 }, (_, i) => i + 1)
+  const years = Array.from({ length: 21 }, (_, i) => curYear - 10 + i)
 
   return (
     <div className="grid gap-2">
       {label && <Label>{label}</Label>}
       <div className="flex gap-2">
         <select
-          value={clampedDay}
+          value={String(dayRef.current)}
           onChange={e => {
-            setJDay(Number(e.target.value))
+            dayRef.current = Number(e.target.value)
             handleChange()
           }}
           className="border border-border rounded-lg px-3 py-2 text-sm h-9 bg-transparent flex-1"
         >
-          {Array.from({ length: daysCount }, (_, i) => i + 1).map(d => (
+          {days.map(d => (
             <option key={d} value={d}>
               {formatYear(d, lang)}
             </option>
           ))}
         </select>
         <select
-          value={jMonth}
+          value={String(monthRef.current)}
           onChange={e => {
-            setJMonth(Number(e.target.value))
-            setJDay(Math.min(clampedDay, daysInJalaliMonth(jYear, Number(e.target.value))))
+            const m = Number(e.target.value)
+            monthRef.current = m
+            const dc = daysInJalaliMonth(yearRef.current, m)
+            setDaysCount(dc)
+            dayRef.current = Math.min(dayRef.current, dc)
             handleChange()
           }}
           className="border border-border rounded-lg px-3 py-2 text-sm h-9 bg-transparent flex-1"
         >
-          {Array.from({ length: 12 }, (_, i) => i + 1).map(m => (
+          {months.map(m => (
             <option key={m} value={m}>
-              {monthName(monthIndexFrom(jYear, m), lang)}
+              {monthName(monthIndexFrom(yearRef.current, m), lang)}
             </option>
           ))}
         </select>
         <select
-          value={jYear}
+          value={String(yearRef.current)}
           onChange={e => {
-            setJYear(Number(e.target.value))
-            setJDay(Math.min(clampedDay, daysInJalaliMonth(Number(e.target.value), jMonth)))
+            const y = Number(e.target.value)
+            yearRef.current = y
+            const dc = daysInJalaliMonth(y, monthRef.current)
+            setDaysCount(dc)
+            dayRef.current = Math.min(dayRef.current, dc)
             handleChange()
           }}
           className="border border-border rounded-lg px-3 py-2 text-sm h-9 bg-transparent flex-1"
         >
-          {Array.from({ length: 21 }, (_, i) => curYear - 10 + i).map(y => (
+          {years.map(y => (
             <option key={y} value={y}>
               {formatYear(y, lang)}
             </option>

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useCallback, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useLoans } from '@/hooks/useLoans'
 import { useLocale } from '@/hooks/useLocale'
@@ -39,8 +39,12 @@ export function PayDialog({ loan, monthIndex, open, onOpenChange }: Props) {
     .filter(p => p.monthIndex === monthIndex)
     .sort((a, b) => a.paidAt.localeCompare(b.paidAt)) ?? []
 
-  const [date, setDate] = useState(() => new Date().toISOString())
+  const dateRef = useRef(new Date().toISOString())
   const [payMonth, setPayMonth] = useState(monthIndex)
+
+  const handleDateChange = useCallback((iso: string) => {
+    dateRef.current = iso
+  }, [])
 
   if (!loan) return null
 
@@ -49,10 +53,9 @@ export function PayDialog({ loan, monthIndex, open, onOpenChange }: Props) {
     const form = e.currentTarget as HTMLFormElement
     const amountInput = form.elements.namedItem('pay-amount') as HTMLInputElement | null
     const parsedAmount = parseMoney(amountInput?.value ?? '')
-    if (!date) return
     if (!Number.isFinite(parsedAmount) || parsedAmount <= 0) return
 
-    addPayment(loan.id, payMonth, parsedAmount, date)
+    addPayment(loan.id, payMonth, parsedAmount, dateRef.current)
     onOpenChange(false)
   }
 
@@ -111,7 +114,7 @@ export function PayDialog({ loan, monthIndex, open, onOpenChange }: Props) {
             </select>
           </div>
           <div className="grid gap-2">
-            <JalaliDatePicker label={t('loans.paymentDate')} onChange={setDate} />
+            <JalaliDatePicker label={t('loans.paymentDate')} onChange={handleDateChange} />
           </div>
           <div className="grid gap-2">
             <Label htmlFor="pay-amount">{t('loans.amount')}</Label>
