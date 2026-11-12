@@ -21,7 +21,9 @@
     "currentMonth": "Current month",
     "total": "Total",
     "loans": "loans",
-    "switchTo": "Switch to {{lang}}"
+    "switchTo": "Switch to {{lang}}",
+    "offline": "Offline — data stored on device",
+    "online": "Online"
   },
   "dashboard": {
     "overview": "This month's overview",

@@ -21,7 +21,9 @@
     "currentMonth": "ماه جاری",
     "total": "مجموع",
     "loans": "وام",
-    "switchTo": "تغییر به {{lang}}"
+    "switchTo": "تغییر به {{lang}}",
+    "offline": "آفلاین — داده‌ها در دستگاه ذخیره می‌شود",
+    "online": "آنلاین"
   },
   "dashboard": {
     "overview": "خلاصه این ماه",

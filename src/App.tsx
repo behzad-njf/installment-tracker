@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { AddEditLoanDialog } from '@/components/loans/AddEditLoanDialog'
@@ -68,6 +68,18 @@ export function App() {
   const [tab, setTab] = useState<'open' | 'finished'>('open')
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [importError, setImportError] = useState<string | null>(null)
+  const [isOnline, setIsOnline] = useState(navigator.onLine)
+
+  useEffect(() => {
+    const onOnline = () => setIsOnline(true)
+    const onOffline = () => setIsOnline(false)
+    window.addEventListener('online', onOnline)
+    window.addEventListener('offline', onOffline)
+    return () => {
+      window.removeEventListener('online', onOnline)
+      window.removeEventListener('offline', onOffline)
+    }
+  }, [])
 
   const handleExport = () => {
     const data = loadData()
@@ -118,6 +130,16 @@ export function App() {
             {todayLabel(lang)}
           </p>
         </div>
+
+        {!isOnline && (
+          <div
+            className="rounded-lg border border-amber-500/50 bg-amber-50 p-2 text-amber-800 dark:border-amber-400 dark:bg-amber-900/20 dark:text-amber-200 text-xs"
+            role="status"
+            aria-live="polite"
+          >
+            {t('common.offline')}
+          </div>
+        )}
 
         <SummaryCards summary={summary} nextMonthAmount={nextSummary.totalMonthly} />
         {upcomingDeadlines.length > 0 && (

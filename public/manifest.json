@@ -1,0 +1,29 @@
+{
+  "name": "مدیریت اقساط",
+  "short_name": "أقساط",
+  "description": "داشبورد مدیریت اقساط و بدهی‌های ماهانه — کاملا آفلاین و سمت کلاینت",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#ffffff",
+  "theme_color": "#0a0a0a",
+  "dir": "rtl",
+  "lang": "fa",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["finance", "productivity"],
+  "shortcuts": [
+    {
+      "name": "افزودن وام",
+      "short_name": "افزودن وام",
+      "url": "/?add=1",
+      "icons": [{ "src": "/favicon.svg", "sizes": "any" }]
+    }
+  ]
+}
