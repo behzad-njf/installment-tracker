@@ -17,7 +17,9 @@ interface JalaliDatePickerProps {
   onChange: (iso: string) => void
 }
 
-/** Minimal Jalali date picker: three native selects (day / month / year, RTL order). No date library. */
+/** Minimal Jalali date picker: three native selects (day / month / year, RTL order). No date library.
+ *  Each select uses `size` so options show inline with vertical scroll instead of a popup
+ *  that can close on re-render. */
 export const JalaliDatePicker = memo(function JalaliDatePicker({ label, onChange }: JalaliDatePickerProps) {
   const { lang } = useLocale()
 
@@ -43,12 +45,13 @@ export const JalaliDatePicker = memo(function JalaliDatePicker({ label, onChange
       {label && <Label>{label}</Label>}
       <div className="flex gap-2">
         <select
+          size={Math.min(6, daysCount)}
           value={String(dayRef.current)}
           onChange={e => {
             dayRef.current = Number(e.target.value)
             handleChange()
           }}
-          className="border border-border rounded-lg px-3 py-2 text-sm h-9 bg-transparent flex-1"
+          className="border border-border rounded-lg px-3 text-sm bg-transparent flex-1 min-h-[96px] max-h-[96px] overflow-y-auto"
         >
           {days.map(d => (
             <option key={d} value={d}>
@@ -57,6 +60,7 @@ export const JalaliDatePicker = memo(function JalaliDatePicker({ label, onChange
           ))}
         </select>
         <select
+          size={4}
           value={String(monthRef.current)}
           onChange={e => {
             const m = Number(e.target.value)
@@ -66,7 +70,7 @@ export const JalaliDatePicker = memo(function JalaliDatePicker({ label, onChange
             dayRef.current = Math.min(dayRef.current, dc)
             handleChange()
           }}
-          className="border border-border rounded-lg px-3 py-2 text-sm h-9 bg-transparent flex-1"
+          className="border border-border rounded-lg px-3 text-sm bg-transparent flex-1 min-h-[96px] max-h-[96px] overflow-y-auto"
         >
           {months.map(m => (
             <option key={m} value={m}>
@@ -75,6 +79,7 @@ export const JalaliDatePicker = memo(function JalaliDatePicker({ label, onChange
           ))}
         </select>
         <select
+          size={5}
           value={String(yearRef.current)}
           onChange={e => {
             const y = Number(e.target.value)
@@ -84,7 +89,7 @@ export const JalaliDatePicker = memo(function JalaliDatePicker({ label, onChange
             dayRef.current = Math.min(dayRef.current, dc)
             handleChange()
           }}
-          className="border border-border rounded-lg px-3 py-2 text-sm h-9 bg-transparent flex-1"
+          className="border border-border rounded-lg px-3 text-sm bg-transparent flex-1 min-h-[96px] max-h-[96px] overflow-y-auto"
         >
           {years.map(y => (
             <option key={y} value={y}>
