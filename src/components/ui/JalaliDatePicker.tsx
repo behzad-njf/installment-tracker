@@ -1,4 +1,4 @@
-import { memo, useState, useRef } from 'react'
+import { memo, useRef } from 'react'
 import { useLocale } from '@/hooks/useLocale'
 import { Label } from '@/components/ui/label'
 import {
@@ -10,16 +10,14 @@ import {
   currentDay,
   monthIndexFrom,
 } from '@/lib/jalali'
-import { formatYear } from '@/lib/money'
 
 interface JalaliDatePickerProps {
   label?: string
   onChange: (iso: string) => void
 }
 
-/** Minimal Jalali date picker: three native selects (day / month / year, RTL order). No date library.
- *  Each select uses `size` so options show inline with vertical scroll instead of a popup
- *  that can close on re-render. */
+/** Minimal Jalali date picker: text input for day and year, select for month. No date library.
+ *  Day/year are uncontrolled text inputs so nothing can close on re-render. */
 export const JalaliDatePicker = memo(function JalaliDatePicker({ label, onChange }: JalaliDatePickerProps) {
   const { lang } = useLocale()
 
@@ -29,48 +27,51 @@ export const JalaliDatePicker = memo(function JalaliDatePicker({ label, onChange
   const yearRef = useRef(curYear)
   const monthRef = useRef(curMonth)
   const dayRef = useRef(curDay)
-  const [daysCount, setDaysCount] = useState(daysInJalaliMonth(curYear, curMonth))
+
+  const daysInMonth = () => daysInJalaliMonth(yearRef.current, monthRef.current)
+
+  const clampDay = () => {
+    dayRef.current = Math.min(dayRef.current, daysInMonth())
+  }
 
   const handleChange = () => {
-    const date = jalaliToDate(yearRef.current, monthRef.current, Math.min(dayRef.current, daysCount))
+    clampDay()
+    const date = jalaliToDate(yearRef.current, monthRef.current, dayRef.current)
     onChange(date.toISOString())
   }
 
-  const days = Array.from({ length: daysCount }, (_, i) => i + 1)
   const months = Array.from({ length: 12 }, (_, i) => i + 1)
-  const years = Array.from({ length: 21 }, (_, i) => curYear - 10 + i)
+
+  const setDay = (v: number) => {
+    if (Number.isFinite(v) && v > 0) dayRef.current = v
+  }
+
+  const setYear = (v: number) => {
+    if (Number.isFinite(v) && v > 0) yearRef.current = v
+  }
 
   return (
     <div className="grid gap-2">
       {label && <Label>{label}</Label>}
       <div className="flex gap-2">
-        <select
-          size={Math.min(6, daysCount)}
-          value={String(dayRef.current)}
+        <input
+          type="text"
+          defaultValue={String(dayRef.current)}
           onChange={e => {
-            dayRef.current = Number(e.target.value)
+            setDay(Number(e.target.value))
             handleChange()
           }}
-          className="border border-border rounded-lg px-3 text-sm bg-transparent flex-1 min-h-[96px] max-h-[96px] overflow-y-auto"
-        >
-          {days.map(d => (
-            <option key={d} value={d}>
-              {formatYear(d, lang)}
-            </option>
-          ))}
-        </select>
+          className="border border-border rounded-lg px-3 py-2 text-sm bg-transparent flex-1 h-9"
+        />
         <select
-          size={4}
           value={String(monthRef.current)}
           onChange={e => {
             const m = Number(e.target.value)
             monthRef.current = m
-            const dc = daysInJalaliMonth(yearRef.current, m)
-            setDaysCount(dc)
-            dayRef.current = Math.min(dayRef.current, dc)
+            clampDay()
             handleChange()
           }}
-          className="border border-border rounded-lg px-3 text-sm bg-transparent flex-1 min-h-[96px] max-h-[96px] overflow-y-auto"
+          className="border border-border rounded-lg px-3 py-2 text-sm bg-transparent flex-1 h-9"
         >
           {months.map(m => (
             <option key={m} value={m}>
@@ -78,25 +79,15 @@ export const JalaliDatePicker = memo(function JalaliDatePicker({ label, onChange
             </option>
           ))}
         </select>
-        <select
-          size={5}
-          value={String(yearRef.current)}
+        <input
+          type="text"
+          defaultValue={String(yearRef.current)}
           onChange={e => {
-            const y = Number(e.target.value)
-            yearRef.current = y
-            const dc = daysInJalaliMonth(y, monthRef.current)
-            setDaysCount(dc)
-            dayRef.current = Math.min(dayRef.current, dc)
+            setYear(Number(e.target.value))
             handleChange()
           }}
-          className="border border-border rounded-lg px-3 text-sm bg-transparent flex-1 min-h-[96px] max-h-[96px] overflow-y-auto"
-        >
-          {years.map(y => (
-            <option key={y} value={y}>
-              {formatYear(y, lang)}
-            </option>
-          ))}
-        </select>
+          className="border border-border rounded-lg px-3 py-2 text-sm bg-transparent flex-1 h-9"
+        />
       </div>
     </div>
   )
