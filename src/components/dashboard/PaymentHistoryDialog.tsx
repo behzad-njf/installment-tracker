@@ -43,14 +43,14 @@ export function PaymentHistoryDialog({ loan, open, onOpenChange }: Props) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-[calc(100%-1rem)] sm:max-w-4xl">
+      <DialogContent className="w-[calc(100%-0.5rem)] sm:max-w-4xl">
         <DialogHeader>
-          <DialogTitle className="text-center sm:text-lg">{t('loans.history')}</DialogTitle>
+          <DialogTitle className="text-center text-base sm:text-lg">{t('loans.history')}</DialogTitle>
           <DialogDescription className="text-center text-[10px]">{loan.name}</DialogDescription>
         </DialogHeader>
         {paymentCount > 0 && (
-          <div className="p-1 bg-muted border border-border rounded-lg text-center mb-1">
-            <p className="text-xs font-medium">
+          <div className="p-0.5 bg-muted border border-border rounded-lg text-center mb-0.5">
+            <p className="text-xs font-medium leading-tight">
               {t('payments.summary', {
                 paidAmount: formatMoney(totalPaid, lang),
                 totalAmount: formatMoney(totalDebt, lang),
@@ -59,74 +59,72 @@ export function PaymentHistoryDialog({ loan, open, onOpenChange }: Props) {
             </p>
           </div>
         )}
-        <div className="max-h-[60vh] overflow-y-auto">
-          {/* Calendar-square grid: one tile per active month */}
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-1.5">
-            {months.map(monthIdx => {
-              const payments = paymentsByMonth.get(monthIdx) ?? []
-              const { year } = yearMonthOf(monthIdx)
-              const monthPaid = payments.reduce((sum, p) => sum + p.amount, 0)
-              const remaining = Math.max(0, loan.amount - monthPaid)
-              const fullyPaid = monthPaid >= loan.amount
-              return (
-                <div
-                  key={monthIdx}
-                  className={`border rounded-lg p-1 flex flex-col min-h-[88px] gap-1 ${
-                    fullyPaid ? 'border-green-500/50 bg-green-50/60 dark:bg-green-900/10' : 'border-border'
-                  }`}
-                >
-                  <div className="flex items-center justify-between gap-1">
-                    <span className="text-[10px] font-medium truncate">
-                      {monthName(monthIdx, lang)} {formatYear(year, lang)}
-                    </span>
-                    {fullyPaid ? (
-                      <Check className="size-3.5 shrink-0 text-green-600 dark:text-green-400" aria-label={t('payments.full')} />
-                    ) : null}
-                  </div>
-                  {!fullyPaid && (
-                    <div className="text-[9px]">
-                      {monthPaid > 0 ? (
-                        <span className="text-amber-700 dark:text-amber-400">
-                          {t('payments.partialStatus', {
-                            paid: formatMoney(monthPaid, lang),
-                            remaining: formatMoney(remaining, lang),
-                          })}
-                        </span>
-                      ) : (
-                        <span className="text-muted-foreground">{t('loans.status.unpaid')}</span>
-                      )}
-                    </div>
-                  )}
-                  {payments.length > 0 && (
-                    <div className="flex-1 space-y-0.5 overflow-y-auto max-h-24">
-                      {payments.map(payment => (
-                        <div
-                          key={payment.id}
-                          className="flex items-center justify-between px-1 py-0.5 border-b border-border/50 last:border-0"
-                        >
-                          <span className="text-[9px] truncate">
-                            {new Date(payment.paidAt).toLocaleDateString(
-                              lang === 'fa' ? 'fa-IR' : 'en-US',
-                              { year: 'numeric', month: 'numeric', day: 'numeric' },
-                            )}
-                          </span>
-                          <span className="text-[9px] font-medium">
-                            {formatMoney(payment.amount, lang)}
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-                  )}
+        {/* Calendar-square grid: one tile per active month, no scroll — all months fit on screen */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-1">
+          {months.map(monthIdx => {
+            const payments = paymentsByMonth.get(monthIdx) ?? []
+            const { year } = yearMonthOf(monthIdx)
+            const monthPaid = payments.reduce((sum, p) => sum + p.amount, 0)
+            const remaining = Math.max(0, loan.amount - monthPaid)
+            const fullyPaid = monthPaid >= loan.amount
+            return (
+              <div
+                key={monthIdx}
+                className={`border rounded-lg p-0.5 flex flex-col gap-1 ${
+                  fullyPaid ? 'border-green-500/50 bg-green-50/60 dark:bg-green-900/10' : 'border-border'
+                }`}
+              >
+                <div className="flex items-center justify-between gap-0.5">
+                  <span className="text-[9px] font-medium truncate">
+                    {monthName(monthIdx, lang)} {formatYear(year, lang)}
+                  </span>
+                  {fullyPaid ? (
+                    <Check className="size-3 shrink-0 text-green-600 dark:text-green-400" aria-label={t('payments.full')} />
+                  ) : null}
                 </div>
-              )
-            })}
-          </div>
+                {!fullyPaid && (
+                  <div className="text-[8px] leading-none">
+                    {monthPaid > 0 ? (
+                      <span className="text-amber-700 dark:text-amber-400">
+                        {t('payments.partialStatus', {
+                          paid: formatMoney(monthPaid, lang),
+                          remaining: formatMoney(remaining, lang),
+                        })}
+                      </span>
+                    ) : (
+                      <span className="text-muted-foreground">{t('loans.status.unpaid')}</span>
+                    )}
+                  </div>
+                )}
+                {payments.length > 0 && (
+                  <div className="flex-1 space-y-0">
+                    {payments.map(payment => (
+                      <div
+                        key={payment.id}
+                        className="flex items-center justify-between px-0.5 py-0 border-b border-border/50 last:border-0"
+                      >
+                        <span className="text-[8px] truncate leading-none">
+                          {new Date(payment.paidAt).toLocaleDateString(
+                            lang === 'fa' ? 'fa-IR' : 'en-US',
+                            { year: 'numeric', month: 'numeric', day: 'numeric' },
+                          )}
+                        </span>
+                        <span className="text-[8px] font-medium leading-none">
+                          {formatMoney(payment.amount, lang)}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )
+          })}
         </div>
-        <DialogFooter className="border-t p-1">
+        <DialogFooter className="border-t p-0.5">
           <Button
             type="button"
             variant="outline"
-            className="w-full px-2 py-1.5 text-xs"
+            className="w-full px-2 py-1 text-xs"
             onClick={() => onOpenChange(false)}
           >
             {t('loans.cancel')}
