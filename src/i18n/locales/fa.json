@@ -27,6 +27,8 @@
     "paidThisMonth": "پرداخت‌شده این ماه",
     "remainingThisMonth": "مانده این ماه",
     "nextMonth": "قسط ماه بعد",
+    "chart": "چارت",
+    "calendar": "تقویم",
     "activeLoans": "{{count}} وام فعال",
     "paidOfActive": "{{paid}} از {{active}} پرداخت شده",
     "allPaid": "همه اقساط این ماه تسویه شده",

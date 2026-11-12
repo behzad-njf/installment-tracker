@@ -13,7 +13,7 @@ import { PaymentHistoryDialog } from '@/components/dashboard/PaymentHistoryDialo
 import { AppShell } from '@/components/layout/AppShell'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
-import { Download, Plus, Upload } from 'lucide-react'
+import { Download, Plus, BarChart2, Calendar, Upload } from 'lucide-react'
 import { useLocale } from '@/hooks/useLocale'
 import { useLoans } from '@/hooks/useLoans'
 import { currentMonthIndex, todayLabel, yearMonthOf } from '@/lib/jalali'
@@ -59,6 +59,7 @@ export function App() {
   )
 
   const [calYear, setCalYear] = useState(chartYear)
+  const [mobileView, setMobileView] = useState<'chart' | 'calendar'>('calendar')
 
   const [addEditLoan, setAddEditLoan] = useState<{ loan: Loan | null; open: boolean }>({ loan: null, open: false })
   const [deleteLoan, setDeleteLoan] = useState<{ loan: Loan | null; open: boolean }>({ loan: null, open: false })
@@ -137,13 +138,47 @@ export function App() {
             {t('dashboard.overdueLoans', { count: overdueLoans.length })}
           </div>
         )}
-        <div className="grid gap-3 md:grid-cols-2">
+        {/* Desktop: both chart and calendar side by side */}
+        <div className="hidden md:grid md:grid-cols-2 gap-3">
           <Card>
             <CardContent>
               <BreakdownChart loans={loans} year={chartYear} />
             </CardContent>
           </Card>
           <YearCalendar loans={loans} year={calYear} onYearChange={setCalYear} />
+        </div>
+
+        {/* Mobile: tabs with calendar as default */}
+        <div className="md:hidden space-y-4">
+          <div className="flex gap-2 border-b border-border pb-1">
+            <Button
+              type="button"
+              size="sm"
+              variant={mobileView === 'chart' ? 'default' : 'outline'}
+              onClick={() => setMobileView('chart')}
+            >
+              <BarChart2 className="size-4 ms-1.5" aria-hidden />
+              {t('dashboard.chart')}
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              variant={mobileView === 'calendar' ? 'default' : 'outline'}
+              onClick={() => setMobileView('calendar')}
+            >
+              <Calendar className="size-4 ms-1.5" aria-hidden />
+              {t('dashboard.calendar')}
+            </Button>
+          </div>
+          {mobileView === 'chart' ? (
+            <Card>
+              <CardContent>
+                <BreakdownChart loans={loans} year={chartYear} />
+              </CardContent>
+            </Card>
+          ) : (
+            <YearCalendar loans={loans} year={calYear} onYearChange={setCalYear} />
+          )}
         </div>
 
         <div className="flex items-center gap-2">

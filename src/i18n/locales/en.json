@@ -27,6 +27,8 @@
     "paidThisMonth": "Paid this month",
     "remainingThisMonth": "Remaining this month",
     "nextMonth": "Next month",
+    "chart": "Chart",
+    "calendar": "Calendar",
     "activeLoans": "{{count}} active loans",
     "paidOfActive": "{{paid}} of {{active}} paid",
     "allPaid": "All installments paid this month",
