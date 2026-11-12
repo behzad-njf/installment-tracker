@@ -4,7 +4,7 @@ const CACHE_NAME = 'aghsat-v1';
 const ASSETS = [
   '/',
   '/index.html',
-  '/favicon.svg',
+  '/favicon.png',
   '/manifest.json',
 ];
 
