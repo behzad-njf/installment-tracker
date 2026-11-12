@@ -33,11 +33,11 @@ function Stat({
       <Card className="h-full">
         <CardContent className="flex h-full flex-col justify-between gap-4">
           <div className="flex items-center gap-2">
-            <span className={`grid size-8 place-items-center rounded-lg ${tone}`}>{icon}</span>
+            <span className={`grid size-6 sm:size-8 place-items-center rounded-lg ${tone}`}>{icon}</span>
             <span className="text-muted-foreground text-xs font-medium">{label}</span>
           </div>
           <div className="flex items-baseline gap-1.5">
-            <span className="text-2xl leading-none font-bold tabular-nums">{value}</span>
+            <span className="text-lg sm:text-2xl leading-none font-bold tabular-nums">{value}</span>
             <span className="text-muted-foreground text-xs">{toman}</span>
           </div>
         </CardContent>
@@ -53,7 +53,7 @@ export function SummaryCards({ summary, nextMonthAmount }: { summary: Summary; n
 
   return (
     <section aria-label={t('common.currentMonth')} className="space-y-3">
-      <div className="grid auto-rows-fr grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
         <Stat
           delay={0}
           label={t('dashboard.totalMonthly')}
