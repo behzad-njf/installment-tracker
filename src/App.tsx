@@ -231,6 +231,7 @@ export function App() {
           onOpenChange={open => setDeleteLoan(prev => ({ ...prev, open }))}
         />
         <PayDialog
+          key={payDialog?.month ?? 0}
           loan={loans.find(l => l.id === payDialog?.id) ?? null}
           monthIndex={payDialog?.month ?? 0}
           open={payDialog !== null}
