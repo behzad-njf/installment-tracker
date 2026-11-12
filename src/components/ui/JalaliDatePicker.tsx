@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { memo, useState } from 'react'
 import { useLocale } from '@/hooks/useLocale'
 import { Label } from '@/components/ui/label'
 import {
@@ -18,7 +18,7 @@ interface JalaliDatePickerProps {
 }
 
 /** Minimal Jalali date picker: three native selects (day / month / year, RTL order). No date library. */
-export function JalaliDatePicker({ label, onChange }: JalaliDatePickerProps) {
+export const JalaliDatePicker = memo(function JalaliDatePicker({ label, onChange }: JalaliDatePickerProps) {
   const { lang } = useLocale()
 
   const { year: curYear, month: curMonth } = yearMonthOf(currentMonthIndex())
@@ -87,4 +87,4 @@ export function JalaliDatePicker({ label, onChange }: JalaliDatePickerProps) {
       </div>
     </div>
   )
-}
+})
