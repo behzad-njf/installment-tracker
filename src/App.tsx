@@ -10,6 +10,7 @@ import { LoanTable } from '@/components/dashboard/LoanTable'
 import { EmptyState } from '@/components/dashboard/EmptyState'
 import { PayDialog } from '@/components/dashboard/PayDialog'
 import { PaymentHistoryDialog } from '@/components/dashboard/PaymentHistoryDialog'
+import { UpdateDialog } from '@/components/dashboard/UpdateDialog'
 import { AppShell } from '@/components/layout/AppShell'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
@@ -17,6 +18,7 @@ import { Download, Plus, BarChart2, Calendar, Upload } from 'lucide-react'
 import { useLocale } from '@/hooks/useLocale'
 import { useLoans } from '@/hooks/useLoans'
 import { currentMonthIndex, todayLabel, yearMonthOf } from '@/lib/jalali'
+import { APP_VERSION } from '@/lib/version'
 import { daysUntilLoanDeadline, remainingInstallments, summaryFor } from '@/lib/loans'
 import { exportDataFile, importDataFile, loadData } from '@/lib/storage'
 import type { Loan } from '@/lib/types'
@@ -69,6 +71,9 @@ export function App() {
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [importError, setImportError] = useState<string | null>(null)
   const [isOnline, setIsOnline] = useState(navigator.onLine)
+  const [updateAvailable, setUpdateAvailable] = useState(false)
+  const [updateVersion, setUpdateVersion] = useState('')
+  const swRegRef = useRef<ServiceWorkerRegistration | null>(null)
 
   useEffect(() => {
     const onOnline = () => setIsOnline(true)
@@ -78,6 +83,41 @@ export function App() {
     return () => {
       window.removeEventListener('online', onOnline)
       window.removeEventListener('offline', onOffline)
+    }
+  }, [])
+
+  useEffect(() => {
+    if (!('serviceWorker' in navigator)) return
+
+    navigator.serviceWorker.ready.then((registration) => {
+      swRegRef.current = registration
+
+      // Check for updates on load
+      registration.update()
+
+      registration.addEventListener('updatefound', () => {
+        const installing = registration.installing
+        if (!installing) return
+        installing.addEventListener('statechange', () => {
+          if (installing.state === 'installed') {
+            setUpdateAvailable(true)
+            setUpdateVersion(APP_VERSION)
+            swRegRef.current = registration
+          }
+        })
+      })
+    })
+
+    const onControllerChange = () => {
+      window.location.reload()
+    }
+    navigator.serviceWorker.addEventListener('controllerchange', onControllerChange)
+
+    return () => {
+      navigator.serviceWorker.removeEventListener(
+        'controllerchange',
+        onControllerChange
+      )
     }
   }, [])
 
@@ -314,6 +354,18 @@ export function App() {
           open={historyLoan !== null}
           onOpenChange={open => { if (!open) setHistoryLoan(null) }}
         />
+        {updateAvailable && (
+          <UpdateDialog
+            open={updateAvailable}
+            currentVersion={APP_VERSION}
+            newVersion={updateVersion}
+            onOpenChange={open => setUpdateAvailable(open)}
+            onUpdate={() => {
+              swRegRef.current?.waiting?.postMessage({ type: 'SKIP_WAITING' })
+              setUpdateAvailable(false)
+            }}
+          />
+        )}
       </div>
     </AppShell>
   )

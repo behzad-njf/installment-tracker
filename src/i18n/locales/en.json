@@ -114,5 +114,14 @@
     "restored": "Data restored from backup",
     "invalidFile": "Invalid file",
     "autoRestored": "Main data not found; restored from backup"
+  },
+  "update": {
+    "title": "App Update",
+    "available": "New version {{version}} is available for update",
+    "currentVersion": "Current Version",
+    "newVersion": "New Version",
+    "dataSafe": "Your data will not be deleted.",
+    "updateButton": "Update",
+    "later": "Later"
   }
 }
