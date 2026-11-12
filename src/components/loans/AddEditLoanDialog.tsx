@@ -20,7 +20,7 @@ import {
   yearMonthOf,
   jalaliToDate,
 } from '@/lib/jalali'
-import { formatNumber, parseMoney } from '@/lib/money'
+import { formatMoney, formatNumber, parseMoney } from '@/lib/money'
 import type { Loan, LoanDraft, PaymentRecord } from '@/lib/types'
 
 interface Props {
@@ -37,28 +37,31 @@ export function AddEditLoanDialog({ loan, open, onOpenChange }: Props) {
   const current = yearMonthOf(currentMonthIndex())
 
   const [name, setName] = useState(loan?.name ?? '')
-  const [amount, setAmount] = useState(loan ? String(loan.amount) : '')
   const [startYear, setStartYear] = useState(loan?.startYear ?? current.year)
   const [startMonth, setStartMonth] = useState(loan?.startMonth ?? current.month)
   const [duration, setDuration] = useState(loan?.duration ?? 1)
   const [deadlineDay, setDeadlineDay] = useState(loan?.deadlineDay ?? 1)
-  const [previousPaid, setPreviousPaid] = useState<'yes' | 'no' | null>(null)
+  const [previousPaid, setPreviousPaid] = useState(false)
 
   const start = monthIndexFrom(startYear, startMonth)
   const isNew = !loan
   const startInPast = start < currentMonthIndex()
-  const showPreviousQuestion = isNew && startInPast && previousPaid === null
+  const showPreviousQuestion = isNew && startInPast
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    const parsedAmount = parseMoney(amount)
-    if (!name.trim()) return
+    const form = e.currentTarget as HTMLFormElement
+    const nameInput = form.elements.namedItem('loan-name') as HTMLInputElement | null
+    const amountInput = form.elements.namedItem('loan-amount') as HTMLInputElement | null
+    const parsedName = nameInput?.value.trim() ?? ''
+    const parsedAmount = parseMoney(amountInput?.value ?? '')
+    if (!parsedName) return
     if (parsedAmount <= 0) return
     if (!Number.isInteger(startYear) || startYear < 1300 || startYear > 1500) return
     if (!Number.isInteger(duration) || duration < 1 || duration > 120) return
 
     let payments: PaymentRecord[] = []
-    if (isNew && previousPaid === 'yes') {
+    if (isNew && previousPaid) {
       const currentMonth = currentMonthIndex()
       for (let m = start; m < currentMonth; m++) {
         const { year: py, month: pm } = yearMonthOf(m)
@@ -99,23 +102,15 @@ export function AddEditLoanDialog({ loan, open, onOpenChange }: Props) {
           {showPreviousQuestion && (
             <div className="grid gap-1.5 p-3 bg-muted border border-border rounded-lg">
               <Label>{t('loans.previousPayments')}</Label>
-              <div className="flex gap-2">
-                <Button
-                  type="button"
-                  size="sm"
-                  variant={previousPaid === 'yes' ? 'default' : 'outline'}
-                  onClick={() => setPreviousPaid('yes')}
-                >
-                  {t('loans.previousPaidYes')}
-                </Button>
-                <Button
-                  type="button"
-                  size="sm"
-                  variant={previousPaid === 'no' ? 'default' : 'outline'}
-                  onClick={() => setPreviousPaid('no')}
-                >
-                  {t('loans.previousPaidNo')}
-                </Button>
+              <div className="flex items-start gap-2">
+                <input
+                  id="loan-previous-paid"
+                  type="checkbox"
+                  checked={previousPaid}
+                  onChange={e => setPreviousPaid(e.target.checked)}
+                  className="mt-0.5"
+                />
+                <Label htmlFor="loan-previous-paid">{t('loans.previousPaidYes')}</Label>
               </div>
             </div>
           )}
@@ -134,12 +129,14 @@ export function AddEditLoanDialog({ loan, open, onOpenChange }: Props) {
             <Label htmlFor="loan-amount">{t('loans.amount')}</Label>
             <Input
               id="loan-amount"
-              type="number"
-              value={amount}
-              onChange={e => setAmount(e.target.value)}
-              min={1}
+              name="loan-amount"
+              type="text"
+              defaultValue={loan ? formatMoney(loan.amount, lang) : ''}
+              placeholder={formatMoney(1000000, lang)}
               required
+              className="border border-border rounded-lg px-3 py-2 text-sm flex-1"
             />
+            <span className="text-muted-foreground text-xs">{t('common.toman')}</span>
           </div>
 
           <div className="grid grid-cols-2 gap-3">
@@ -210,7 +207,6 @@ export function AddEditLoanDialog({ loan, open, onOpenChange }: Props) {
             </Button>
             <Button
               type="submit"
-              disabled={showPreviousQuestion && previousPaid === null}
             >
               {t('loans.save')}
             </Button>
