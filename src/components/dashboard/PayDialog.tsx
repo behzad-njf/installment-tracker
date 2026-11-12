@@ -16,7 +16,8 @@ import {
 import { formatMoney, parseMoney } from '@/lib/money'
 import { Calendar } from 'lucide-react'
 import type { Loan } from '@/lib/types'
-import { jalaliPartsFromDate, monthIndexFrom } from '@/lib/jalali'
+import { activeMonthIndices, isFullyPaidIn } from '@/lib/loans'
+import { monthName } from '@/lib/jalali'
 import { JalaliDatePicker } from '@/components/ui/JalaliDatePicker'
 
 interface Props {
@@ -39,6 +40,7 @@ export function PayDialog({ loan, monthIndex, open, onOpenChange }: Props) {
     .sort((a, b) => a.paidAt.localeCompare(b.paidAt)) ?? []
 
   const [date, setDate] = useState(() => new Date().toISOString())
+  const [payMonth, setPayMonth] = useState(monthIndex)
 
   if (!loan) return null
 
@@ -50,8 +52,6 @@ export function PayDialog({ loan, monthIndex, open, onOpenChange }: Props) {
     if (!date) return
     if (!Number.isFinite(parsedAmount) || parsedAmount <= 0) return
 
-    const { year, month } = jalaliPartsFromDate(new Date(date))
-    const payMonth = monthIndexFrom(year, month)
     addPayment(loan.id, payMonth, parsedAmount, date)
     onOpenChange(false)
   }
@@ -90,7 +90,27 @@ export function PayDialog({ loan, monthIndex, open, onOpenChange }: Props) {
         )}
         <form onSubmit={handleSubmit} className="grid gap-4 p-4">
           <div className="grid gap-2">
-            <Label htmlFor="pay-date">{t('loans.paymentDate')}</Label>
+            <Label htmlFor="pay-month">{t('loans.payMonth')}</Label>
+            <select
+              id="pay-month"
+              name="pay-month"
+              value={payMonth}
+              onChange={e => setPayMonth(Number(e.target.value))}
+              className="border border-border rounded-lg px-3 py-2 text-sm h-9 bg-transparent flex-1"
+            >
+              {activeMonthIndices(loan)
+                .filter(m => !isFullyPaidIn(loan, m))
+                .map(m => {
+                  const y = Math.floor(m / 12)
+                  return (
+                    <option key={m} value={m}>
+                      {monthName(m, lang)} {y}
+                    </option>
+                  )
+                })}
+            </select>
+          </div>
+          <div className="grid gap-2">
             <JalaliDatePicker label={t('loans.paymentDate')} onChange={setDate} />
           </div>
           <div className="grid gap-2">
