@@ -16,6 +16,9 @@ import {
 import { formatMoney } from '@/lib/money'
 import { Calendar } from 'lucide-react'
 import type { Loan } from '@/lib/types'
+import { activeMonthIndices, isFullyPaidIn } from '@/lib/loans'
+import { monthName } from '@/lib/jalali'
+import { JalaliDatePicker } from '@/components/ui/JalaliDatePicker'
 
 interface Props {
   loan: Loan | null
@@ -36,9 +39,12 @@ export function PayDialog({ loan, monthIndex, open, onOpenChange }: Props) {
     .filter(p => p.monthIndex === monthIndex)
     .sort((a, b) => a.paidAt.localeCompare(b.paidAt)) ?? []
 
-  const [date, setDate] = useState(() => new Date().toISOString().slice(0, 10))
+  const [date, setDate] = useState(() => new Date().toISOString())
+  const [payMonth, setPayMonth] = useState(monthIndex)
 
   if (!loan) return null
+
+  const unpaidMonths = activeMonthIndices(loan).filter(m => !isFullyPaidIn(loan, m))
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -48,7 +54,7 @@ export function PayDialog({ loan, monthIndex, open, onOpenChange }: Props) {
     if (!date) return
     if (!Number.isFinite(parsedAmount) || parsedAmount <= 0) return
 
-    addPayment(loan.id, monthIndex, parsedAmount, `${date}T00:00:00.000Z`)
+    addPayment(loan.id, payMonth, parsedAmount, date)
     onOpenChange(false)
   }
 
@@ -67,10 +73,7 @@ export function PayDialog({ loan, monthIndex, open, onOpenChange }: Props) {
             </div>
             <div className="space-y-0.5">
               {monthPayments.map(p => (
-                <div
-                  key={p.id}
-                  className="flex items-center justify-between text-[10px]"
-                >
+                <div key={p.id} className="flex items-center justify-between text-[10px]">
                   <span className="text-muted-foreground">
                     {new Date(p.paidAt).toLocaleDateString(
                       lang === 'fa' ? 'fa-IR' : 'en-US',
@@ -89,15 +92,23 @@ export function PayDialog({ loan, monthIndex, open, onOpenChange }: Props) {
         )}
         <form onSubmit={handleSubmit} className="grid gap-4 p-4">
           <div className="grid gap-2">
+            <Label htmlFor="pay-month">{t('loans.payMonth')}</Label>
+            <select
+              id="pay-month"
+              value={payMonth}
+              onChange={e => setPayMonth(Number(e.target.value))}
+              className="border border-border rounded-lg px-3 py-2 text-sm h-9 bg-transparent"
+            >
+              {unpaidMonths.map(m => (
+                <option key={m} value={m}>
+                  {monthName(m, lang)}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="grid gap-2">
             <Label htmlFor="pay-date">{t('loans.paymentDate')}</Label>
-            <Input
-              id="pay-date"
-              type="date"
-              value={date}
-              onChange={e => setDate(e.target.value)}
-              required
-              className="border border-border rounded-lg px-3 py-2 text-sm"
-            />
+            <JalaliDatePicker label={t('loans.paymentDate')} onChange={setDate} />
           </div>
           <div className="grid gap-2">
             <Label htmlFor="pay-amount">{t('loans.amount')}</Label>

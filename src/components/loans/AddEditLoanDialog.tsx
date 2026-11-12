@@ -13,9 +13,15 @@ import {
   DialogDescription,
   DialogFooter,
 } from '@/components/ui/dialog'
-import { currentMonthIndex, monthName, monthIndexFrom, yearMonthOf } from '@/lib/jalali'
+import {
+  currentMonthIndex,
+  monthIndexFrom,
+  monthName,
+  yearMonthOf,
+  jalaliToDate,
+} from '@/lib/jalali'
 import { formatNumber, parseMoney } from '@/lib/money'
-import type { Loan, LoanDraft } from '@/lib/types'
+import type { Loan, LoanDraft, PaymentRecord } from '@/lib/types'
 
 interface Props {
   loan: Loan | null
@@ -36,8 +42,12 @@ export function AddEditLoanDialog({ loan, open, onOpenChange }: Props) {
   const [startMonth, setStartMonth] = useState(loan?.startMonth ?? current.month)
   const [duration, setDuration] = useState(loan?.duration ?? 1)
   const [deadlineDay, setDeadlineDay] = useState(loan?.deadlineDay ?? 1)
+  const [previousPaid, setPreviousPaid] = useState<'yes' | 'no' | null>(null)
 
-  // Mounted only while open (see App), so initial state is always fresh.
+  const start = monthIndexFrom(startYear, startMonth)
+  const isNew = !loan
+  const startInPast = start < currentMonthIndex()
+  const showPreviousQuestion = isNew && startInPast && previousPaid === null
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -47,13 +57,27 @@ export function AddEditLoanDialog({ loan, open, onOpenChange }: Props) {
     if (!Number.isInteger(startYear) || startYear < 1300 || startYear > 1500) return
     if (!Number.isInteger(duration) || duration < 1 || duration > 120) return
 
+    let payments: PaymentRecord[] = []
+    if (isNew && previousPaid === 'yes') {
+      const currentMonth = currentMonthIndex()
+      for (let m = start; m < currentMonth; m++) {
+        const { year: py, month: pm } = yearMonthOf(m)
+        payments.push({
+          id: crypto.randomUUID(),
+          monthIndex: m,
+          amount: parsedAmount,
+          paidAt: jalaliToDate(py, pm, deadlineDay).toISOString(),
+        })
+      }
+    }
+
     const draft: LoanDraft = {
       name: name.trim(),
       amount: parsedAmount,
       startYear,
       startMonth,
       duration,
-      payments: loan?.payments ?? [],
+      payments: loan?.payments ?? payments,
       deadlineDay,
     }
     if (loan) {
@@ -72,6 +96,29 @@ export function AddEditLoanDialog({ loan, open, onOpenChange }: Props) {
           {loan ? <DialogDescription>{loan.name}</DialogDescription> : null}
         </DialogHeader>
         <form onSubmit={handleSubmit} className="grid gap-4">
+          {showPreviousQuestion && (
+            <div className="grid gap-1.5 p-3 bg-muted border border-border rounded-lg">
+              <Label>{t('loans.previousPayments')}</Label>
+              <div className="flex gap-2">
+                <Button
+                  type="button"
+                  size="sm"
+                  variant={previousPaid === 'yes' ? 'default' : 'outline'}
+                  onClick={() => setPreviousPaid('yes')}
+                >
+                  {t('loans.previousPaidYes')}
+                </Button>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant={previousPaid === 'no' ? 'default' : 'outline'}
+                  onClick={() => setPreviousPaid('no')}
+                >
+                  {t('loans.previousPaidNo')}
+                </Button>
+              </div>
+            </div>
+          )}
           <div className="grid gap-1.5">
             <Label htmlFor="loan-name">{t('loans.name')}</Label>
             <Input
@@ -161,7 +208,12 @@ export function AddEditLoanDialog({ loan, open, onOpenChange }: Props) {
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               {t('loans.cancel')}
             </Button>
-            <Button type="submit">{t('loans.save')}</Button>
+            <Button
+              type="submit"
+              disabled={showPreviousQuestion && previousPaid === null}
+            >
+              {t('loans.save')}
+            </Button>
           </DialogFooter>
         </form>
       </DialogContent>

@@ -102,3 +102,47 @@ export function todayLabel(lang: Lang): string {
 export function daysUntilDeadline(deadlineDay: number): number {
   return deadlineDay - currentDay()
 }
+
+/** Full Jalali parts formatter (year, month, day as Latin digits). */
+export const PERSIAN_FULL_PARTS = new Intl.DateTimeFormat('en-US-u-ca-persian-nu-latn', {
+  year: 'numeric',
+  month: 'numeric',
+  day: 'numeric',
+})
+
+/** Convert Jalali (year, month, day) to a JS Date (UTC midnight). Brute-force search ±2 years around the approximate Gregorian year. */
+export function jalaliToDate(jYear: number, jMonth: number, jDay: number): Date {
+  let gYear = jYear + 621
+  let date = new Date(Date.UTC(gYear - 1, 0, 1))
+  const end = new Date(Date.UTC(gYear + 1, 11, 31))
+  while (date <= end) {
+    const parts = PERSIAN_FULL_PARTS.formatToParts(date)
+    const y = Number(parts.find((part) => part.type === 'year')?.value)
+    const m = Number(parts.find((part) => part.type === 'month')?.value)
+    const d = Number(parts.find((part) => part.type === 'day')?.value)
+    if (y === jYear && m === jMonth && d === jDay) {
+      return new Date(date)
+    }
+    date = new Date(date.getTime() + 86400000)
+  }
+  return new Date(Date.UTC(gYear, 2, 21))
+}
+
+/** Extract Jalali year/month/day from a JS Date. */
+export function jalaliPartsFromDate(date: Date): { year: number; month: number; day: number } {
+  const parts = PERSIAN_FULL_PARTS.formatToParts(date)
+  return {
+    year: Number(parts.find((part) => part.type === 'year')?.value || 0),
+    month: Number(parts.find((part) => part.type === 'month')?.value || 0),
+    day: Number(parts.find((part) => part.type === 'day')?.value || 0),
+  }
+}
+
+/** Number of days in a Jalali month (Esfand is 29 or 30 by the 33-year leap rule). */
+export function daysInJalaliMonth(year: number, month: number): number {
+  if (month <= 6) return 31
+  if (month <= 11) return 30
+  const r = year % 33
+  const leap = r === 1 || r === 5 || r === 9 || r === 13 || r === 17 || r === 22 || r === 26 || r === 30
+  return leap ? 30 : 29
+}
