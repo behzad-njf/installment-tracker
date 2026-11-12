@@ -2,6 +2,7 @@ import { monthIndexFrom } from './jalali'
 import type { DataFile, Lang, Loan, PaymentRecord, Settings, Theme } from './types'
 
 export const STORAGE_KEY = 'finance.data.v2'
+export const BACKUP_KEY = 'finance.backup.v2'
 
 const DEFAULT_SETTINGS: Settings = { lang: 'fa', theme: 'light', seeded: false }
 
@@ -123,13 +124,17 @@ export function parseDataFile(raw: unknown): DataFile | null {
   return { version: 2, settings: sanitizeSettings(raw.settings), loans }
 }
 
-function readRaw(): unknown {
+function readRawKey(key: string): unknown {
   try {
-    const text = localStorage.getItem(STORAGE_KEY)
+    const text = localStorage.getItem(key)
     return text ? JSON.parse(text) : null
   } catch {
     return null
   }
+}
+
+function readRaw(): unknown {
+  return readRawKey(STORAGE_KEY)
 }
 
 /** Settings without seeding or writing — safe to call before React renders (i18n bootstrap). */
@@ -142,6 +147,12 @@ export function loadData(): DataFile {
   const parsed = parseDataFile(readRaw())
   if (parsed) return parsed
 
+  const backup = parseDataFile(readRawKey(BACKUP_KEY))
+  if (backup) {
+    saveData(backup)
+    return backup
+  }
+
   const seeded: DataFile = {
     version: 2,
     settings: { ...DEFAULT_SETTINGS, seeded: true },
@@ -151,9 +162,21 @@ export function loadData(): DataFile {
   return seeded
 }
 
+/** Download-safe JSON string of the current data file. */
+export function exportDataFile(data: DataFile): string {
+  return JSON.stringify(data, null, 2)
+}
+
+/** Validate an imported JSON payload; returns null when unusable. */
+export function importDataFile(text: string): DataFile | null {
+  return parseDataFile(text)
+}
+
 export function saveData(data: DataFile): boolean {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(data))
+    const json = JSON.stringify(data)
+    localStorage.setItem(STORAGE_KEY, json)
+    localStorage.setItem(BACKUP_KEY, json)
     return true
   } catch {
     // Quota or private-mode failure: keep the app usable, callers surface a toast.

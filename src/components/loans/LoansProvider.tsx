@@ -10,6 +10,7 @@ export interface LoansContextValue {
   addPayment: (loanId: string, monthIndex: number, amount: number, paidAt: string) => void
   removePayment: (loanId: string, paymentId: string) => void
   clearDemo: () => void
+  replaceData: (data: DataFile) => void
 }
 
 const LoansContext = createContext<LoansContextValue | null>(null)
@@ -75,6 +76,11 @@ export function LoansProvider({ children }: { children: ReactNode }) {
     saveData(next)
   }
 
+  const replaceData = (next: DataFile) => {
+    setData(next)
+    saveData(next)
+  }
+
   const value: LoansContextValue = {
     loans: data.loans,
     addLoan,
@@ -83,6 +89,7 @@ export function LoansProvider({ children }: { children: ReactNode }) {
     addPayment,
     removePayment,
     clearDemo,
+    replaceData,
   }
   return (
     <LoansContext.Provider value={value}>{children}</LoansContext.Provider>

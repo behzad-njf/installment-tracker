@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { AddEditLoanDialog } from '@/components/loans/AddEditLoanDialog'
@@ -17,6 +17,7 @@ import { useLocale } from '@/hooks/useLocale'
 import { useLoans } from '@/hooks/useLoans'
 import { currentMonthIndex, todayLabel, yearMonthOf } from '@/lib/jalali'
 import { daysUntilLoanDeadline, remainingInstallments, summaryFor } from '@/lib/loans'
+import { exportDataFile, importDataFile, loadData } from '@/lib/storage'
 import type { Loan } from '@/lib/types'
 
 interface PayContext {
@@ -27,7 +28,7 @@ interface PayContext {
 export function App() {
   const { t } = useTranslation()
   const { lang } = useLocale()
-  const { loans } = useLoans()
+  const { loans, replaceData } = useLoans()
   const month = useMemo(() => currentMonthIndex(), [])
   const chartYear = useMemo(() => yearMonthOf(month).year, [month])
   const summary = useMemo(() => summaryFor(loans, month), [loans, month])
@@ -63,6 +64,40 @@ export function App() {
   const [payDialog, setPayDialog] = useState<PayContext | null>(null)
   const [historyLoan, setHistoryLoan] = useState<Loan | null>(null)
   const [tab, setTab] = useState<'open' | 'finished'>('open')
+  const fileInputRef = useRef<HTMLInputElement>(null)
+  const [importError, setImportError] = useState<string | null>(null)
+
+  const handleExport = () => {
+    const data = loadData()
+    const json = exportDataFile(data)
+    const blob = new Blob([json], { type: 'application/json' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `finance-backup-${new Date().toISOString().slice(0, 10)}.json`
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(url)
+  }
+
+  const handleImportFile = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (!file) return
+    const reader = new FileReader()
+    reader.onload = () => {
+      const text = reader.result as string
+      const imported = importDataFile(text)
+      if (!imported) {
+        setImportError(t('backup.invalidFile'))
+        return
+      }
+      setImportError(null)
+      replaceData(imported)
+    }
+    reader.readAsText(file)
+    event.target.value = ''
+  }
 
   const filteredLoans = useMemo(() => {
     if (tab === 'finished') {
@@ -111,6 +146,31 @@ export function App() {
         </div>
 
         <div className="flex items-center gap-2">
+          {importError && (
+            <span className="text-xs text-destructive">{importError}</span>
+          )}
+          <Button
+            type="button"
+            size="sm"
+            onClick={handleExport}
+          >
+            {t('backup.export')}
+          </Button>
+          <Button
+            type="button"
+            size="sm"
+            onClick={() => fileInputRef.current?.click()}
+          >
+            {t('backup.import')}
+          </Button>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".json"
+            hidden
+            onChange={handleImportFile}
+            aria-label={t('backup.importLabel')}
+          />
           <Button
             type="button"
             size="sm"

@@ -93,5 +93,13 @@
     "nextYear": "Next year",
     "count": "{{count}} installments",
     "empty": "No installments this month"
+  },
+  "backup": {
+    "export": "Export",
+    "import": "Import from file",
+    "importLabel": "Backup JSON file",
+    "restored": "Data restored from backup",
+    "invalidFile": "Invalid file",
+    "autoRestored": "Main data not found; restored from backup"
   }
 }
