@@ -1,0 +1,97 @@
+{
+  "app": {
+    "name": "Installment Manager",
+    "tagline": "Monthly debt dashboard"
+  },
+  "tabs": {
+    "open": "Open",
+    "finished": "Finished",
+    "empty": "No loans in this tab"
+  },
+  "common": {
+    "toman": "Toman",
+    "language": "Language",
+    "theme": "Theme",
+    "light": "Light",
+    "dark": "Dark",
+    "paid": "Paid",
+    "unpaid": "Unpaid",
+    "currentMonth": "Current month",
+    "total": "Total",
+    "loans": "loans",
+    "switchTo": "Switch to {{lang}}"
+  },
+  "dashboard": {
+    "overview": "This month's overview",
+    "totalMonthly": "Total installments this month",
+    "paidThisMonth": "Paid this month",
+    "remainingThisMonth": "Remaining this month",
+    "nextMonth": "Next month",
+    "activeLoans": "{{count}} active loans",
+    "paidOfActive": "{{paid}} of {{active}} paid",
+    "allPaid": "All installments paid this month",
+    "breakdown": {
+      "month": "{{month}}: paid {{paid}}, remaining {{remaining}} of total {{total}}"
+    },
+    "upcomingDeadlines": "{{count}} loans have payment deadline within 3 days",
+    "overdueLoans": "{{count}} loans have overdue payment date"
+  },
+  "loans": {
+    "name": "Name",
+    "amount": "Amount",
+    "year": "Year",
+    "month": "Month",
+    "startMonth": "Start Month",
+    "duration": "Duration (months)",
+    "statusColumn": "Status",
+    "remaining": "Remaining",
+    "remainingCount": "{{count}} installments",
+    "actions": "Actions",
+    "edit": "Edit",
+    "delete": "Delete",
+    "add": "Add Loan",
+    "cancel": "Cancel",
+    "save": "Save",
+    "confirm": "Confirm",
+    "noLoans": "No loans recorded yet",
+    "addDemoLoan": "Add demo loans",
+    "deleteTitle": "Delete Loan",
+    "toggle": "Toggle Status",
+    "confirmToggleDesc": "Change payment status for loan \"{{loan}}\"?",
+    "history": "Payment History",
+    "pay": "Pay",
+    "paymentsAlready": "Payments this installment",
+    "payTitle": "Pay Installment",
+    "paymentDate": "Payment Date",
+    "deletePayment": "Delete Payment",
+    "monthTotalPaid": "Total paid this month: {{total}}",
+    "noPaymentsYet": "No payments recorded for this month",
+    "deadline": "Deadline",
+    "deadlineDay": "Deadline day {{day}}",
+    "deadlineDayLabel": "Exact payment day",
+    "deadlineFrom": "Deadline from day",
+    "deadlineTo": "Deadline to day",
+    "deadlinePaid": "Paid this month",
+    "overdue": "Overdue",
+    "daysUntilDeadline": "{{days}} days until deadline",
+    "status": {
+      "paid": "Paid",
+      "partial": "Partially paid",
+      "unpaid": "Unpaid"
+    }
+  },
+  "payments": {
+    "count": "{{count}} payments",
+    "ofTotal": "of {{total}} installments",
+    "summary": "{{paidAmount}} of {{totalAmount}} paid ({{count}} payments)",
+    "full": "Fully paid",
+    "partialStatus": "Paid {{paid}} · remaining {{remaining}}"
+  },
+  "calendar": {
+    "title": "Year calendar",
+    "prevYear": "Previous year",
+    "nextYear": "Next year",
+    "count": "{{count}} installments",
+    "empty": "No installments this month"
+  }
+}

@@ -1,0 +1,181 @@
+import { useMemo, useState } from 'react'
+import { useTranslation } from 'react-i18next'
+
+import { AddEditLoanDialog } from '@/components/loans/AddEditLoanDialog'
+import { DeleteLoanDialog } from '@/components/loans/DeleteLoanDialog'
+import { SummaryCards } from '@/components/dashboard/SummaryCards'
+import { BreakdownChart } from '@/components/dashboard/BreakdownChart'
+import { YearCalendar } from '@/components/dashboard/YearCalendar'
+import { LoanTable } from '@/components/dashboard/LoanTable'
+import { EmptyState } from '@/components/dashboard/EmptyState'
+import { PayDialog } from '@/components/dashboard/PayDialog'
+import { PaymentHistoryDialog } from '@/components/dashboard/PaymentHistoryDialog'
+import { AppShell } from '@/components/layout/AppShell'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent } from '@/components/ui/card'
+import { useLocale } from '@/hooks/useLocale'
+import { useLoans } from '@/hooks/useLoans'
+import { currentMonthIndex, todayLabel, yearMonthOf } from '@/lib/jalali'
+import { daysUntilLoanDeadline, remainingInstallments, summaryFor } from '@/lib/loans'
+import type { Loan } from '@/lib/types'
+
+interface PayContext {
+  id: string
+  month: number
+}
+
+export function App() {
+  const { t } = useTranslation()
+  const { lang } = useLocale()
+  const { loans } = useLoans()
+  const month = useMemo(() => currentMonthIndex(), [])
+  const chartYear = useMemo(() => yearMonthOf(month).year, [month])
+  const summary = useMemo(() => summaryFor(loans, month), [loans, month])
+  const nextSummary = useMemo(() => summaryFor(loans, month + 1), [loans, month])
+  const upcomingDeadlines = useMemo(
+    () =>
+      loans
+        .filter(l => remainingInstallments(l) > 0)
+        .filter(l => l.deadlineDay >= 1 && l.deadlineDay <= 31)
+        .filter(l => {
+          const days = daysUntilLoanDeadline(l, month)
+          return typeof days === 'number' && days >= 0 && days <= 3
+        }),
+    [loans, month]
+  )
+
+  const overdueLoans = useMemo(
+    () =>
+      loans
+        .filter(l => remainingInstallments(l) > 0)
+        .filter(l => l.deadlineDay >= 1 && l.deadlineDay <= 31)
+        .filter(l => {
+          const days = daysUntilLoanDeadline(l, month)
+          return typeof days === 'number' && days < 0
+        }),
+    [loans, month]
+  )
+
+  const [calYear, setCalYear] = useState(chartYear)
+
+  const [addEditLoan, setAddEditLoan] = useState<{ loan: Loan | null; open: boolean }>({ loan: null, open: false })
+  const [deleteLoan, setDeleteLoan] = useState<{ loan: Loan | null; open: boolean }>({ loan: null, open: false })
+  const [payDialog, setPayDialog] = useState<PayContext | null>(null)
+  const [historyLoan, setHistoryLoan] = useState<Loan | null>(null)
+  const [tab, setTab] = useState<'open' | 'finished'>('open')
+
+  const filteredLoans = useMemo(() => {
+    if (tab === 'finished') {
+      return loans.filter(l => remainingInstallments(l) === 0)
+    }
+    return loans.filter(l => remainingInstallments(l) > 0)
+  }, [loans, tab])
+
+
+  return (
+    <AppShell>
+      <div className="space-y-5">
+        <div className="space-y-0.5">
+          <h1 className="text-xl font-semibold tracking-tight">{t('dashboard.overview')}</h1>
+          <p className="text-muted-foreground text-xs sm:hidden">
+            {todayLabel(lang)}
+          </p>
+        </div>
+
+        <SummaryCards summary={summary} nextMonthAmount={nextSummary.totalMonthly} />
+        {upcomingDeadlines.length > 0 && (
+          <div
+            className="rounded-lg border border-destructive/50 bg-destructive/10 p-3 text-destructive text-sm"
+            role="alert"
+            aria-live="polite"
+          >
+            {t('dashboard.upcomingDeadlines', { count: upcomingDeadlines.length })}
+          </div>
+        )}
+        {overdueLoans.length > 0 && (
+          <div
+            className="rounded-lg border border-red-600 bg-red-50 p-3 text-red-700 dark:border-red-400 dark:bg-red-900/20 dark:text-red-300 text-sm"
+            role="alert"
+            aria-live="polite"
+          >
+            {t('dashboard.overdueLoans', { count: overdueLoans.length })}
+          </div>
+        )}
+        <div className="grid gap-3 md:grid-cols-2">
+          <Card>
+            <CardContent>
+              <BreakdownChart loans={loans} year={chartYear} />
+            </CardContent>
+          </Card>
+          <YearCalendar loans={loans} year={calYear} onYearChange={setCalYear} />
+        </div>
+
+        <div className="flex items-center gap-2">
+          <Button
+            type="button"
+            size="sm"
+            variant={tab === 'open' ? 'default' : 'outline'}
+            onClick={() => setTab('open')}
+          >
+            {t('tabs.open')}
+          </Button>
+          <Button
+            type="button"
+            size="sm"
+            variant={tab === 'finished' ? 'default' : 'outline'}
+            onClick={() => setTab('finished')}
+          >
+            {t('tabs.finished')}
+          </Button>
+          <Button
+            type="button"
+            size="sm"
+            className="ms-auto"
+            onClick={() => setAddEditLoan({ loan: null, open: true })}
+          >
+            {t('loans.add')}
+          </Button>
+        </div>
+
+        {loans.length === 0 ? (
+          <EmptyState />
+        ) : filteredLoans.length === 0 ? (
+          <p className="text-center py-8 text-sm text-muted-foreground">{t('tabs.empty')}</p>
+        ) : (
+          <LoanTable
+            month={month}
+            loans={filteredLoans}
+            onPay={(id, m) => setPayDialog({ id, month: m })}
+            onEdit={loan => setAddEditLoan({ loan, open: true })}
+            onDelete={loan => setDeleteLoan({ loan, open: true })}
+            onHistory={loan => setHistoryLoan(loan)}
+          />
+        )}
+
+        {addEditLoan.open && (
+          <AddEditLoanDialog
+            loan={addEditLoan.loan}
+            open
+            onOpenChange={open => setAddEditLoan(prev => ({ ...prev, open }))}
+          />
+        )}
+        <DeleteLoanDialog
+          loan={deleteLoan.loan}
+          open={deleteLoan.open}
+          onOpenChange={open => setDeleteLoan(prev => ({ ...prev, open }))}
+        />
+        <PayDialog
+          loan={loans.find(l => l.id === payDialog?.id) ?? null}
+          monthIndex={payDialog?.month ?? 0}
+          open={payDialog !== null}
+          onOpenChange={open => { if (!open) setPayDialog(null) }}
+        />
+        <PaymentHistoryDialog
+          loan={historyLoan}
+          open={historyLoan !== null}
+          onOpenChange={open => { if (!open) setHistoryLoan(null) }}
+        />
+      </div>
+    </AppShell>
+  )
+}

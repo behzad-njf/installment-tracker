@@ -1,0 +1,97 @@
+{
+  "app": {
+    "name": "مدیریت اقساط",
+    "tagline": "داشبورد بدهی‌های ماهانه"
+  },
+  "tabs": {
+    "open": "باز",
+    "finished": "بسته‌شده",
+    "empty": "قسطی در این بخش نیست"
+  },
+  "common": {
+    "toman": "تومان",
+    "language": "زبان",
+    "theme": "پوسته",
+    "light": "روشن",
+    "dark": "تاریک",
+    "paid": "پرداخت‌شده",
+    "unpaid": "پرداخت‌نشده",
+    "currentMonth": "ماه جاری",
+    "total": "مجموع",
+    "loans": "وام",
+    "switchTo": "تغییر به {{lang}}"
+  },
+  "dashboard": {
+    "overview": "خلاصه این ماه",
+    "totalMonthly": "کل اقساط این ماه",
+    "paidThisMonth": "پرداخت‌شده این ماه",
+    "remainingThisMonth": "مانده این ماه",
+    "nextMonth": "قسط ماه بعد",
+    "activeLoans": "{{count}} وام فعال",
+    "paidOfActive": "{{paid}} از {{active}} پرداخت شده",
+    "allPaid": "همه اقساط این ماه تسویه شده",
+    "breakdown": {
+      "month": "{{month}}: پرداخت {{paid}}، مانده {{remaining}} از کل {{total}}"
+    },
+    "upcomingDeadlines": "{{count}} وام مهلت پرداخت در ۳ روز آینده دارند",
+    "overdueLoans": "{{count}} وام تاریخ پرداختشان گذشته است"
+  },
+  "loans": {
+    "name": "نام",
+    "amount": "مبلغ",
+    "year": "سال",
+    "month": "ماه",
+    "startMonth": "تاریخ شروع",
+    "duration": "مدت (ماه)",
+    "statusColumn": "وضعیت",
+    "remaining": "باقی‌مانده",
+    "remainingCount": "{{count}} قسط",
+    "actions": "عملیات",
+    "edit": "ویرایش",
+    "delete": "حذف",
+    "add": "افزودن وام",
+    "cancel": "لغو",
+    "save": "ذخیره",
+    "confirm": "تأیید",
+    "noLoans": "هیچ وام ثبت نشده است",
+    "addDemoLoan": "افزودن وام‌های مثال",
+    "deleteTitle": "حذف وام",
+    "toggle": "تغییر وضعیت",
+    "confirmToggleDesc": "آیا وضعیت پرداخت وام «{{loan}}» را تغییر دهید؟",
+    "history": "تاریخچه پرداخت‌ها",
+    "pay": "پرداخت",
+    "paymentsAlready": "پرداختی‌های این قسط",
+    "payTitle": "پرداخت قسط",
+    "paymentDate": "تاریخ پرداخت",
+    "deletePayment": "حذف پرداخت",
+    "monthTotalPaid": "مجموع پرداخت شده در این ماه: {{total}}",
+    "noPaymentsYet": "هیچ پرداختی در این ماه ثبت نشده است",
+    "deadline": "مهلت",
+    "deadlineDay": "مهلت روز {{day}}",
+    "deadlineDayLabel": "روز دقیق پرداخت",
+    "deadlineFrom": "مهلت از روز",
+    "deadlineTo": "مهلت تا روز",
+    "deadlinePaid": "این ماه پرداخت شده",
+    "overdue": "مهلت گذشته",
+    "daysUntilDeadline": "{{days}} روز تا مهلت",
+    "status": {
+      "paid": "پرداخت‌شده",
+      "partial": "کمی پرداخت‌شده",
+      "unpaid": "پرداخت‌نشده"
+    }
+  },
+  "payments": {
+    "count": "{{count}} پرداخت",
+    "ofTotal": "از {{total}} قسط",
+    "summary": "{{paidAmount}} از {{totalAmount}} پرداخت شده ({{count}} پرداخت)",
+    "full": "پرداخت کامل",
+    "partialStatus": "پرداخت {{paid}} · مانده {{remaining}}"
+  },
+  "calendar": {
+    "title": "تقویم سالانه",
+    "prevYear": "سال قبل",
+    "nextYear": "سال بعد",
+    "count": "{{count}} قسط",
+    "empty": "قسطی در این ماه نیست"
+  }
+}
