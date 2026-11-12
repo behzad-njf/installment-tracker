@@ -87,7 +87,9 @@
       "partial": "Partially paid",
       "unpaid": "Unpaid",
       "finished": "Finished"
-    }
+    },
+    "details": "Details",
+    "payAmountExceeds": "Payment amount cannot exceed installment amount"
   },
   "payments": {
     "count": "{{count}} payments",

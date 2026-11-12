@@ -145,7 +145,13 @@ export function App() {
               <BreakdownChart loans={loans} year={chartYear} />
             </CardContent>
           </Card>
-          <YearCalendar loans={loans} year={calYear} onYearChange={setCalYear} />
+          <YearCalendar
+            loans={loans}
+            year={calYear}
+            onYearChange={setCalYear}
+            onPay={(loanId, monthIdx) => setPayDialog({ id: loanId, month: monthIdx })}
+            onHistory={loan => setHistoryLoan(loan)}
+          />
         </div>
 
         {/* Mobile: tabs with calendar as default */}
@@ -177,7 +183,13 @@ export function App() {
               </CardContent>
             </Card>
           ) : (
-            <YearCalendar loans={loans} year={calYear} onYearChange={setCalYear} />
+            <YearCalendar
+              loans={loans}
+              year={calYear}
+              onYearChange={setCalYear}
+              onPay={(loanId, monthIdx) => setPayDialog({ id: loanId, month: monthIdx })}
+              onHistory={loan => setHistoryLoan(loan)}
+            />
           )}
         </div>
 

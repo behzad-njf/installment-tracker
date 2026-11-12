@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useLoans } from '@/hooks/useLoans'
 import { useLocale } from '@/hooks/useLocale'
@@ -39,8 +39,13 @@ export function PayDialog({ loan, monthIndex, open, onOpenChange }: Props) {
     .filter(p => p.monthIndex === monthIndex)
     .sort((a, b) => a.paidAt.localeCompare(b.paidAt)) ?? []
 
-  const dateRef = useRef(new Date().toISOString())
+  const [payError, setPayError] = useState<string | null>(null)
   const [payMonth, setPayMonth] = useState(monthIndex)
+  const dateRef = useRef(new Date().toISOString())
+
+  useEffect(() => {
+    setPayError(null)
+  }, [loan?.id, monthIndex])
 
   const handleDateChange = useCallback((iso: string) => {
     dateRef.current = iso
@@ -54,6 +59,11 @@ export function PayDialog({ loan, monthIndex, open, onOpenChange }: Props) {
     const amountInput = form.elements.namedItem('pay-amount') as HTMLInputElement | null
     const parsedAmount = parseMoney(amountInput?.value ?? '')
     if (!Number.isFinite(parsedAmount) || parsedAmount <= 0) return
+    if (parsedAmount > remaining) {
+      setPayError(t('loans.payAmountExceeds'))
+      return
+    }
+    setPayError(null)
 
     addPayment(loan.id, payMonth, parsedAmount, dateRef.current)
     onOpenChange(false)
@@ -132,6 +142,9 @@ export function PayDialog({ loan, monthIndex, open, onOpenChange }: Props) {
               <span className="text-muted-foreground text-xs">{t('common.toman')}</span>
             </div>
           </div>
+          {payError && (
+            <div className="text-[10px] text-destructive mb-2">{payError}</div>
+          )}
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               {t('loans.cancel')}

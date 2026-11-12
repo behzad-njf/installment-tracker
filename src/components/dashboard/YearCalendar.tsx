@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { ChevronLeft, ChevronRight, DollarSign, History } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -12,7 +12,7 @@ import {
 } from '@/components/ui/dialog'
 import { useLocale } from '@/hooks/useLocale'
 import { currentMonthIndex, monthsOfYear, monthName, yearMonthOf } from '@/lib/jalali'
-import { isActiveIn, isFullyPaidIn } from '@/lib/loans'
+import { isActiveIn, isFullyPaidIn, isPartiallyPaidIn } from '@/lib/loans'
 import { formatMoney, formatNumber, formatYear } from '@/lib/money'
 import type { Loan, MonthIndex } from '@/lib/types'
 
@@ -20,9 +20,11 @@ interface Props {
   loans: Loan[]
   year: number
   onYearChange: (year: number) => void
+  onPay?: (loanId: string, monthIdx: number) => void
+  onHistory?: (loan: Loan) => void
 }
 
-export function YearCalendar({ loans, year, onYearChange }: Props) {
+export function YearCalendar({ loans, year, onYearChange, onPay, onHistory }: Props) {
   const { t } = useTranslation()
   const { lang, dir } = useLocale()
   const [selected, setSelected] = useState<MonthIndex | null>(null)
@@ -117,25 +119,54 @@ export function YearCalendar({ loans, year, onYearChange }: Props) {
           {selectedEntry && selectedEntry.due.length > 0 ? (
             <div className="space-y-1">
               {selectedEntry.due.map((loan) => {
-                const paid = isFullyPaidIn(loan, selectedEntry.monthIdx)
-                return (
-                  <div key={loan.id} className="flex items-center justify-between gap-2 border-b border-border/50 py-1 text-xs last:border-0">
-                    <div className="flex items-center gap-2">
-                      <span className="truncate">{loan.name}</span>
-                      <span
-                        className={`inline-block px-1.5 py-0 rounded text-[10px] font-medium ${
-                          paid
-                            ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
-                            : 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400'
-                        }`}
-                      >
-                        {paid ? t('loans.status.paid') : t('loans.status.unpaid')}
-                      </span>
-                    </div>
-                    <span className="shrink-0 tabular-nums">{formatMoney(loan.amount, lang)}</span>
-                  </div>
-                )
-              })}
+            const fullyPaid = isFullyPaidIn(loan, selectedEntry.monthIdx)
+            const partiallyPaid = isPartiallyPaidIn(loan, selectedEntry.monthIdx)
+            const statusLabel = fullyPaid
+              ? t('loans.status.paid')
+              : partiallyPaid
+                ? t('loans.status.partial')
+                : t('loans.status.unpaid')
+            const statusClass = fullyPaid
+              ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
+              : partiallyPaid
+                ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400'
+                : 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400'
+            return (
+              <div key={loan.id} className="flex items-center justify-between gap-2 border-b border-border/50 py-1 text-xs last:border-0">
+                <div className="flex items-center gap-2 flex-1 min-w-0">
+                  <span className="truncate">{loan.name}</span>
+                  <span className={`inline-block px-1.5 py-0 rounded text-[10px] font-medium ${statusClass}`}>
+                    {statusLabel}
+                  </span>
+                </div>
+                <span className="shrink-0 tabular-nums">{formatMoney(loan.amount, lang)}</span>
+                <div className="flex gap-0.5 shrink-0">
+                  {(fullyPaid || partiallyPaid) && onHistory && (
+                    <Button
+                      type="button"
+                      size="icon-xs"
+                      variant="outline"
+                      aria-label={t('loans.details')}
+                      onClick={() => onHistory(loan)}
+                    >
+                      <History className="size-3" aria-hidden="true" />
+                    </Button>
+                  )}
+                  {!fullyPaid && onPay && (
+                    <Button
+                      type="button"
+                      size="icon-xs"
+                      variant="outline"
+                      aria-label={t('loans.pay')}
+                      onClick={() => onPay(loan.id, selectedEntry.monthIdx)}
+                    >
+                      <DollarSign className="size-3" aria-hidden="true" />
+                    </Button>
+                  )}
+                </div>
+              </div>
+            )
+          })}
               <div className="flex items-center justify-between gap-2 pt-1 text-xs font-semibold">
                 <span>{t('common.total')}</span>
                 <span className="tabular-nums">{formatMoney(selectedEntry.total, lang)}</span>
