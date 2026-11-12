@@ -13,6 +13,7 @@ import { PaymentHistoryDialog } from '@/components/dashboard/PaymentHistoryDialo
 import { AppShell } from '@/components/layout/AppShell'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
+import { Download, Plus, Upload } from 'lucide-react'
 import { useLocale } from '@/hooks/useLocale'
 import { useLoans } from '@/hooks/useLoans'
 import { currentMonthIndex, todayLabel, yearMonthOf } from '@/lib/jalali'
@@ -152,16 +153,20 @@ export function App() {
           <Button
             type="button"
             size="sm"
+            variant="outline"
             onClick={handleExport}
+            aria-label={t('backup.export')}
           >
-            {t('backup.export')}
+            <Download className="size-4" aria-hidden />
           </Button>
           <Button
             type="button"
             size="sm"
+            variant="outline"
             onClick={() => fileInputRef.current?.click()}
+            aria-label={t('backup.import')}
           >
-            {t('backup.import')}
+            <Upload className="size-4" aria-hidden />
           </Button>
           <input
             ref={fileInputRef}
@@ -193,6 +198,7 @@ export function App() {
             className="ms-auto"
             onClick={() => setAddEditLoan({ loan: null, open: true })}
           >
+            <Plus className="size-4 ms-1.5" aria-hidden />
             {t('loans.add')}
           </Button>
         </div>

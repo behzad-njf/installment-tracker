@@ -4,8 +4,8 @@
     "tagline": "Monthly debt dashboard"
   },
   "tabs": {
-    "open": "Open",
-    "finished": "Finished",
+    "open": "Open loans",
+    "finished": "Finished loans",
     "empty": "No loans in this tab"
   },
   "common": {
