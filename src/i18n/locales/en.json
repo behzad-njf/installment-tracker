@@ -6,7 +6,9 @@
   "tabs": {
     "open": "Open loans",
     "finished": "Finished loans",
-    "empty": "No loans in this tab"
+    "empty": "No loans in this tab",
+    "openShort": "Open",
+    "finishedShort": "Closed"
   },
   "common": {
     "toman": "Toman",

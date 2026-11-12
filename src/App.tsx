@@ -217,7 +217,8 @@ export function App() {
             variant={tab === 'open' ? 'default' : 'outline'}
             onClick={() => setTab('open')}
           >
-            {t('tabs.open')}
+            <span className="md:hidden">{t('tabs.openShort')}</span>
+            <span className="hidden md:inline">{t('tabs.open')}</span>
           </Button>
           <Button
             type="button"
@@ -225,16 +226,18 @@ export function App() {
             variant={tab === 'finished' ? 'default' : 'outline'}
             onClick={() => setTab('finished')}
           >
-            {t('tabs.finished')}
+            <span className="md:hidden">{t('tabs.finishedShort')}</span>
+            <span className="hidden md:inline">{t('tabs.finished')}</span>
           </Button>
           <Button
             type="button"
             size="sm"
             className="ms-auto"
+            aria-label={t('loans.add')}
             onClick={() => setAddEditLoan({ loan: null, open: true })}
           >
             <Plus className="size-4 ms-1.5" aria-hidden />
-            {t('loans.add')}
+            <span className="hidden md:inline">{t('loans.add')}</span>
           </Button>
         </div>
 

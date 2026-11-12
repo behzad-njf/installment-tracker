@@ -6,7 +6,9 @@
   "tabs": {
     "open": "وام های باز",
     "finished": "وام های بسته شده",
-    "empty": "قسطی در این بخش نیست"
+    "empty": "قسطی در این بخش نیست",
+    "openShort": "باز",
+    "finishedShort": "بسته"
   },
   "common": {
     "toman": "تومان",
