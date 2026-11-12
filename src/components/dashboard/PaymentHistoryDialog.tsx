@@ -43,14 +43,14 @@ export function PaymentHistoryDialog({ loan, open, onOpenChange }: Props) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-[calc(100%-2rem)] sm:max-w-4xl">
+      <DialogContent className="w-[calc(100%-1rem)] sm:max-w-4xl">
         <DialogHeader>
-          <DialogTitle className="text-center">{t('loans.history')}</DialogTitle>
-          <DialogDescription className="text-center text-xs">{loan.name}</DialogDescription>
+          <DialogTitle className="text-center sm:text-lg">{t('loans.history')}</DialogTitle>
+          <DialogDescription className="text-center text-[10px]">{loan.name}</DialogDescription>
         </DialogHeader>
         {paymentCount > 0 && (
-          <div className="p-2 bg-muted border border-border rounded-lg text-center">
-            <p className="text-sm font-medium">
+          <div className="p-1 bg-muted border border-border rounded-lg text-center mb-1">
+            <p className="text-xs font-medium">
               {t('payments.summary', {
                 paidAmount: formatMoney(totalPaid, lang),
                 totalAmount: formatMoney(totalDebt, lang),
@@ -59,9 +59,9 @@ export function PaymentHistoryDialog({ loan, open, onOpenChange }: Props) {
             </p>
           </div>
         )}
-        <div className="max-h-[70vh] overflow-y-auto">
+        <div className="max-h-[60vh] overflow-y-auto">
           {/* Calendar-square grid: one tile per active month */}
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-1.5">
             {months.map(monthIdx => {
               const payments = paymentsByMonth.get(monthIdx) ?? []
               const { year } = yearMonthOf(monthIdx)
@@ -71,20 +71,20 @@ export function PaymentHistoryDialog({ loan, open, onOpenChange }: Props) {
               return (
                 <div
                   key={monthIdx}
-                  className={`border rounded-lg p-2 flex flex-col min-h-[104px] ${
+                  className={`border rounded-lg p-1 flex flex-col min-h-[88px] gap-1 ${
                     fullyPaid ? 'border-green-500/50 bg-green-50/60 dark:bg-green-900/10' : 'border-border'
                   }`}
                 >
-                  <div className="flex items-center justify-between mb-1 gap-1">
-                    <span className="text-xs font-medium truncate">
+                  <div className="flex items-center justify-between gap-1">
+                    <span className="text-[10px] font-medium truncate">
                       {monthName(monthIdx, lang)} {formatYear(year, lang)}
                     </span>
                     {fullyPaid ? (
-                      <Check className="size-4 shrink-0 text-green-600 dark:text-green-400" aria-label={t('payments.full')} />
+                      <Check className="size-3.5 shrink-0 text-green-600 dark:text-green-400" aria-label={t('payments.full')} />
                     ) : null}
                   </div>
                   {!fullyPaid && (
-                    <div className="text-[10px] mb-1">
+                    <div className="text-[9px]">
                       {monthPaid > 0 ? (
                         <span className="text-amber-700 dark:text-amber-400">
                           {t('payments.partialStatus', {
@@ -98,19 +98,19 @@ export function PaymentHistoryDialog({ loan, open, onOpenChange }: Props) {
                     </div>
                   )}
                   {payments.length > 0 && (
-                    <div className="flex-1 space-y-1 overflow-y-auto max-h-28">
+                    <div className="flex-1 space-y-0.5 overflow-y-auto max-h-24">
                       {payments.map(payment => (
                         <div
                           key={payment.id}
                           className="flex items-center justify-between px-1 py-0.5 border-b border-border/50 last:border-0"
                         >
-                          <span className="text-[10px] truncate">
+                          <span className="text-[9px] truncate">
                             {new Date(payment.paidAt).toLocaleDateString(
                               lang === 'fa' ? 'fa-IR' : 'en-US',
                               { year: 'numeric', month: 'numeric', day: 'numeric' },
                             )}
                           </span>
-                          <span className="text-[10px] font-medium">
+                          <span className="text-[9px] font-medium">
                             {formatMoney(payment.amount, lang)}
                           </span>
                         </div>
@@ -122,11 +122,11 @@ export function PaymentHistoryDialog({ loan, open, onOpenChange }: Props) {
             })}
           </div>
         </div>
-        <DialogFooter className="border-t p-2">
+        <DialogFooter className="border-t p-1">
           <Button
             type="button"
             variant="outline"
-            className="w-full"
+            className="w-full px-2 py-1.5 text-xs"
             onClick={() => onOpenChange(false)}
           >
             {t('loans.cancel')}
