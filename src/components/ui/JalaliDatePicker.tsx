@@ -10,14 +10,14 @@ import {
   currentDay,
   monthIndexFrom,
 } from '@/lib/jalali'
-import { formatNumber } from '@/lib/money'
+import { formatYear } from '@/lib/money'
 
 interface JalaliDatePickerProps {
   label?: string
   onChange: (iso: string) => void
 }
 
-/** Minimal Jalali date picker: three native selects (year / month / day). No date library. */
+/** Minimal Jalali date picker: three native selects (day / month / year, RTL order). No date library. */
 export function JalaliDatePicker({ label, onChange }: JalaliDatePickerProps) {
   const { lang } = useLocale()
 
@@ -41,17 +41,16 @@ export function JalaliDatePicker({ label, onChange }: JalaliDatePickerProps) {
       {label && <Label>{label}</Label>}
       <div className="flex gap-2">
         <select
-          value={jYear}
+          value={clampedDay}
           onChange={e => {
-            setJYear(Number(e.target.value))
-            setJDay(Math.min(clampedDay, daysInJalaliMonth(Number(e.target.value), jMonth)))
+            setJDay(Number(e.target.value))
             handleChange()
           }}
           className="border border-border rounded-lg px-3 py-2 text-sm h-9 bg-transparent flex-1"
         >
-          {Array.from({ length: 21 }, (_, i) => curYear - 10 + i).map(y => (
-            <option key={y} value={y}>
-              {formatNumber(y, lang)}
+          {Array.from({ length: daysCount }, (_, i) => i + 1).map(d => (
+            <option key={d} value={d}>
+              {formatYear(d, lang)}
             </option>
           ))}
         </select>
@@ -71,16 +70,17 @@ export function JalaliDatePicker({ label, onChange }: JalaliDatePickerProps) {
           ))}
         </select>
         <select
-          value={clampedDay}
+          value={jYear}
           onChange={e => {
-            setJDay(Number(e.target.value))
+            setJYear(Number(e.target.value))
+            setJDay(Math.min(clampedDay, daysInJalaliMonth(Number(e.target.value), jMonth)))
             handleChange()
           }}
           className="border border-border rounded-lg px-3 py-2 text-sm h-9 bg-transparent flex-1"
         >
-          {Array.from({ length: daysCount }, (_, i) => i + 1).map(d => (
-            <option key={d} value={d}>
-              {formatNumber(d, lang)}
+          {Array.from({ length: 21 }, (_, i) => curYear - 10 + i).map(y => (
+            <option key={y} value={y}>
+              {formatYear(y, lang)}
             </option>
           ))}
         </select>
