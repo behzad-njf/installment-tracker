@@ -1,6 +1,6 @@
 // Service Worker — Aghsat PWA
 // Cache-first for app shell, cache-only for runtime data (localStorage lives in browser).
-const CACHE_NAME = 'aghsat-v1';
+const CACHE_NAME = 'aghsat-136922c3';
 const ASSETS = [
   '/',
   '/index.html',
@@ -40,13 +40,17 @@ self.addEventListener('fetch', (event) => {
 
   // Cache-first for same-origin assets (HTML, JS, CSS, fonts, icons).
   if (url.origin === self.location.origin) {
-    // SPA fallback: any navigation request (text/html) not in cache → serve index.html
+    // Navigations: network-first so a new deploy is picked up immediately; cache when offline.
     const accept = request.headers.get('accept') || '';
-    if (accept.includes('text/html')) {
+    if (request.mode === 'navigate' || accept.includes('text/html')) {
       event.respondWith(
-        caches.match(request).then((cached) =>
-          cached || caches.match('/index.html')
-        )
+        fetch(request)
+          .then((response) => {
+            const copy = response.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put('/index.html', copy));
+            return response;
+          })
+          .catch(() => caches.match('/index.html'))
       );
       return;
     }

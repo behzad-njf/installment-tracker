@@ -7,7 +7,7 @@ import { createRoot } from 'react-dom/client'
 import { App } from './App'
 import { LoansProvider } from '@/components/loans/LoansProvider'
 
-if ('serviceWorker' in navigator) {
+if (import.meta.env.PROD && 'serviceWorker' in navigator) {
   navigator.serviceWorker.register('/sw.js').then(
     (reg) => console.log('SW registered', reg.scope),
     (err) => console.error('SW registration failed', err)

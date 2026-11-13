@@ -1,8 +1,10 @@
+import crypto from 'node:crypto'
 import fs from 'fs'
 import path from 'path'
 
 const distDir = path.resolve('dist')
 const swPath = path.resolve('public/sw.js')
+const distSwPath = path.join(distDir, 'sw.js')
 
 // Read all files in dist/assets
 const assetsDir = path.join(distDir, 'assets')
@@ -36,5 +38,14 @@ swContent = swContent.replace(
   newAssetsBlock
 )
 
+// Stamp the cache with a per-build hash so a new deploy never reuses old entries
+const hash = crypto.createHash('sha1').update(allAssets).digest('hex').slice(0, 8)
+swContent = swContent.replace(
+  /const CACHE_NAME = '[^']*';/,
+  `const CACHE_NAME = 'aghsat-${hash}';`
+)
+
 fs.writeFileSync(swPath, swContent)
-console.log(`Injected ${allAssets.length} assets into SW: ${assetFiles.length} from dist/assets + ${staticAssets.length} static`)
+// dist/sw.js is what actually ships — Vite copies public/ before this script runs
+fs.writeFileSync(distSwPath, swContent)
+console.log(`Injected ${assetFiles.length + staticAssets.length} assets into SW (cache aghsat-${hash}): ${assetFiles.length} from dist/assets + ${staticAssets.length} static`)
