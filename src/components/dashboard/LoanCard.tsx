@@ -96,24 +96,26 @@ export function LoanCard({
             >
               <History className="size-4" aria-hidden />
             </Button>
-            <Button
-              type="button"
-              size="icon-sm"
-              variant="outline"
-              aria-label={t('loans.edit')}
-              onClick={() => onEdit(loan)}
-            >
-              <Edit className="size-4" aria-hidden />
-            </Button>
-            <Button
-              type="button"
-              size="icon-sm"
-              variant="destructive"
-              aria-label={t('loans.delete')}
-              onClick={() => onDelete(loan)}
-            >
-              <Trash2 className="size-4" aria-hidden />
-            </Button>
+            <div className="flex gap-2">
+              <Button
+                type="button"
+                size="icon-sm"
+                variant="outline"
+                aria-label={t('loans.edit')}
+                onClick={() => onEdit(loan)}
+              >
+                <Edit className="size-4" aria-hidden />
+              </Button>
+              <Button
+                type="button"
+                size="icon-sm"
+                variant="destructive"
+                aria-label={t('loans.delete')}
+                onClick={() => onDelete(loan)}
+              >
+                <Trash2 className="size-4" aria-hidden />
+              </Button>
+            </div>
           </div>
         </div>
       </CardContent>
