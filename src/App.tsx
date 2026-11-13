@@ -172,14 +172,6 @@ export function App() {
               {t('dashboard.upcomingDeadlines', { count: upcomingDeadlines.length })}
             </div>
             <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="text-xs">{t('loans.name')}</TableHead>
-                  <TableHead className="text-xs text-center">{t('loans.deadlineDay')}</TableHead>
-                  <TableHead className="text-xs text-right">{t('loans.amount')}</TableHead>
-                  <TableHead className="text-xs text-center w-12" />
-                </TableRow>
-              </TableHeader>
               <TableBody>
                 {upcomingDeadlines.map(loan => (
                   <TableRow key={loan.id}>
