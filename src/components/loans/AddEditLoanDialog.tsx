@@ -134,7 +134,7 @@ export function AddEditLoanDialog({ loan, open, onOpenChange }: Props) {
               defaultValue={loan ? formatMoney(loan.amount, lang) : ''}
               placeholder={formatMoney(1000000, lang)}
               required
-              className="border border-border rounded-lg px-3 py-2 text-sm flex-1"
+              className="border border-border rounded-lg px-3 py-2 text-base h-11 sm:text-sm sm:h-9 flex-1"
             />
             <span className="text-muted-foreground text-xs">{t('common.toman')}</span>
           </div>
@@ -158,7 +158,7 @@ export function AddEditLoanDialog({ loan, open, onOpenChange }: Props) {
                 id="loan-month"
                 value={startMonth}
                 onChange={e => setStartMonth(Number(e.target.value))}
-                className="border border-border rounded-lg px-3 py-2 text-sm h-9 bg-transparent"
+                className="border border-border rounded-lg px-3 py-2 text-base h-11 sm:text-sm sm:h-9 bg-transparent"
               >
                 {Array.from({ length: 12 }, (_, i) => {
                   const m = i + 1
@@ -191,7 +191,7 @@ export function AddEditLoanDialog({ loan, open, onOpenChange }: Props) {
               id="loan-deadline-day"
               value={deadlineDay}
               onChange={e => setDeadlineDay(Number(e.target.value))}
-              className="border border-border rounded-lg px-3 py-2 text-sm h-9 bg-transparent"
+              className="border border-border rounded-lg px-3 py-2 text-base h-11 sm:text-sm sm:h-9 bg-transparent"
             >
               {Array.from({ length: 31 }, (_, i) => i + 1).map(d => (
                 <option key={d} value={d}>

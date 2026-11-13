@@ -61,7 +61,7 @@ export const JalaliDatePicker = memo(function JalaliDatePicker({ label, onChange
             setDay(Number(e.target.value))
             handleChange()
           }}
-          className="border border-border rounded-lg px-3 py-2 text-sm bg-transparent h-9 w-[64px]"
+          className="border border-border rounded-lg px-3 py-2 text-base sm:text-sm bg-transparent h-11 sm:h-9 w-[70px] sm:w-[64px]"
         />
         <select
           value={String(monthRef.current)}
@@ -71,7 +71,7 @@ export const JalaliDatePicker = memo(function JalaliDatePicker({ label, onChange
             clampDay()
             handleChange()
           }}
-          className="border border-border rounded-lg px-3 py-2 text-sm bg-transparent h-9 w-[80px]"
+          className="border border-border rounded-lg px-3 py-2 text-base sm:text-sm bg-transparent h-11 sm:h-9 w-[86px] sm:w-[80px]"
         >
           {months.map(m => (
             <option key={m} value={m}>
@@ -86,7 +86,7 @@ export const JalaliDatePicker = memo(function JalaliDatePicker({ label, onChange
             setYear(Number(e.target.value))
             handleChange()
           }}
-          className="border border-border rounded-lg px-3 py-2 text-sm bg-transparent h-9 w-[64px]"
+          className="border border-border rounded-lg px-3 py-2 text-base sm:text-sm bg-transparent h-11 sm:h-9 w-[70px] sm:w-[64px]"
         />
       </div>
     </div>

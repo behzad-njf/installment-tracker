@@ -110,7 +110,7 @@ export function YearCalendar({ loans, year, onYearChange, onPay, onHistory }: Pr
       <Dialog open={selected !== null} onOpenChange={(open) => { if (!open) setSelected(null) }}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle className="text-center text-sm">
+            <DialogTitle className="text-center text-base sm:text-sm">
               {selectedEntry
                 ? `${monthName(selectedEntry.monthIdx, lang)} ${formatYear(yearMonthOf(selectedEntry.monthIdx).year, lang)}`
                 : ''}
@@ -132,10 +132,10 @@ export function YearCalendar({ loans, year, onYearChange, onPay, onHistory }: Pr
                 ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400'
                 : 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400'
             return (
-              <div key={loan.id} className="flex items-center justify-between gap-2 border-b border-border/50 py-1 text-xs last:border-0">
+              <div key={loan.id} className="flex items-center justify-between gap-2 border-b border-border/50 py-1 text-sm sm:text-xs last:border-0">
                 <div className="flex items-center gap-2 flex-1 min-w-0">
                   <span className="truncate">{loan.name}</span>
-                  <span className={`inline-block px-1.5 py-0 rounded text-[10px] font-medium ${statusClass}`}>
+                  <span className={`inline-block px-1.5 py-0 rounded text-[11px] sm:text-[10px] font-medium ${statusClass}`}>
                     {statusLabel}
                   </span>
                 </div>
@@ -167,13 +167,13 @@ export function YearCalendar({ loans, year, onYearChange, onPay, onHistory }: Pr
               </div>
             )
           })}
-              <div className="flex items-center justify-between gap-2 pt-1 text-xs font-semibold">
+              <div className="flex items-center justify-between gap-2 pt-1 text-sm sm:text-xs font-semibold">
                 <span>{t('common.total')}</span>
                 <span className="tabular-nums">{formatMoney(selectedEntry.total, lang)}</span>
               </div>
             </div>
           ) : (
-            <p className="text-muted-foreground py-2 text-center text-xs">{t('calendar.empty')}</p>
+            <p className="text-muted-foreground py-2 text-center text-sm sm:text-xs">{t('calendar.empty')}</p>
           )}
         </DialogContent>
       </Dialog>

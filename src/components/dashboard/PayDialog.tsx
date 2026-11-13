@@ -78,13 +78,13 @@ export function PayDialog({ loan, monthIndex, open, onOpenChange }: Props) {
         </DialogHeader>
         {monthPayments.length > 0 && (
           <div className="p-2 bg-muted border border-border rounded-lg mb-2">
-            <div className="flex items-center gap-1.5 mb-1 text-[10px] font-medium text-muted-foreground">
+            <div className="flex items-center gap-1.5 mb-1 text-xs sm:text-[10px] font-medium text-muted-foreground">
               <Calendar className="size-3" />
               <span>{t('loans.paymentsAlready')}</span>
             </div>
             <div className="space-y-0.5">
               {monthPayments.map(p => (
-                <div key={p.id} className="flex items-center justify-between text-[10px]">
+                <div key={p.id} className="flex items-center justify-between text-xs sm:text-[10px]">
                   <span className="text-muted-foreground">
                     {new Date(p.paidAt).toLocaleDateString(
                       lang === 'fa' ? 'fa-IR' : 'en-US',
@@ -94,14 +94,14 @@ export function PayDialog({ loan, monthIndex, open, onOpenChange }: Props) {
                   <span className="font-medium">{formatMoney(p.amount, lang)}</span>
                 </div>
               ))}
-              <div className="flex items-center justify-between mt-1 pt-1 border-t border-border/50 text-[10px] font-medium">
+              <div className="flex items-center justify-between mt-1 pt-1 border-t border-border/50 text-xs sm:text-[10px] font-medium">
                 <span>{t('common.total')}</span>
                 <span>{formatMoney(paid, lang)}</span>
               </div>
             </div>
           </div>
         )}
-        <form onSubmit={handleSubmit} className="grid gap-4 p-4">
+        <form onSubmit={handleSubmit} className="grid gap-4">
           <div className="grid gap-2">
             <Label htmlFor="pay-month">{t('loans.payMonth')}</Label>
             <select
@@ -109,7 +109,7 @@ export function PayDialog({ loan, monthIndex, open, onOpenChange }: Props) {
               name="pay-month"
               value={payMonth}
               onChange={e => setPayMonth(Number(e.target.value))}
-              className="border border-border rounded-lg px-3 py-2 text-sm h-9 bg-transparent flex-1"
+              className="border border-border rounded-lg px-3 py-2 text-base h-11 sm:text-sm sm:h-9 bg-transparent flex-1"
             >
               {activeMonthIndices(loan)
                 .filter(m => !isFullyPaidIn(loan, m))
@@ -137,13 +137,13 @@ export function PayDialog({ loan, monthIndex, open, onOpenChange }: Props) {
                 placeholder={formatMoney(remaining, lang)}
                 min="0"
                 required
-                className="border border-border rounded-lg px-3 py-2 text-sm flex-1"
+                className="border border-border rounded-lg px-3 py-2 text-base h-11 sm:text-sm sm:h-9 flex-1"
               />
               <span className="text-muted-foreground text-xs">{t('common.toman')}</span>
             </div>
           </div>
           {payError && (
-            <div className="text-[10px] text-destructive mb-2">{payError}</div>
+            <div className="text-xs sm:text-[10px] text-destructive mb-2">{payError}</div>
           )}
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>

@@ -46,7 +46,7 @@ export function PaymentHistoryDialog({ loan, open, onOpenChange }: Props) {
       <DialogContent className="w-[calc(100%-0.5rem)] sm:max-w-4xl max-h-[85vh] flex flex-col">
         <DialogHeader className="flex-shrink-0">
           <DialogTitle className="text-center text-base sm:text-lg">{t('loans.history')}</DialogTitle>
-          <DialogDescription className="text-center text-[10px]">{loan.name}</DialogDescription>
+          <DialogDescription className="text-center text-xs sm:text-[10px]">{loan.name}</DialogDescription>
         </DialogHeader>
         <div className="flex-1 overflow-y-auto min-h-0 py-0.5">
           {paymentCount > 0 && (
@@ -76,7 +76,7 @@ export function PaymentHistoryDialog({ loan, open, onOpenChange }: Props) {
                 }`}
               >
                 <div className="flex items-center justify-between gap-0.5">
-                  <span className="text-[9px] font-medium truncate">
+                  <span className="text-[11px] sm:text-[9px] font-medium truncate">
                     {monthName(monthIdx, lang)} {formatYear(year, lang)}
                   </span>
                   {fullyPaid ? (
@@ -84,7 +84,7 @@ export function PaymentHistoryDialog({ loan, open, onOpenChange }: Props) {
                   ) : null}
                 </div>
                 {!fullyPaid && (
-                  <div className="text-[8px] leading-none">
+                  <div className="text-[10px] sm:text-[8px] leading-none">
                     {monthPaid > 0 ? (
                       <span className="text-amber-700 dark:text-amber-400">
                         {t('payments.partialStatus', {
@@ -104,13 +104,13 @@ export function PaymentHistoryDialog({ loan, open, onOpenChange }: Props) {
                         key={payment.id}
                         className="flex items-center justify-between px-0.5 py-0 border-b border-border/50 last:border-0"
                       >
-                        <span className="text-[8px] truncate leading-none">
+                        <span className="text-[10px] sm:text-[8px] truncate leading-none">
                           {new Date(payment.paidAt).toLocaleDateString(
                             lang === 'fa' ? 'fa-IR' : 'en-US',
                             { year: 'numeric', month: 'numeric', day: 'numeric' },
                           )}
                         </span>
-                        <span className="text-[8px] font-medium leading-none">
+                        <span className="text-[10px] sm:text-[8px] font-medium leading-none">
                           {formatMoney(payment.amount, lang)}
                         </span>
                       </div>
