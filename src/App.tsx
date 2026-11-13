@@ -17,7 +17,8 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Download, Plus, BarChart2, Calendar, Upload } from 'lucide-react'
 import { useLocale } from '@/hooks/useLocale'
 import { useLoans } from '@/hooks/useLoans'
-import { currentMonthIndex, todayLabel, yearMonthOf } from '@/lib/jalali'
+import { currentMonthIndex, monthName, todayLabel, yearMonthOf } from '@/lib/jalali'
+import { formatNumber } from '@/lib/money'
 import { APP_VERSION } from '@/lib/version'
 import { daysUntilLoanDeadline, remainingInstallments, summaryFor } from '@/lib/loans'
 import { exportDataFile, importDataFile, loadData } from '@/lib/storage'
@@ -70,21 +71,9 @@ export function App() {
   const [tab, setTab] = useState<'open' | 'finished'>('open')
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [importError, setImportError] = useState<string | null>(null)
-  const [isOnline, setIsOnline] = useState(navigator.onLine)
   const [updateAvailable, setUpdateAvailable] = useState(false)
   const [updateVersion, setUpdateVersion] = useState('')
   const swRegRef = useRef<ServiceWorkerRegistration | null>(null)
-
-  useEffect(() => {
-    const onOnline = () => setIsOnline(true)
-    const onOffline = () => setIsOnline(false)
-    window.addEventListener('online', onOnline)
-    window.addEventListener('offline', onOffline)
-    return () => {
-      window.removeEventListener('online', onOnline)
-      window.removeEventListener('offline', onOffline)
-    }
-  }, [])
 
   useEffect(() => {
     if (!('serviceWorker' in navigator)) return
@@ -171,16 +160,6 @@ export function App() {
           </p>
         </div>
 
-        {!isOnline && (
-          <div
-            className="rounded-lg border border-amber-500/50 bg-amber-50 p-2 text-amber-800 dark:border-amber-400 dark:bg-amber-900/20 dark:text-amber-200 text-xs"
-            role="status"
-            aria-live="polite"
-          >
-            {t('common.offline')}
-          </div>
-        )}
-
         <SummaryCards summary={summary} nextMonthAmount={nextSummary.totalMonthly} />
         {upcomingDeadlines.length > 0 && (
           <div
@@ -188,7 +167,19 @@ export function App() {
             role="alert"
             aria-live="polite"
           >
-            {t('dashboard.upcomingDeadlines', { count: upcomingDeadlines.length })}
+            <div className="font-medium mb-1">
+              {t('dashboard.upcomingDeadlines', { count: upcomingDeadlines.length })}
+            </div>
+            <ul className="space-y-0.5">
+              {upcomingDeadlines.map(loan => (
+                <li key={loan.id} className="flex items-center justify-between gap-2 text-xs">
+                  <span className="truncate">{loan.name}</span>
+                  <span className="tabular-nums shrink-0">
+                    {formatNumber(loan.deadlineDay, lang)} {monthName(month, lang)}
+                  </span>
+                </li>
+              ))}
+            </ul>
           </div>
         )}
         {overdueLoans.length > 0 && (

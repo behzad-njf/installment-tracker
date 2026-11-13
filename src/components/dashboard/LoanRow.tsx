@@ -47,9 +47,6 @@ export function LoanRow({
       : partiallyPaid
         ? t('loans.status.partial')
         : t('loans.status.unpaid')
-  const totalPaid = loan.payments.reduce((sum, p) => sum + p.amount, 0)
-  const totalDebt = loan.amount * Math.max(1, loan.duration)
-  const remainingAmount = Math.max(0, totalDebt - totalPaid)
   const remainingCount = remainingInstallments(loan)
   const deadlineInfo = daysUntilLoanDeadline(loan, month)
   const deadlineOverdue = typeof deadlineInfo === 'number' && deadlineInfo < 0
@@ -79,10 +76,7 @@ export function LoanRow({
         </span>
       </TableCell>
       <TableCell className="text-center text-sm font-medium text-muted-foreground">
-        <div>{formatMoney(remainingAmount, lang)}</div>
-        <div className="text-[10px] text-muted-foreground">
-          {t('loans.remainingCount', { count: formatNumber(remainingCount, lang) })}
-        </div>
+        {t('loans.remainingCount', { count: formatNumber(remainingCount, lang) })}
       </TableCell>
       <TableCell
         className={`text-center text-sm font-medium ${deadlineOverdue ? 'text-red-600 dark:text-red-400' : 'text-muted-foreground'}`}
