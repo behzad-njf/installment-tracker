@@ -23,7 +23,7 @@ import { APP_VERSION } from '@/lib/version'
 import { daysUntilLoanDeadline, remainingInstallments, summaryFor } from '@/lib/loans'
 import { exportDataFile, importDataFile, loadData } from '@/lib/storage'
 import type { Loan } from '@/lib/types'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import { Table, TableBody, TableCell, TableRow } from '@/components/ui/table'
 
 interface PayContext {
   id: string
