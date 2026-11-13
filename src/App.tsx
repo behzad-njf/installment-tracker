@@ -14,15 +14,16 @@ import { UpdateDialog } from '@/components/dashboard/UpdateDialog'
 import { AppShell } from '@/components/layout/AppShell'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
-import { Download, Plus, BarChart2, Calendar, Upload } from 'lucide-react'
+import { Download, Plus, BarChart2, Calendar, Upload, DollarSign } from 'lucide-react'
 import { useLocale } from '@/hooks/useLocale'
 import { useLoans } from '@/hooks/useLoans'
 import { currentMonthIndex, monthName, todayLabel, yearMonthOf } from '@/lib/jalali'
-import { formatNumber } from '@/lib/money'
+import { formatMoney, formatNumber } from '@/lib/money'
 import { APP_VERSION } from '@/lib/version'
 import { daysUntilLoanDeadline, remainingInstallments, summaryFor } from '@/lib/loans'
 import { exportDataFile, importDataFile, loadData } from '@/lib/storage'
 import type { Loan } from '@/lib/types'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 
 interface PayContext {
   id: string
@@ -163,23 +164,49 @@ export function App() {
         <SummaryCards summary={summary} nextMonthAmount={nextSummary.totalMonthly} />
         {upcomingDeadlines.length > 0 && (
           <div
-            className="rounded-lg border border-destructive/50 bg-destructive/10 p-3 text-destructive text-sm"
+            className="rounded-lg border border-destructive/50 bg-destructive/10 p-3 text-destructive"
             role="alert"
             aria-live="polite"
           >
-            <div className="font-medium mb-1">
+            <div className="font-medium mb-2">
               {t('dashboard.upcomingDeadlines', { count: upcomingDeadlines.length })}
             </div>
-            <ul className="space-y-0.5">
-              {upcomingDeadlines.map(loan => (
-                <li key={loan.id} className="flex items-center justify-between gap-2 text-xs">
-                  <span className="truncate">{loan.name}</span>
-                  <span className="tabular-nums shrink-0">
-                    {formatNumber(loan.deadlineDay, lang)} {monthName(month, lang)}
-                  </span>
-                </li>
-              ))}
-            </ul>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="text-xs">{t('loans.name')}</TableHead>
+                  <TableHead className="text-xs text-center">{t('loans.deadlineDay')}</TableHead>
+                  <TableHead className="text-xs text-right">{t('loans.amount')}</TableHead>
+                  <TableHead className="text-xs text-center w-12" />
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {upcomingDeadlines.map(loan => (
+                  <TableRow key={loan.id}>
+                    <TableCell className="text-xs font-medium truncate max-w-[140px]">
+                      {loan.name}
+                    </TableCell>
+                    <TableCell className="text-xs text-center tabular-nums">
+                      {formatNumber(loan.deadlineDay, lang)} {monthName(month, lang)}
+                    </TableCell>
+                    <TableCell className="text-xs text-right tabular-nums">
+                      {formatMoney(loan.amount, lang)}
+                    </TableCell>
+                    <TableCell className="text-center">
+                      <Button
+                        type="button"
+                        size="icon-sm"
+                        variant="outline"
+                        aria-label={t('loans.pay')}
+                        onClick={() => setPayDialog({ id: loan.id, month })}
+                      >
+                        <DollarSign className="size-4" aria-hidden />
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
           </div>
         )}
         {overdueLoans.length > 0 && (
