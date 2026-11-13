@@ -169,7 +169,11 @@ export function exportDataFile(data: DataFile): string {
 
 /** Validate an imported JSON payload; returns null when unusable. */
 export function importDataFile(text: string): DataFile | null {
-  return parseDataFile(text)
+  try {
+    return parseDataFile(JSON.parse(text))
+  } catch {
+    return null
+  }
 }
 
 export function saveData(data: DataFile): boolean {
