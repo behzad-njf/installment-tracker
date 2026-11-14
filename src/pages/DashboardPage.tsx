@@ -1,20 +1,19 @@
 import { useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { BarChart2, Calendar, DollarSign } from 'lucide-react'
+import { BarChart2, Calendar } from 'lucide-react'
 
 import { BreakdownChart } from '@/components/dashboard/BreakdownChart'
 import { PayDialog } from '@/components/dashboard/PayDialog'
 import { PaymentHistoryDialog } from '@/components/dashboard/PaymentHistoryDialog'
 import { SummaryCards } from '@/components/dashboard/SummaryCards'
+import { UpcomingDeadlines } from '@/components/dashboard/UpcomingDeadlines'
 import { YearCalendar } from '@/components/dashboard/YearCalendar'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
-import { Table, TableBody, TableCell, TableRow } from '@/components/ui/table'
 import { useLocale } from '@/hooks/useLocale'
 import { useLoans } from '@/hooks/useLoans'
-import { currentMonthIndex, monthName, todayLabel, yearMonthOf } from '@/lib/jalali'
+import { currentMonthIndex, todayLabel, yearMonthOf } from '@/lib/jalali'
 import { daysUntilLoanDeadline, remainingInstallments, summaryFor } from '@/lib/loans'
-import { formatMoney, formatNumber } from '@/lib/money'
 import type { Loan } from '@/lib/types'
 
 interface PayContext {
@@ -70,43 +69,11 @@ export function DashboardPage() {
       <SummaryCards summary={summary} nextMonthAmount={nextSummary.totalMonthly} />
 
       {upcomingDeadlines.length > 0 && (
-        <div
-          className="rounded-lg border border-destructive/50 bg-destructive/10 p-3 text-destructive"
-          role="alert"
-          aria-live="polite"
-        >
-          <div className="font-medium mb-2">
-            {t('dashboard.upcomingDeadlines', { count: upcomingDeadlines.length })}
-          </div>
-          <Table>
-            <TableBody>
-              {upcomingDeadlines.map(loan => (
-                <TableRow key={loan.id}>
-                  <TableCell className="text-xs font-medium truncate max-w-[140px]">
-                    {loan.name}
-                  </TableCell>
-                  <TableCell className="text-xs text-center tabular-nums">
-                    {formatNumber(loan.deadlineDay, lang)} {monthName(month, lang)}
-                  </TableCell>
-                  <TableCell className="text-xs text-right tabular-nums">
-                    {formatMoney(loan.amount, lang)}
-                  </TableCell>
-                  <TableCell className="text-center">
-                    <Button
-                      type="button"
-                      size="icon-sm"
-                      variant="outline"
-                      aria-label={t('loans.pay')}
-                      onClick={() => setPayDialog({ id: loan.id, month })}
-                    >
-                      <DollarSign className="size-4" aria-hidden />
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
+        <UpcomingDeadlines
+          loans={upcomingDeadlines}
+          month={month}
+          onPay={loanId => setPayDialog({ id: loanId, month })}
+        />
       )}
 
       {overdueLoans.length > 0 && (

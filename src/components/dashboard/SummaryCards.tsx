@@ -33,11 +33,11 @@ function Stat({
       <Card className="h-full">
         <CardContent className="flex h-full flex-col justify-between gap-4">
           <div className="flex items-center gap-2">
-            <span className={`grid size-6 sm:size-8 place-items-center rounded-lg ${tone}`}>{icon}</span>
+            <span className={`grid size-5 sm:size-6 md:size-8 place-items-center rounded-lg ${tone}`}>{icon}</span>
             <span className="text-muted-foreground text-xs font-medium">{label}</span>
           </div>
           <div className="flex items-baseline gap-1.5">
-            <span className="text-lg sm:text-2xl leading-none font-bold tabular-nums">{value}</span>
+            <span className={`text-base sm:text-lg md:text-2xl leading-none font-bold tabular-nums`}>{value}</span>
             <span className="text-muted-foreground text-xs">{toman}</span>
           </div>
         </CardContent>
