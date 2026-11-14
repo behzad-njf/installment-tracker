@@ -119,6 +119,7 @@
     "deadlinePaid": "Paid this month",
     "overdue": "Overdue",
     "daysUntilDeadline": "{{days}} days until deadline",
+    "daysRemaining": "({{days}} days remaining)",
     "status": {
       "paid": "Paid",
       "partial": "Partially paid",

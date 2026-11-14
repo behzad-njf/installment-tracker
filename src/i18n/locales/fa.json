@@ -119,6 +119,7 @@
     "deadlinePaid": "این ماه پرداخت شده",
     "overdue": "مهلت گذشته",
     "daysUntilDeadline": "{{days}} روز تا مهلت",
+    "daysRemaining": "({{days}} روز)",
     "status": {
       "paid": "پرداخت‌شده",
       "partial": "کمی پرداخت‌شده",

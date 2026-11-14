@@ -5,6 +5,7 @@ import { Table, TableBody, TableCell, TableRow } from '@/components/ui/table'
 import { Button } from '@/components/ui/button'
 import { formatMoney, formatNumber } from '@/lib/money'
 import { monthName } from '@/lib/jalali'
+import { daysUntilLoanDeadline } from '@/lib/loans'
 import type { Loan, MonthIndex } from '@/lib/types'
 
 interface Props {
@@ -21,14 +22,22 @@ export function UpcomingDeadlines({ loans, month, onPay }: Props) {
     <section className="rounded-lg border border-destructive/50 bg-destructive/10 p-3 text-destructive" role="alert" aria-live="polite">
       <Table>
         <TableBody>
-          {loans.map(loan => (
-            <TableRow key={loan.id}>
-              <TableCell className="text-xs font-medium truncate max-w-[140px]">
-                {loan.name}
-              </TableCell>
-              <TableCell className="text-xs text-center tabular-nums">
-                {formatNumber(loan.deadlineDay, lang)} {monthName(month, lang)}
-              </TableCell>
+          {loans.map(loan => {
+            const days = daysUntilLoanDeadline(loan, month)
+            return (
+              <TableRow key={loan.id}>
+                <TableCell className="text-xs font-medium truncate max-w-[140px]">
+                  {loan.name}
+                </TableCell>
+                <TableCell className="text-xs text-center tabular-nums">
+                  {formatNumber(loan.deadlineDay, lang)} {monthName(month, lang)}
+                  {days !== null && (
+                    <span className="text-muted-foreground/70">
+                      {' '}
+                      {t('loans.daysRemaining', { days: formatNumber(days, lang) })}
+                    </span>
+                  )}
+                </TableCell>
               <TableCell className="text-xs text-right tabular-nums">
                 {formatMoney(loan.amount, lang)}
               </TableCell>
@@ -44,7 +53,7 @@ export function UpcomingDeadlines({ loans, month, onPay }: Props) {
                 </Button>
               </TableCell>
             </TableRow>
-          ))}
+          )})}
         </TableBody>
       </Table>
     </section>
