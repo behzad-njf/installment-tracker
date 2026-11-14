@@ -11,7 +11,28 @@
     "checks": "چک ها"
   },
   "checks": {
-    "comingSoon": "مدیریت دسته چک‌ها به‌زودی در همین صفحه اضافه می‌شود"
+    "addCheckbook": "افزودن دسته چک",
+    "editCheckbook": "ویرایش دسته چک",
+    "checkbookName": "نام دسته چک",
+    "bank": "بانک",
+    "deleteCheckbookTitle": "حذف دسته چک «{{name}}»؟",
+    "deleteCheckbookDesc": "تمام چک‌های این دسته هم حذف می‌شوند: {{count}}",
+    "addCheck": "افزودن چک",
+    "editCheck": "ویرایش چک",
+    "deleteCheckTitle": "حذف چک «{{payee}}»؟",
+    "deleteCheckDesc": "این عملیات برگشت‌ناپذیر است.",
+    "payee": "دریافت‌کننده",
+    "amount": "مبلغ",
+    "dueDate": "تاریخ سررسید",
+    "statusLabel": "وضعیت",
+    "note": "یادداشت",
+    "list": "چک‌ها",
+    "empty": "چکی ثبت نشده است",
+    "status": {
+      "pending": "در انتظار",
+      "paid": "پرداخت‌شده",
+      "bounced": "برگشتی"
+    }
   },
   "tabs": {
     "open": "وام های باز",
@@ -32,6 +53,10 @@
     "total": "مجموع",
     "loans": "وام",
     "switchTo": "تغییر به {{lang}}",
+    "cancel": "لغو",
+    "save": "ذخیره",
+    "day": "روز",
+    "actions": "عملیات",
     "offline": "آفلاین — داده‌ها در دستگاه ذخیره می‌شود",
     "online": "آنلاین"
   },

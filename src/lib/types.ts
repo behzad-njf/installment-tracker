@@ -4,6 +4,8 @@ export type MonthIndex = number
 export type Lang = 'fa' | 'en'
 export type Theme = 'light' | 'dark'
 
+export type CheckStatus = 'pending' | 'paid' | 'bounced'
+
 export interface PaymentRecord {
   id: string
   /** Absolute MonthIndex this payment is applied to. */
@@ -33,6 +35,35 @@ export interface Loan {
   deadlineDay: number
 }
 
+export interface Checkbook {
+  id: string
+  name: string
+  /** Optional bank name, e.g. «بانک ملی». */
+  bank?: string
+  /** ISO timestamp, set on creation. */
+  createdAt: string
+}
+
+export interface Check {
+  id: string
+  checkbookId: string
+  /** Payee / recipient name. */
+  payee: string
+  /** Amount in Toman. */
+  amount: number
+  /** Jalali due year. */
+  dueYear: number
+  /** Due month, 1..12. */
+  dueMonth: number
+  /** Due day, 1..31. */
+  dueDay: number
+  /** Optional note. */
+  note?: string
+  status: CheckStatus
+  /** ISO timestamp when status was last changed. */
+  updatedAt: string
+}
+
 export interface Settings {
   lang: Lang
   theme: Theme
@@ -41,9 +72,11 @@ export interface Settings {
 }
 
 export interface DataFile {
-  version: 2
+  version: 3
   settings: Settings
   loans: Loan[]
+  checkbooks: Checkbook[]
+  checks: Check[]
 }
 
 export type LoanDraft = Omit<
@@ -52,4 +85,10 @@ export type LoanDraft = Omit<
 > & {
   payments?: PaymentRecord[]
   deadlineDay?: number
+}
+
+export type CheckbookDraft = Omit<Checkbook, 'id' | 'createdAt'>
+export type CheckDraft = Omit<Check, 'id' | 'checkbookId' | 'updatedAt' | 'status'> & {
+  checkbookId?: string
+  status?: CheckStatus
 }

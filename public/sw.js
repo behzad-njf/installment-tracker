@@ -1,6 +1,6 @@
 // Service Worker — Aghsat PWA
 // Cache-first for app shell, cache-only for runtime data (localStorage lives in browser).
-const CACHE_NAME = 'aghsat-112c0794';
+const CACHE_NAME = 'aghsat-0a8701a2';
 const ASSETS = [
   '/',
   '/index.html',
@@ -11,8 +11,8 @@ const ASSETS = [
   '/assets/geist-latin-ext-wght-normal-DC-KSUi6.woff2',
   '/assets/geist-latin-wght-normal-BgDaEnEv.woff2',
   '/assets/geist-vietnamese-wght-normal-6IgcOCM7.woff2',
-  '/assets/index-Cl_-qClx.css',
-  '/assets/index-Dy-Z3bsf.js',
+  '/assets/index-DCpgYBlr.js',
+  '/assets/index-djNqaxuP.css',
   '/assets/vazirmatn-arabic-wght-normal-Cafbb7Zc.woff2',
   '/assets/vazirmatn-latin-ext-wght-normal-tDTa1Fj6.woff2',
   '/assets/vazirmatn-latin-wght-normal-BFexNX-K.woff2'
@@ -20,8 +20,20 @@ const ASSETS = [
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(ASSETS))
-  );
+    (async () => {
+      const cache = await caches.open(CACHE_NAME)
+      // Per-asset so a single missing/stale hashed asset can't fail the whole install.
+      await Promise.all(
+        ASSETS.map(async (asset) => {
+          try {
+            await cache.add(asset)
+          } catch (error) {
+            console.warn('[sw] install: skipped', asset, error)
+          }
+        }),
+      )
+    })(),
+  )
   self.skipWaiting();
 });
 

@@ -11,7 +11,28 @@
     "checks": "Cheques"
   },
   "checks": {
-    "comingSoon": "Chequebook management is coming to this page soon"
+    "addCheckbook": "Add chequebook",
+    "editCheckbook": "Edit chequebook",
+    "checkbookName": "Chequebook name",
+    "bank": "Bank",
+    "deleteCheckbookTitle": "Delete chequebook \"{{name}}\"?",
+    "deleteCheckbookDesc": "All {{count}} cheques in it will also be deleted",
+    "addCheck": "Add cheque",
+    "editCheck": "Edit cheque",
+    "deleteCheckTitle": "Delete cheque \"{{payee}}\"?",
+    "deleteCheckDesc": "This action cannot be undone",
+    "payee": "Payee",
+    "amount": "Amount",
+    "dueDate": "Due date",
+    "statusLabel": "Status",
+    "note": "Note",
+    "list": "Cheques",
+    "empty": "No cheques recorded yet",
+    "status": {
+      "pending": "Pending",
+      "paid": "Paid",
+      "bounced": "Bounced"
+    }
   },
   "tabs": {
     "open": "Open loans",
@@ -32,6 +53,10 @@
     "total": "Total",
     "loans": "loans",
     "switchTo": "Switch to {{lang}}",
+    "cancel": "Cancel",
+    "save": "Save",
+    "day": "Day",
+    "actions": "Actions",
     "offline": "Offline — data stored on device",
     "online": "Online"
   },
