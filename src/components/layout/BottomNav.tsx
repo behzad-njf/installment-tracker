@@ -1,0 +1,36 @@
+import { useTranslation } from 'react-i18next'
+
+import type { Route } from '@/hooks/useRoute'
+
+import { NAV_ITEMS } from './navItems'
+
+export function BottomNav({ route }: { route: Route }) {
+  const { t } = useTranslation()
+
+  return (
+    <nav
+      aria-label={t('nav.label')}
+      className="bg-background/95 fixed inset-x-0 bottom-0 z-40 border-t pb-[env(safe-area-inset-bottom)] backdrop-blur-md md:hidden"
+    >
+      <ul className="grid grid-cols-3">
+        {NAV_ITEMS.map(({ route: itemRoute, labelKey, icon: Icon }) => {
+          const active = route === itemRoute
+          return (
+            <li key={itemRoute}>
+              <a
+                href={`#/${itemRoute}`}
+                aria-current={active ? 'page' : undefined}
+                className={`flex flex-col items-center gap-0.5 py-2 text-[11px] transition-colors ${
+                  active ? 'text-primary font-medium' : 'text-muted-foreground'
+                }`}
+              >
+                <Icon className="size-5" aria-hidden />
+                {t(labelKey)}
+              </a>
+            </li>
+          )
+        })}
+      </ul>
+    </nav>
+  )
+}

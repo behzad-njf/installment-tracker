@@ -28,7 +28,7 @@
     {
       "name": "افزودن وام",
       "short_name": "افزودن وام",
-      "url": "/?add=1",
+      "url": "/?add=1#/loans",
       "icons": [{ "src": "/icon-192x192.png", "sizes": "192x192" }]
     }
   ]

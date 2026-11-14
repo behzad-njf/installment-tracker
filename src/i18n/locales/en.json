@@ -1,7 +1,17 @@
 {
   "app": {
     "name": "Installment Manager",
-    "tagline": "Monthly debt dashboard"
+    "tagline": "Monthly debt dashboard",
+    "version": "Version {{version}}"
+  },
+  "nav": {
+    "label": "Main navigation",
+    "dashboard": "Dashboard",
+    "loans": "Loans",
+    "checks": "Cheques"
+  },
+  "checks": {
+    "comingSoon": "Chequebook management is coming to this page soon"
   },
   "tabs": {
     "open": "Open loans",
