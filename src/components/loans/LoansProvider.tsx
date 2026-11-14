@@ -1,5 +1,7 @@
-import { createContext, useState, type ReactNode } from 'react'
-import { loadData, newLoanId, saveData } from '@/lib/storage'
+import { createContext, useEffect, useState, type ReactNode } from 'react'
+import { toast } from 'sonner'
+import { useTranslation } from 'react-i18next'
+import { importDataFile, loadData, newLoanId, saveData, STORAGE_KEY } from '@/lib/storage'
 import { newCheckbook, newCheck } from '@/lib/checks'
 import type { DataFile, Loan, LoanDraft, PaymentRecord, Check, Checkbook, CheckbookDraft, CheckDraft } from '@/lib/types'
 
@@ -12,7 +14,7 @@ export interface LoansContextValue {
   removeLoan: (id: string) => void
   addPayment: (loanId: string, monthIndex: number, amount: number, paidAt: string) => void
   removePayment: (loanId: string, paymentId: string) => void
-  clearDemo: () => void
+  clearAll: () => void
   replaceData: (data: DataFile) => void
 
   // Checkbook CRUD
@@ -32,6 +34,24 @@ export { LoansContext }
 
 export function LoansProvider({ children }: { children: ReactNode }) {
   const [data, setData] = useState<DataFile>(() => loadData())
+  const { t } = useTranslation()
+
+  /** Persist to localStorage and surface quota/private-mode failures to the user. */
+  const persist = (next: DataFile) => {
+    setData(next)
+    if (!saveData(next)) toast.error(t('storage.saveFailed'))
+  }
+
+  // Cross-tab sync: a write in another tab reloads this tab's state.
+  useEffect(() => {
+    const onStorage = (event: StorageEvent) => {
+      if (event.key !== STORAGE_KEY || !event.newValue) return
+      const next = importDataFile(event.newValue)
+      if (next) setData(next)
+    }
+    window.addEventListener('storage', onStorage)
+    return () => window.removeEventListener('storage', onStorage)
+  }, [])
 
   const addLoan = (draft: LoanDraft) => {
     const loan: Loan = {
@@ -41,20 +61,17 @@ export function LoansProvider({ children }: { children: ReactNode }) {
       payments: draft.payments ?? [],
     } as Loan
     const next = [loan, ...data.loans]
-    setData({ ...data, loans: next })
-    saveData({ ...data, loans: next })
+    persist({ ...data, loans: next })
   }
 
   const updateLoan = (id: string, draft: LoanDraft) => {
     const next = data.loans.map(l => (l.id === id ? { ...l, ...draft } : l))
-    setData({ ...data, loans: next })
-    saveData({ ...data, loans: next })
+    persist({ ...data, loans: next })
   }
 
   const removeLoan = (id: string) => {
     const next = data.loans.filter(l => l.id !== id)
-    setData({ ...data, loans: next })
-    saveData({ ...data, loans: next })
+    persist({ ...data, loans: next })
   }
 
   const addPayment = (loanId: string, monthIndex: number, amount: number, paidAt: string) => {
@@ -69,8 +86,7 @@ export function LoansProvider({ children }: { children: ReactNode }) {
     const nextLoans = data.loans.map(l =>
       l.id === loanId ? { ...l, payments: [...l.payments, payment] } : l,
     )
-    setData({ ...data, loans: nextLoans })
-    saveData({ ...data, loans: nextLoans })
+    persist({ ...data, loans: nextLoans })
   }
 
   const removePayment = (loanId: string, paymentId: string) => {
@@ -79,48 +95,38 @@ export function LoansProvider({ children }: { children: ReactNode }) {
         ? { ...l, payments: l.payments.filter(p => p.id !== paymentId) }
         : l,
     )
-    setData({ ...data, loans: nextLoans })
-    saveData({ ...data, loans: nextLoans })
+    persist({ ...data, loans: nextLoans })
   }
 
-  const clearDemo = () => {
-    const next = { ...data, loans: [] }
-    setData(next)
-    saveData(next)
+  const clearAll = () => {
+    persist({ ...data, loans: [], checkbooks: [], checks: [] })
   }
 
   /** Add a new checkbook */
   const addCheckbook = (draft: CheckbookDraft) => {
     const book = newCheckbook(draft)
-    setData({ ...data, checkbooks: [...data.checkbooks, book] })
-    saveData({ ...data, checkbooks: [...data.checkbooks, book] })
+    persist({ ...data, checkbooks: [...data.checkbooks, book] })
   }
 
   /** Update a checkbook */
   const updateCheckbook = (id: string, draft: CheckbookDraft) => {
-    setData({
+    persist({
       ...data,
       checkbooks: data.checkbooks.map(c =>
         c.id === id ? { ...c, ...newCheckbook(draft) } : c,
       ),
     })
-    saveData({ ...data, checkbooks: data.checkbooks.map(c =>
-      c.id === id ? { ...c, ...newCheckbook(draft) } : c,
-    ) })
+
   }
 
   /** Remove a checkbook (and any checks that reference it) */
   const removeCheckbook = (id: string) => {
-    setData({
+    persist({
       ...data,
       checkbooks: data.checkbooks.filter(c => c.id !== id),
       checks: data.checks.filter(c => c.checkbookId !== id),
     })
-    saveData({
-      ...data,
-      checkbooks: data.checkbooks.filter(c => c.id !== id),
-      checks: data.checks.filter(c => c.checkbookId !== id),
-    })
+
   }
 
   /** Add a new check */
@@ -129,11 +135,7 @@ export function LoansProvider({ children }: { children: ReactNode }) {
     if (!book) return
     const check = newCheck({ ...draft, checkbookId: book.id })
     if (!check) return
-    setData({
-      ...data,
-      checks: [...data.checks, check],
-    })
-    saveData({
+    persist({
       ...data,
       checks: [...data.checks, check],
     })
@@ -141,13 +143,7 @@ export function LoansProvider({ children }: { children: ReactNode }) {
 
   /** Update a check */
   const updateCheck = (id: string, draft: Partial<Check>) => {
-    setData({
-      ...data,
-      checks: data.checks.map(c =>
-        c.id === id ? { ...c, ...draft, updatedAt: new Date().toISOString() } : c,
-      ),
-    })
-    saveData({
+    persist({
       ...data,
       checks: data.checks.map(c =>
         c.id === id ? { ...c, ...draft, updatedAt: new Date().toISOString() } : c,
@@ -157,20 +153,10 @@ export function LoansProvider({ children }: { children: ReactNode }) {
 
   /** Remove a check */
   const removeCheck = (id: string) => {
-    setData({
-      ...data,
-      checks: data.checks.filter(c => c.id !== id),
-    })
-    saveData({
-      ...data,
-      checks: data.checks.filter(c => c.id !== id),
-    })
+    persist({ ...data, checks: data.checks.filter(c => c.id !== id) })
   }
 
-  const replaceData = (next: DataFile) => {
-    setData(next)
-    saveData(next)
-  }
+  const replaceData = persist
 
   const value: LoansContextValue = {
     loans: data.loans,
@@ -181,7 +167,7 @@ export function LoansProvider({ children }: { children: ReactNode }) {
     removeLoan,
     addPayment,
     removePayment,
-    clearDemo,
+    clearAll,
     replaceData,
 
     // Checkbook CRUD

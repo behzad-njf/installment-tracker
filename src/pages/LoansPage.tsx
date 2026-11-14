@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Download, Plus, Upload } from 'lucide-react'
+import { Download, Plus, Trash2, Upload } from 'lucide-react'
 
 import { EmptyState } from '@/components/dashboard/EmptyState'
 import { LoanTable } from '@/components/dashboard/LoanTable'
@@ -17,7 +17,7 @@ import type { Loan } from '@/lib/types'
 
 export function LoansPage() {
   const { t } = useTranslation()
-  const { loans, replaceData } = useLoans()
+  const { loans, replaceData, clearAll } = useLoans()
   const month = useMemo(() => currentMonthIndex(), [])
 
   const [tab, setTab] = useState<'open' | 'finished'>('open')
@@ -135,6 +135,21 @@ export function LoansPage() {
           <span className="md:hidden">{t('tabs.finishedShort')}</span>
           <span className="hidden md:inline">{t('tabs.finished')}</span>
         </Button>
+        {loans.length > 0 && (
+          <Button
+            type="button"
+            size="sm"
+            variant="outline"
+            className="text-destructive"
+            onClick={() => {
+              if (window.confirm(t('loans.clearAllConfirm'))) clearAll()
+            }}
+            aria-label={t('loans.clearAll')}
+          >
+            <Trash2 className="size-4" aria-hidden />
+            <span className="hidden md:inline">{t('loans.clearAll')}</span>
+          </Button>
+        )}
         <Button
           type="button"
           size="sm"

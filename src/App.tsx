@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 
 import { UpdateDialog } from '@/components/dashboard/UpdateDialog'
 import { AppShell } from '@/components/layout/AppShell'
+import { Toaster } from '@/components/ui/sonner'
 import { useRoute } from '@/hooks/useRoute'
 import { APP_VERSION } from '@/lib/version'
 import { ChecksPage } from '@/pages/ChecksPage'
@@ -48,6 +49,7 @@ export function App() {
 
   return (
     <AppShell route={route}>
+      <Toaster />
       {route === 'loans' ? <LoansPage /> : route === 'checks' ? <ChecksPage /> : <DashboardPage />}
       {updateAvailable && (
         <UpdateDialog

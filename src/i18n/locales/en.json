@@ -126,7 +126,9 @@
       "finished": "Finished"
     },
     "details": "Details",
-    "payAmountExceeds": "Payment amount cannot exceed installment amount"
+    "payAmountExceeds": "Payment amount cannot exceed installment amount",
+    "clearAll": "Clear all data",
+    "clearAllConfirm": "All loans, checkbooks, and checks will be deleted. Continue?"
   },
   "payments": {
     "count": "{{count}} payments",
@@ -149,6 +151,9 @@
     "restored": "Data restored from backup",
     "invalidFile": "Invalid file",
     "autoRestored": "Main data not found; restored from backup"
+  },
+  "storage": {
+    "saveFailed": "Save failed. Is storage full?"
   },
   "update": {
     "title": "App Update",
