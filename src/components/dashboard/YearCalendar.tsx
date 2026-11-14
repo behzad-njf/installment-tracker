@@ -12,7 +12,7 @@ import {
 } from '@/components/ui/dialog'
 import { useLocale } from '@/hooks/useLocale'
 import { currentMonthIndex, monthsOfYear, monthName, yearMonthOf } from '@/lib/jalali'
-import { isActiveIn, isFullyPaidIn, isPartiallyPaidIn } from '@/lib/loans'
+import { isActiveIn, isFullyPaidIn, isPartiallyPaidIn, paidAmountIn } from '@/lib/loans'
 import { formatMoney, formatNumber, formatYear } from '@/lib/money'
 import type { Loan, MonthIndex } from '@/lib/types'
 
@@ -46,6 +46,12 @@ export function YearCalendar({ loans, year, onYearChange, onPay, onHistory }: Pr
   })
 
   const selectedEntry = perMonth.find((entry) => entry.monthIdx === selected) ?? null
+  const paidTotal = selectedEntry
+    ? selectedEntry.due.reduce(
+        (sum, loan) => sum + Math.min(paidAmountIn(loan, selectedEntry.monthIdx), loan.amount),
+        0,
+      )
+    : 0
   const PrevIcon = dir === 'rtl' ? ChevronRight : ChevronLeft
   const NextIcon = dir === 'rtl' ? ChevronLeft : ChevronRight
 
@@ -167,9 +173,23 @@ export function YearCalendar({ loans, year, onYearChange, onPay, onHistory }: Pr
               </div>
             )
           })}
-              <div className="flex items-center justify-between gap-2 pt-1 text-sm sm:text-xs font-semibold">
-                <span>{t('common.total')}</span>
-                <span className="tabular-nums">{formatMoney(selectedEntry.total, lang)}</span>
+              <div className="space-y-1 border-t border-border/50 pt-2 text-sm sm:text-xs">
+                <div className="flex items-center justify-between gap-2 font-semibold">
+                  <span>{t('common.total')}</span>
+                  <span className="tabular-nums">{formatMoney(selectedEntry.total, lang)}</span>
+                </div>
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-muted-foreground">{t('common.paid')}</span>
+                  <span className="tabular-nums text-green-700 dark:text-green-400">
+                    {formatMoney(paidTotal, lang)}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-muted-foreground">{t('common.unpaid')}</span>
+                  <span className="tabular-nums text-red-700 dark:text-red-400">
+                    {formatMoney(selectedEntry.total - paidTotal, lang)}
+                  </span>
+                </div>
               </div>
             </div>
           ) : (
