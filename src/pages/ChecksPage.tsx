@@ -319,7 +319,7 @@ export function ChecksPage() {
 
       {book && (
         <>
-          <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 text-sm">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-sm">
             <Card className="p-3">
               <CardContent className="flex items-center justify-between">
                 <div>
@@ -369,60 +369,126 @@ export function ChecksPage() {
             {bookChecks.length === 0 ? (
               <p className="text-sm text-muted-foreground">{t('checks.empty')}</p>
             ) : (
-              <table className="w-full text-sm">
-                <thead>
-                  <tr>
-                    <th className="text-start" scope="col">{t('checks.payee')}</th>
-                    <th className="text-start" scope="col">{t('checks.amount')} ({t('common.toman')})</th>
-                    <th className="text-start" scope="col">{t('checks.dueDate')}</th>
-                    <th className="text-start" scope="col">{t('checks.statusLabel')}</th>
-                    <th className="text-start" scope="col">{t('common.actions')}</th>
-                  </tr>
-                </thead>
-                <tbody>
+              <>
+                {/* Desktop: table */}
+                <table className="hidden md:block w-full text-sm">
+                  <thead>
+                    <tr>
+                      <th className="text-start" scope="col">{t('checks.payee')}</th>
+                      <th className="text-start" scope="col">
+                        {t('checks.amount')} ({t('common.toman')})
+                      </th>
+                      <th className="text-start" scope="col">{t('checks.dueDate')}</th>
+                      <th className="text-start" scope="col">{t('checks.statusLabel')}</th>
+                      <th className="text-start" scope="col">{t('common.actions')}</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {bookChecks.map(c => {
+                      const { year: dy, month: dm } = yearMonthOf(
+                        monthIndexFrom(c.dueYear, c.dueMonth),
+                      )
+                      return (
+                        <tr key={c.id} className="border-b">
+                          <td className="p-3">{c.payee}</td>
+                          <td className="p-3 font-mono tabular-nums">
+                            {formatMoney(c.amount, lang)}
+                          </td>
+                          <td className="p-3">
+                            {dy} / {String(dm).padStart(2, '0')} / {String(c.dueDay).padStart(2, '0')}
+                          </td>
+                          <td className="p-3">{statusBadge(c.status)}</td>
+                          <td className="p-3">
+                            <div className="flex gap-1">
+                              <Button
+                                type="button"
+                                size="sm"
+                                variant="outline"
+                                onClick={() => {
+                                  setEditCheck(c)
+                                  setEditCheckOpen(true)
+                                }}
+                                aria-label={t('loans.edit')}
+                              >
+                                <Edit3 className="size-4" aria-hidden />
+                              </Button>
+                              <Button
+                                type="button"
+                                size="sm"
+                                variant="outline"
+                                onClick={() => {
+                                  setDeleteCheck(c)
+                                  setDeleteCheckOpen(true)
+                                }}
+                                aria-label={t('loans.delete')}
+                              >
+                                <Trash2 className="size-4" aria-hidden />
+                              </Button>
+                            </div>
+                          </td>
+                        </tr>
+                      )
+                    })}
+                  </tbody>
+                </table>
+
+                {/* Mobile: cards */}
+                <div className="md:hidden space-y-2">
                   {bookChecks.map(c => {
-                    const { year: dy, month: dm } = yearMonthOf(monthIndexFrom(c.dueYear, c.dueMonth))
+                    const { year: dy, month: dm } = yearMonthOf(
+                      monthIndexFrom(c.dueYear, c.dueMonth),
+                    )
                     return (
-                      <tr key={c.id} className="border-b">
-                        <td className="p-3">{c.payee}</td>
-                        <td className="p-3 font-mono tabular-nums">{formatMoney(c.amount, lang)}</td>
-                        <td className="p-3">
-                          {dy} / {String(dm).padStart(2, '0')} / {String(c.dueDay).padStart(2, '0')}
-                        </td>
-                        <td className="p-3">{statusBadge(c.status)}</td>
-                        <td className="p-3">
-                          <div className="flex gap-1">
-                            <Button
-                              type="button"
-                              size="sm"
-                              variant="outline"
-                              onClick={() => {
-                                setEditCheck(c)
-                                setEditCheckOpen(true)
-                              }}
-                              aria-label={t('loans.edit')}
-                            >
-                              <Edit3 className="size-4" aria-hidden />
-                            </Button>
-                            <Button
-                              type="button"
-                              size="sm"
-                              variant="outline"
-                              onClick={() => {
-                                setDeleteCheck(c)
-                                setDeleteCheckOpen(true)
-                              }}
-                              aria-label={t('loans.delete')}
-                            >
-                              <Trash2 className="size-4" aria-hidden />
-                            </Button>
+                      <Card key={c.id} className="p-3">
+                        <CardContent className="space-y-1.5">
+                          <div className="flex items-center justify-between gap-2">
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-medium truncate">
+                                {c.payee}
+                              </p>
+                              <p className="text-xs text-muted-foreground">
+                                {dy} / {String(dm).padStart(2, '0')} / {String(c.dueDay).padStart(2, '0')}
+                              </p>
+                            </div>
+                            <span className="font-mono tabular-nums text-right">
+                              {formatMoney(c.amount, lang)}
+                            </span>
                           </div>
-                        </td>
-                      </tr>
+                          <div className="flex items-center justify-between gap-1.5 text-xs">
+                            {statusBadge(c.status)}
+                            <div className="flex gap-1">
+                              <Button
+                                type="button"
+                                size="icon-sm"
+                                variant="outline"
+                                onClick={() => {
+                                  setEditCheck(c)
+                                  setEditCheckOpen(true)
+                                }}
+                                aria-label={t('loans.edit')}
+                              >
+                                <Edit3 className="size-4" aria-hidden />
+                              </Button>
+                              <Button
+                                type="button"
+                                size="icon-sm"
+                                variant="outline"
+                                onClick={() => {
+                                  setDeleteCheck(c)
+                                  setDeleteCheckOpen(true)
+                                }}
+                                aria-label={t('loans.delete')}
+                              >
+                                <Trash2 className="size-4" aria-hidden />
+                              </Button>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
                     )
                   })}
-                </tbody>
-              </table>
+                </div>
+              </>
             )}
           </div>
         </>
