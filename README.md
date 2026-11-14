@@ -1,32 +1,84 @@
-# React + TypeScript + Vite
+# اقساط — داشبورد مدیریت اقساط ماهانه
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+🇬🇧 [English version](README.en.md)
 
-Currently, two official plugins are available:
+جایگزین دیجیتال یک شیت گوگل برای پیگیری اقساط و بدهی‌های ماهانه. کاملاً سمت کلاینت:
+بدون بک‌اند، بدون ثبت‌نام، بدون سرویس پولی — داده‌ها فقط در مرورگر خودت می‌مانند.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+نسخه: **2.5.0** · فارسی/انگلیسی · راست‌به‌چپ · تقویم جلالی · نصب‌شدنی (PWA) و آفلاین
 
-## React Compiler
+## امکانات
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- **وام‌ها:** ثبت وام با مبلغ قسط، تعداد اقساط، سال/ماه شروع (چندساله) و روز مهلت
+- **پرداخت:** پرداخت کامل یا جزئی برای هر قسط + تاریخچه پرداخت‌های هر وام
+- **خلاصه ماه جاری:** کل اقساط، پرداخت‌شده، باقی‌مانده و پیش‌بینی ماه بعد
+- **هشدار سررسید:** بنر بالای صفحه برای اقساطی که تا ۳ روز آینده سررسیدشان است —
+  جدول اسم وام، تاریخ سررسید، مبلغ + دکمه پرداخت. وام‌های گذشته از مهلت هم لیست می‌شوند
+- **تقویم سالانه:** ۱۲ ماه با وضعیت رنگی (پرداخت‌شده / عقب‌افتاده)؛ با کلیک روی هر
+  ماه، لیست وام‌های آن ماه با وضعیت پرداخت و جمع‌های «مجموع / پرداخت‌شده /
+  پرداخت‌نشده» در پایین دیالوگ نمایش داده می‌شود
+- **نمودار:** سهم هر وام از هزینه ماهانه (Recharts)
+- **تبِ وام‌های باز / بسته‌شده**
+- **دو زبانه:** فارسی (پیش‌فرض، RTL) و انگلیسی؛ ارقام فارسی/لاتین، واحد تومان
+- **روشن / تاریک**
+- **PWA:** نصب روی موبایل/دسکتاپ، کش آفلاین نسخه‌دار با اعلان آپدیت
+- **پشتیبان‌گیری:** خروجی/ورودی JSON + بکاپ داخلی خودکار در `localStorage`
 
-## Expanding the Oxlint configuration
+## اجرا
 
-If you are developing a production application, we recommend enabling type-aware lint rules by installing `oxlint-tsgolint` and editing `.oxlintrc.json`:
-
-```json
-{
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "oxc"],
-  "options": {
-    "typeAware": true
-  },
-  "rules": {
-    "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
-  }
-}
+```bash
+npm install
+npm run dev          # http://localhost:5173
 ```
 
-See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
+ساخت نسخه تولید:
+
+```bash
+npm run build
+npm run preview
+```
+
+## اسکریپت‌ها
+
+| دستور            | کار                                              |
+| ---------------- | ------------------------------------------------ |
+| `npm run dev`    | سرور توسعه                                       |
+| `npm run build`  | `tsc -b` + بیلد Vite + تزریق فهرست کش در SW      |
+| `npm run preview`| پیش‌نمایش بیلد                                   |
+| `npm run lint`   | oxlint                                           |
+| `npm test`       | تست‌های محاسبات در `src/lib` (vitest)             |
+
+## داده و حریم خصوصی
+
+- همه چیز در `localStorage` مرورگر ذخیره می‌شود؛ هیچ درخواستی به سرور ارسال نمی‌شود.
+- کلید اصلی: `finance.data.v2` — نسخه‌دار با مهاجرت؛ کلید بکاپ داخلی:
+  `finance.backup.v2`.
+- برای انتقال داده بین دستگاه‌ها از دکمه‌های خروجی/ورودی JSON در هدر استفاده کن.
+- پاک‌کردن «داده‌های سایت» در مرورگر = از دست رفتن داده‌ها؛ قبلش خروجی JSON بگیر.
+
+## تکنولوژی
+
+React 19 · TypeScript · Vite · Tailwind CSS v4 · shadcn/ui · Recharts ·
+react-i18next · Service Worker دست‌ساز (بدون افزونه PWA)
+
+تاریخ‌ها فقط با `Intl.DateTimeFormat('fa-IR-u-ca-persian')` — بدون کتابخانه تاریخ.
+ماه‌ها به‌صورت ایندکس مطلق `year * 12 + (month - 1)` ذخیره می‌شوند تا برنامه
+چندساله بدون خطا از مرز سال عبور کند.
+
+## ساختار
+
+```
+src/
+  components/dashboard/   کارت‌ها، جدول وام‌ها، تقویم سالانه، دیالوگ‌های پرداخت
+  components/loans/       فرم افزودن/ویرایش/حذف وام + context
+  components/ui/          کامپوننت‌های shadcn/ui
+  lib/                    منطق خالص محاسبات، ذخیره‌سازی، پول، جلالی (تست‌شده)
+  i18n/                   fa.json، en.json
+scripts/                  تزریق precache در Service Worker
+```
+
+## لایسنس
+
+کاملاً آزاد و بدون هیچ شرط — منتشرشده در مالکیت عمومی ([Unlicense](LICENSE)).
+هر کسی می‌تواند هر استفاده‌ای بکند: کپی، تغییر، انتشار، فروش، تجاری یا غیرتجاری،
+بدون نیاز به اجازه یا ذکر منبع.
