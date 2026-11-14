@@ -80,6 +80,5 @@ scripts/                  Service Worker precache injection
 
 ## License
 
-Completely free, no conditions — released into the public domain
-([Unlicense](LICENSE)). Anyone may copy, modify, publish, sell or use it for any
-purpose, commercial or not, without permission or attribution.
+[MIT](LICENSE) — free to use, modify, publish and sell, as long as the license
+text and copyright notice are kept.
