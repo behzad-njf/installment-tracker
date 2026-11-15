@@ -169,7 +169,7 @@ export function NearDueChecks({ checks }: { checks: Check[] }) {
                 </div>
               ) : null}
             </div>
-            <DialogFooter className="flex gap-2 justify-center">
+            <DialogFooter className="flex flex-row gap-2 justify-center">
               <Button
                 type="button"
                 size="sm"
