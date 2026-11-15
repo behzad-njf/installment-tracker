@@ -37,7 +37,6 @@ export interface Loan {
 
 export interface Checkbook {
   id: string
-  name: string
   /** Optional bank name, e.g. «بانک ملی». */
   bank?: string
   /** Account number this checkbook is tied to (required in UI, kept as text to preserve leading zeros). */

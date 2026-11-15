@@ -13,9 +13,8 @@
   "checks": {
     "addCheckbook": "افزودن دسته چک",
     "editCheckbook": "ویرایش دسته چک",
-    "checkbookName": "نام دسته چک",
     "bank": "بانک",
-    "deleteCheckbookTitle": "حذف دسته چک «{{name}}»؟",
+    "deleteCheckbookTitle": "حذف دسته چک؟",
     "deleteCheckbookDesc": "تمام چک‌های این دسته هم حذف می‌شوند: {{count}}",
     "addCheck": "افزودن چک",
     "editCheck": "ویرایش چک",
@@ -31,7 +30,6 @@
     "checkbooks": "دسته‌های چک",
     "accountNumber": "شماره حساب",
     "accountRequired": "شماره حساب الزامی است",
-    "nameRequired": "نام دسته چک الزامی است",
     "serial": "شماره چک",
     "serialFrom": "از شماره",
     "serialTo": "تا شماره",

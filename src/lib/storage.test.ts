@@ -29,7 +29,6 @@ const VALID: DataFile = {
   checkbooks: [
     {
       id: 'cb1',
-      name: 'دسته چک ملی',
       bank: 'بانک ملی',
       accountNumber: '0123456789012',
       serialFrom: 100,
@@ -99,7 +98,7 @@ describe('importDataFile', () => {
     const legacy = {
       ...VALID,
       version: 3,
-      checkbooks: [{ id: 'cb1', name: 'قدیمی', bank: 'ملی', createdAt: '2026-11-01T00:00:00.000Z' }],
+      checkbooks: [{ id: 'cb1', bank: 'ملی', createdAt: '2026-11-01T00:00:00.000Z' }],
       checks: [
         {
           id: 'shell',

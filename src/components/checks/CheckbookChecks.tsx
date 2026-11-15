@@ -84,7 +84,7 @@ export function CheckbookChecks({
     <div id="book-checks" className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div className="min-w-0">
-          <h2 className="truncate text-base font-semibold">{book.name}</h2>
+          <h2 className="truncate text-base font-semibold">{book.bank}</h2>
           <p className="text-xs text-muted-foreground">
             {book.bank}
             {book.accountNumber ? ` · ${book.accountNumber}` : ''} ·{' '}

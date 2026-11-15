@@ -23,7 +23,7 @@ export function ChecksPage() {
     <div className="space-y-5">
       <h1 className="text-xl font-semibold tracking-tight">{t('nav.checks')}</h1>
 
-      <NearDueChecks checks={checks} checkbooks={checkbooks} onSelectBook={bookId => navigate({ kind: 'checks.book', bookId })} />
+      <NearDueChecks checks={checks} onSelectBook={bookId => navigate({ kind: 'checks.book', bookId })} />
 
       <section className="space-y-3">
         <div className="flex items-center justify-between gap-2">
@@ -68,7 +68,7 @@ export function ChecksPage() {
       />
       <ConfirmDialog
         open={deleteBook !== null}
-        title={t('checks.deleteCheckbookTitle', { name: deleteBook?.name ?? '' })}
+        title={t('checks.deleteCheckbookTitle')}
         desc={t('checks.deleteCheckbookDesc', {
           count: checks.filter(c => c.checkbookId === deleteBook?.id).length,
         })}

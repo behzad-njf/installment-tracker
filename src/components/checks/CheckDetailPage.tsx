@@ -46,7 +46,7 @@ export function CheckDetailPage({ bookId, serial }: Props) {
           <p className="text-sm text-muted-foreground">{t('checks.status')} {t(`checks.status.${check.status}`)}</p>
           <p className="text-sm text-muted-foreground">{t('checks.note')} {check.note || ''}</p>
           {book && (
-            <p className="text-sm text-muted-foreground">{t('checks.checkbook')} {book.name}</p>
+            <p className="text-sm text-muted-foreground">{t('checks.checkbook')}</p>
           )}
         </CardContent>
       </Card>

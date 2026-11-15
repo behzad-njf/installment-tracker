@@ -139,22 +139,17 @@ export function sanitizeCheckbook(raw: unknown): Checkbook | null {
     Array.isArray(raw)
   ) return null
   const source = raw as Record<string, unknown>
-  const name =
-    typeof source.name === 'string' && source.name.trim().length > 0
-      ? source.name.trim().slice(0, 80)
-      : ''
   const bank =
     typeof source.bank === 'string' && source.bank.length > 0 ? source.bank.trim().slice(0, 60) : ''
   const accountNumber =
     typeof source.accountNumber === 'string' ? source.accountNumber.trim().slice(0, 40) : ''
-  if (!name && !bank) return null
+  if (!bank) return null
   const isPositiveInt = (v: unknown): v is number =>
     typeof v === 'number' && Number.isInteger(v) && v >= 1 && v <= 9_999_999
   const serialFrom = isPositiveInt(source.serialFrom) ? source.serialFrom : undefined
   const serialTo = isPositiveInt(source.serialTo) ? source.serialTo : undefined
   return {
     id: typeof source.id === 'string' && source.id ? source.id : newCheckbookId(),
-    name: name || bank,
     bank,
     accountNumber,
     serialFrom,
@@ -251,7 +246,6 @@ export function sanitizeCheck(raw: unknown, bookIds: Set<string>): Check | null 
 export function newCheckbook(draft: CheckbookDraft): Checkbook {
   return {
     id: newCheckbookId(),
-    name: draft.name,
     bank: draft.bank,
     accountNumber: draft.accountNumber,
     serialFrom: draft.serialFrom,

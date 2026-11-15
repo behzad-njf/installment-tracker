@@ -6,15 +6,14 @@ import { useLocale } from '@/hooks/useLocale'
 import { daysUntilCheckDue, overdueChecks, upcomingChecks } from '@/lib/checks'
 import { monthName, monthIndexFrom } from '@/lib/jalali'
 import { formatMoney, formatNumber } from '@/lib/money'
-import type { Check, Checkbook } from '@/lib/types'
+import type { Check } from '@/lib/types'
 
 interface Props {
   checks: Check[]
-  checkbooks: Checkbook[]
   onSelectBook: (bookId: string) => void
 }
 
-export function NearDueChecks({ checks, checkbooks, onSelectBook }: Props) {
+export function NearDueChecks({ checks, onSelectBook }: Props) {
   const { t } = useTranslation()
   const { lang } = useLocale()
 
@@ -30,7 +29,6 @@ export function NearDueChecks({ checks, checkbooks, onSelectBook }: Props) {
       <ul className="space-y-1.5">
         {near.map(check => {
           const days = daysUntilCheckDue(check)
-          const book = checkbooks.find(b => b.id === check.checkbookId)
           const dueLabel = check.dueDay !== undefined && check.dueYear !== undefined && check.dueMonth !== undefined
             ? `${formatNumber(check.dueDay, lang)} ${monthName(monthIndexFrom(check.dueYear, check.dueMonth), lang)}`
             : '—'
@@ -48,7 +46,7 @@ export function NearDueChecks({ checks, checkbooks, onSelectBook }: Props) {
                   <Badge variant={days !== null && days < 0 ? 'destructive' : 'secondary'}>{days !== null && days < 0 ? t('checks.overdueDays', { days: formatNumber(Math.abs(days), lang) }) : t('loans.daysRemaining', { days: formatNumber(days ?? 0, lang) })}</Badge>
                 </span>
                 <span className="mt-1 flex items-center justify-between gap-2 text-xs text-muted-foreground">
-                  <span className="truncate">{book?.name ?? ''} · {dueLabel}</span>
+                  <span className="truncate">{dueLabel}</span>
                   <span className="tabular-nums">{formatMoney(check.amount, lang)}</span>
                 </span>
               </button>

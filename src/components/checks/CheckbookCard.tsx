@@ -35,9 +35,9 @@ export function CheckbookCard({
         >
           <span className="flex items-center gap-2 text-sm font-medium">
             <CreditCard className="size-4 shrink-0 text-muted-foreground" aria-hidden />
-            <span className="truncate">{book.bank || book.name}</span>
+            <span className="truncate">{book.bank}</span>
           </span>
-          <span className="mt-1 block truncate text-xs text-muted-foreground">{book.bank || book.name}</span>
+          <span className="mt-1 block truncate text-xs text-muted-foreground">{book.bank}</span>
           <span className="mt-1 block text-xs text-muted-foreground" dir="ltr">
             {book.accountNumber ?? ''}
           </span>

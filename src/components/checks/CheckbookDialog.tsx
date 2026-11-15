@@ -40,7 +40,6 @@ export function CheckbookDialog({
     const field = (name: string): string =>
       (form.elements.namedItem(name) as HTMLInputElement | null)?.value.trim() ?? ''
     const bank = field('bank')
-    const name = field('name') || bank
     const accountNumber = field('accountNumber')
     const serialFrom = parseSerial(field('serialFrom'))
     const serialTo = parseSerial(field('serialTo'))
@@ -58,7 +57,7 @@ export function CheckbookDialog({
       return
     }
     setError('')
-    onSave({ name, bank, accountNumber, serialFrom, serialTo })
+    onSave({ bank, accountNumber, serialFrom, serialTo })
     onOpenChange(false)
   }
 
@@ -69,8 +68,6 @@ export function CheckbookDialog({
           <DialogHeader>
             <DialogTitle>{book ? t('checks.editCheckbook') : t('checks.addCheckbook')}</DialogTitle>
           </DialogHeader>
-          <Label htmlFor="checkbook-name">{t('checks.checkbookName')}</Label>
-          <Input id="checkbook-name" name="name" defaultValue={book?.name ?? ''} maxLength={80} />
           <Label htmlFor="checkbook-bank">{t('checks.bank')}</Label>
           <Input id="checkbook-bank" name="bank" defaultValue={book?.bank ?? ''} maxLength={60} />
           <Label htmlFor="checkbook-account">{t('checks.accountNumber')}</Label>

@@ -50,7 +50,6 @@ export const DEMO_LOANS: Loan[] = [
 export const DEMO_CHECKBOOKS: Checkbook[] = [
   {
     id: 'demo-checkbook',
-    name: 'دسته چک بانک ملی',
     bank: 'بانک ملی',
     accountNumber: '0123456789012',
     serialFrom: 100,

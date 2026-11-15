@@ -18,7 +18,6 @@ import type { Check, Checkbook } from './types'
 
 const BOOK: Checkbook = {
   id: 'cb1',
-  name: 'دسته چک ملی',
   bank: 'بانک ملی',
   createdAt: '2026-11-01T00:00:00.000Z',
 }
@@ -124,9 +123,8 @@ describe('checkSummary', () => {
 
 describe('sanitizeCheckbook', () => {
   it('keeps valid fields and defaults the rest', () => {
-    const result = sanitizeCheckbook({ id: 'x', name: '  ملی  ', bank: '', createdAt: 'nope' })
-    expect(result?.name).toBe('ملی')
-    expect(result?.bank).toBe('')
+    const result = sanitizeCheckbook({ id: 'x', bank: 'ملی', createdAt: 'nope' })
+    expect(result?.bank).toBe('ملی')
     expect(result?.id).toBe('x')
     expect(result?.createdAt).toBeTruthy()
   })

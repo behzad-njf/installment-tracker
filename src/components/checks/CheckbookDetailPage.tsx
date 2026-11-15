@@ -81,7 +81,7 @@ export function CheckbookDetailPage({ bookId }: Props) {
         <Button type="button" variant="ghost" size="icon-sm" onClick={() => navigate('checks')} aria-label={t('common.back')}>
           <ArrowLeft className="size-4" aria-hidden />
         </Button>
-        <h1 className="text-xl font-semibold tracking-tight">{book.bank || book.name}</h1>
+        <h1 className="text-xl font-semibold tracking-tight">{book.bank}</h1>
       </div>
 
       <p className="text-sm text-muted-foreground">
