@@ -32,7 +32,25 @@ export function NearDueChecks({ checks }: { checks: Check[] }) {
   const near = [...overdueChecks(checks), ...upcomingChecks(checks, 7)]
   if (near.length === 0) return null
 
-  const confirmStatus = (id: string, status: StatusAction) => {
+  const statusColor = (s: Check['status']) =>
+    s === 'issued'
+      ? 'text-green-700'
+      : s === 'cleared'
+        ? 'text-blue-700'
+        : s === 'bounced'
+          ? 'text-orange-700'
+          : s === 'void'
+            ? 'text-destructive'
+            : 'text-muted-foreground'
+
+  /** Open details dialog for one check. */
+  const openSummary = (check: Check) => setSummaryCheck(check)
+
+  /** Details open: click a status button → close details, open confirmation. */
+  const requestStatus = (status: StatusAction) => {
+    if (!summaryCheck) return
+    const id = summaryCheck.id
+    setSummaryCheck(null)
     setPendingStatus({ id, status })
   }
 
@@ -47,17 +65,6 @@ export function NearDueChecks({ checks }: { checks: Check[] }) {
   }
 
   const statusLabel = (s: StatusAction) => t(`checks.status.${s}`)
-
-  const statusColor = (s: Check['status']) =>
-    s === 'issued'
-      ? 'text-green-700'
-      : s === 'cleared'
-        ? 'text-blue-700'
-        : s === 'bounced'
-          ? 'text-orange-700'
-          : s === 'void'
-            ? 'text-destructive'
-            : 'text-muted-foreground'
 
   return (
     <Card className="p-3 space-y-2" role="alert">
@@ -83,7 +90,7 @@ export function NearDueChecks({ checks }: { checks: Check[] }) {
               <button
                 type="button"
                 className="w-full rounded-md border p-2 text-start hover:bg-accent"
-                onClick={() => setSummaryCheck(check)}
+                onClick={() => openSummary(check)}
               >
                 <div className="grid grid-cols-2 gap-2 text-sm">
                   <div className="col-span-2 font-medium truncate">
@@ -105,41 +112,6 @@ export function NearDueChecks({ checks }: { checks: Check[] }) {
                   <div className="col-span-2 tabular-nums font-medium">
                     {formatMoney(check.amount, lang)} {t('common.toman')}
                   </div>
-                </div>
-                <div className="mt-2 flex gap-1">
-                  <Button
-                    type="button"
-                    size="sm"
-                    variant="outline"
-                    onClick={e => {
-                      e.stopPropagation()
-                      confirmStatus(check.id, 'cleared')
-                    }}
-                  >
-                    {t('checks.action.cleared')}
-                  </Button>
-                  <Button
-                    type="button"
-                    size="sm"
-                    variant="outline"
-                    onClick={e => {
-                      e.stopPropagation()
-                      confirmStatus(check.id, 'bounced')
-                    }}
-                  >
-                    {t('checks.action.bounced')}
-                  </Button>
-                  <Button
-                    type="button"
-                    size="sm"
-                    variant="destructive"
-                    onClick={e => {
-                      e.stopPropagation()
-                      confirmStatus(check.id, 'void')
-                    }}
-                  >
-                    {t('checks.action.void')}
-                  </Button>
                 </div>
               </button>
             </li>
@@ -197,8 +169,27 @@ export function NearDueChecks({ checks }: { checks: Check[] }) {
                 </div>
               ) : null}
             </div>
-            <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => setSummaryCheck(null)}>
+            <DialogFooter className="flex gap-1">
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                onClick={() => requestStatus('cleared')}
+              >
+                {t('checks.action.cleared')}
+              </Button>
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                onClick={() => requestStatus('bounced')}
+              >
+                {t('checks.action.bounced')}
+              </Button>
+              <Button type="button" size="sm" variant="destructive" onClick={() => requestStatus('void')}>
+                {t('checks.action.void')}
+              </Button>
+              <Button type="button" size="sm" variant="outline" onClick={() => setSummaryCheck(null)}>
                 {t('common.close')}
               </Button>
             </DialogFooter>
