@@ -92,26 +92,16 @@ export function NearDueChecks({ checks }: { checks: Check[] }) {
                 className="w-full rounded-md border p-2 text-start hover:bg-accent"
                 onClick={() => openSummary(check)}
               >
-                <div className="grid grid-cols-2 gap-2 text-sm">
-                  <div className="col-span-2 font-medium truncate">
+                <div className="flex items-center gap-2 text-sm">
+                  <span className="min-w-0 flex-1 truncate font-medium text-start">
                     {check.payee || `${t('checks.serial')} ${formatNumber(check.serial ?? 0, lang)}`}
-                  </div>
-                  <div className="col-span-2 flex items-center gap-1 text-muted-foreground">
-                    <span className="truncate">{dueLabel}</span>
-                    {daysLabel ? (
-                      <Badge variant={days !== null && days < 0 ? 'destructive' : 'secondary'}>
-                        {daysLabel}
-                      </Badge>
-                    ) : null}
-                  </div>
-                  {check.purpose ? (
-                    <div className="col-span-2 text-xs text-muted-foreground truncate">
-                      {t('checks.purpose')}: {check.purpose}
-                    </div>
+                  </span>
+                  <span className="whitespace-nowrap tabular-nums text-muted-foreground">{dueLabel}</span>
+                  {daysLabel ? (
+                    <Badge variant={days !== null && days < 0 ? 'destructive' : 'secondary'}>
+                      {daysLabel}
+                    </Badge>
                   ) : null}
-                  <div className="col-span-2 tabular-nums font-medium">
-                    {formatMoney(check.amount, lang)} {t('common.toman')}
-                  </div>
                 </div>
               </button>
             </li>
