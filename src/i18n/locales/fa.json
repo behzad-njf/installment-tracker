@@ -84,7 +84,9 @@
     "exhausted": "تمام شده",
     "issueCheck": "صدور چک جدید",
     "selectCheckbook": "انتخاب دسته چک",
-    "selectBlankCheck": "انتخاب چک سفید"
+    "selectBlankCheck": "انتخاب چک سفید",
+    "checkbook": "دسته چک",
+    "confirmIssue": "تأیید صدور چک"
   },
   "tabs": {
     "open": "وام های باز",

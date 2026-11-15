@@ -84,7 +84,9 @@
     "exhausted": "Exhausted",
     "issueCheck": "Issue new cheque",
     "selectCheckbook": "Select chequebook",
-    "selectBlankCheck": "Select blank cheque"
+    "selectBlankCheck": "Select blank cheque",
+    "checkbook": "Chequebook",
+    "confirmIssue": "Confirm issue"
   },
   "tabs": {
     "open": "Open loans",
