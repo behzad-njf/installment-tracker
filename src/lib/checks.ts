@@ -88,6 +88,34 @@ export function checkSummary(checks: Check[]): CheckSummary {
   }
 }
 
+/** Remaining (unused) serial capacity of a checkbook: range size minus registered checks. */
+export function remainingChecks(book: Checkbook, checks: Check[]): number {
+  const capacity =
+    book.serialFrom && book.serialTo && book.serialTo >= book.serialFrom
+      ? book.serialTo - book.serialFrom + 1
+      : 0
+  const used = checks.filter(c => c.checkbookId === book.id).length
+  return Math.max(0, capacity - used)
+}
+
+/** Build a serial-only check shell (bulk creation) — no payee/amount yet. */
+export function newCheckShell(checkbookId: string, serial: number, dueYear: number, dueMonth: number, dueDay: number): Check {
+  return {
+    id: newCheckId(),
+    checkbookId,
+    serial,
+    payee: '',
+    amount: 0,
+    purpose: '',
+    dueYear,
+    dueMonth,
+    dueDay,
+    note: '',
+    status: 'pending',
+    updatedAt: new Date().toISOString(),
+  }
+}
+
 /** Trust boundary: checkbook data from localStorage or an imported file. */
 export function sanitizeCheckbook(raw: unknown): Checkbook | null {
   if (
@@ -100,10 +128,19 @@ export function sanitizeCheckbook(raw: unknown): Checkbook | null {
   if (!name) return null
   const bank =
     typeof source.bank === 'string' && source.bank.length > 0 ? source.bank.trim().slice(0, 60) : ''
+  const accountNumber =
+    typeof source.accountNumber === 'string' ? source.accountNumber.trim().slice(0, 40) : ''
+  const isPositiveInt = (v: unknown): v is number =>
+    typeof v === 'number' && Number.isInteger(v) && v >= 1 && v <= 9_999_999
+  const serialFrom = isPositiveInt(source.serialFrom) ? source.serialFrom : undefined
+  const serialTo = isPositiveInt(source.serialTo) ? source.serialTo : undefined
   return {
     id: typeof source.id === 'string' && source.id ? source.id : newCheckbookId(),
     name,
     bank,
+    accountNumber,
+    serialFrom,
+    serialTo,
     createdAt:
       typeof source.createdAt === 'string' && !Number.isNaN(Date.parse(source.createdAt))
         ? source.createdAt
@@ -123,9 +160,16 @@ export function sanitizeCheck(raw: unknown, bookIds: Set<string>): Check | null 
   if (!bookIds.has(checkbookId)) return null
   const payee =
     typeof source.payee === 'string' ? source.payee.trim().slice(0, 80) : ''
-  if (!payee) return null
+  const serial =
+    typeof source.serial === 'number' && Number.isInteger(source.serial) && source.serial >= 1 && source.serial <= 9_999_999
+      ? source.serial
+      : undefined
   const amount = typeof source.amount === 'number' && Number.isFinite(source.amount) ? source.amount : 0
-  if (amount <= 0) return null
+  // Shells (serial only) are allowed; anything else must have a payee and a positive amount.
+  if (!serial && (!payee || amount <= 0)) return null
+  if (payee && amount <= 0) return null
+  const purpose =
+    typeof source.purpose === 'string' ? source.purpose.trim().slice(0, 120) : ''
   const dueYearRaw = Number(source.dueYear)
   const dueMonthRaw = Number(source.dueMonth)
   const dueDayRaw = Number(source.dueDay)
@@ -141,8 +185,10 @@ export function sanitizeCheck(raw: unknown, bookIds: Set<string>): Check | null 
   return {
     id: typeof source.id === 'string' && source.id ? source.id : newCheckId(),
     checkbookId,
+    serial,
     payee,
     amount,
+    purpose,
     dueYear,
     dueMonth,
     dueDay,
@@ -161,6 +207,9 @@ export function newCheckbook(draft: CheckbookDraft): Checkbook {
     id: newCheckbookId(),
     name: draft.name,
     bank: draft.bank,
+    accountNumber: draft.accountNumber,
+    serialFrom: draft.serialFrom,
+    serialTo: draft.serialTo,
     createdAt: new Date().toISOString(),
   }
 }
@@ -172,8 +221,10 @@ export function newCheck(draft: CheckDraft): Check | null {
   return {
     id: newCheckId(),
     checkbookId: draft.checkbookId,
+    serial: draft.serial,
     payee: draft.payee.trim(),
     amount: draft.amount,
+    purpose: draft.purpose,
     dueYear: draft.dueYear,
     dueMonth: draft.dueMonth,
     dueDay: draft.dueDay,

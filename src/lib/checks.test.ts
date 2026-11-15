@@ -5,7 +5,9 @@ import {
   checkSummary,
   daysUntilCheckDue,
   newCheck,
+  newCheckShell,
   overdueChecks,
+  remainingChecks,
   sanitizeCheck,
   sanitizeCheckbook,
   upcomingChecks,
@@ -154,5 +156,29 @@ describe('newCheck', () => {
     const ok = newCheck({ checkbookId: 'cb', payee: 'x', amount: 100, dueYear: 1405, dueMonth: 1, dueDay: 1, note: 'n' })
     expect(ok?.status).toBe('pending')
     expect(ok?.note).toBe('n')
+  })
+})
+
+describe('remainingChecks', () => {
+  it('subtracts registered cheques from the serial range capacity', () => {
+    const book: Checkbook = { ...BOOK, serialFrom: 100, serialTo: 125 }
+    expect(remainingChecks(book, [])).toBe(26)
+    expect(remainingChecks(book, [makeCheck({ serial: 100 }), makeCheck({ id: 'c2', serial: 101 })])).toBe(24)
+    expect(remainingChecks(book, [])).toBe(26)
+    // no range recorded -> unknown capacity, never negative
+    expect(remainingChecks(BOOK, [makeCheck()])).toBe(0)
+    expect(remainingChecks({ ...BOOK, serialFrom: 10, serialTo: 9 }, [])).toBe(0)
+  })
+})
+
+describe('bulk shells', () => {
+  it('creates a payee-less shell only when it has a valid serial', () => {
+    const shell = newCheckShell('cb1', 105, 1405, 8, 24)
+    expect(shell.serial).toBe(105)
+    expect(shell.payee).toBe('')
+    expect(shell.amount).toBe(0)
+    expect(shell.dueDay).toBe(24)
+    expect(sanitizeCheck(shell, new Set(['cb1']))?.serial).toBe(105)
+    expect(sanitizeCheck({ ...shell, serial: 0 }, new Set(['cb1']))).toBeNull()
   })
 })

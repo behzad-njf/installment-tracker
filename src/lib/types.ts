@@ -40,6 +40,12 @@ export interface Checkbook {
   name: string
   /** Optional bank name, e.g. «بانک ملی». */
   bank?: string
+  /** Account number this checkbook is tied to (required in UI, kept as text to preserve leading zeros). */
+  accountNumber?: string
+  /** First serial number in the checkbook's range (>= 1). */
+  serialFrom?: number
+  /** Last serial number in the checkbook's range (inclusive). */
+  serialTo?: number
   /** ISO timestamp, set on creation. */
   createdAt: string
 }
@@ -47,10 +53,14 @@ export interface Checkbook {
 export interface Check {
   id: string
   checkbookId: string
-  /** Payee / recipient name. */
+  /** Serial number of the physical check within its checkbook range. */
+  serial?: number
+  /** Payee / recipient name. Empty only for serial-only shells created in bulk. */
   payee: string
-  /** Amount in Toman. */
+  /** Amount in Toman. 0 allowed only for serial-only shells. */
   amount: number
+  /** Purpose of the check (بابت). */
+  purpose?: string
   /** Jalali due year. */
   dueYear: number
   /** Due month, 1..12. */
@@ -72,7 +82,7 @@ export interface Settings {
 }
 
 export interface DataFile {
-  version: 3
+  version: 4
   settings: Settings
   loans: Loan[]
   checkbooks: Checkbook[]

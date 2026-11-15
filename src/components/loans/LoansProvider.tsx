@@ -2,7 +2,8 @@ import { createContext, useEffect, useState, type ReactNode } from 'react'
 import { toast } from 'sonner'
 import { useTranslation } from 'react-i18next'
 import { importDataFile, loadData, newLoanId, saveData, STORAGE_KEY } from '@/lib/storage'
-import { newCheckbook, newCheck } from '@/lib/checks'
+import { newCheckbook, newCheck, newCheckShell } from '@/lib/checks'
+import { currentMonthIndex, jalaliPartsFromDate, yearMonthOf } from '@/lib/jalali'
 import type { DataFile, Loan, LoanDraft, PaymentRecord, Check, Checkbook, CheckbookDraft, CheckDraft } from '@/lib/types'
 
 export interface LoansContextValue {
@@ -24,6 +25,7 @@ export interface LoansContextValue {
 
   // Check CRUD
   addCheck: (draft: CheckDraft) => void
+  addChecksBulk: (bookId: string, from: number, to: number) => number
   updateCheck: (id: string, draft: Partial<Check>) => void
   removeCheck: (id: string) => void
 }
@@ -108,12 +110,12 @@ export function LoansProvider({ children }: { children: ReactNode }) {
     persist({ ...data, checkbooks: [...data.checkbooks, book] })
   }
 
-  /** Update a checkbook */
+  /** Update a checkbook (id/createdAt preserved) */
   const updateCheckbook = (id: string, draft: CheckbookDraft) => {
     persist({
       ...data,
       checkbooks: data.checkbooks.map(c =>
-        c.id === id ? { ...c, ...newCheckbook(draft) } : c,
+        c.id === id ? { ...c, ...draft } : c,
       ),
     })
 
@@ -139,6 +141,25 @@ export function LoansProvider({ children }: { children: ReactNode }) {
       ...data,
       checks: [...data.checks, check],
     })
+  }
+
+  /** Bulk-create serial-only shells from `from` to `to`; skips serials already in the book. Returns created count. */
+  const addChecksBulk = (bookId: string, from: number, to: number): number => {
+    const book = data.checkbooks.find(c => c.id === bookId)
+    if (!book) return 0
+    const existing = new Set(
+      data.checks.filter(c => c.checkbookId === bookId && c.serial !== undefined).map(c => c.serial),
+    )
+    const { year, month } = yearMonthOf(currentMonthIndex())
+    const { day } = jalaliPartsFromDate(new Date())
+    const created: Check[] = []
+    for (let serial = from; serial <= to && created.length < 500; serial += 1) {
+      if (existing.has(serial)) continue
+      created.push(newCheckShell(bookId, serial, year, month, day))
+    }
+    if (created.length === 0) return 0
+    persist({ ...data, checks: [...data.checks, ...created] })
+    return created.length
   }
 
   /** Update a check */
@@ -177,6 +198,7 @@ export function LoansProvider({ children }: { children: ReactNode }) {
 
     // Check CRUD
     addCheck,
+    addChecksBulk,
     updateCheck,
     removeCheck,
   }

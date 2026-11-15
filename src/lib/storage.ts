@@ -2,11 +2,11 @@ import { monthIndexFrom } from './jalali'
 import { sanitizeCheck, sanitizeCheckbook } from './checks'
 import type { Check, Checkbook, DataFile, Lang, Loan, PaymentRecord, Settings, Theme } from './types'
 
-export const STORAGE_KEY = 'finance.data.v3'
-export const BACKUP_KEY = 'finance.backup.v3'
+export const STORAGE_KEY = 'finance.data.v4'
+export const BACKUP_KEY = 'finance.backup.v4'
 
-/** Keys written by the pre-checks schema (v2); migrated into v3 on load. */
-const LEGACY_KEYS = ['finance.data.v2', 'finance.backup.v2'] as const
+/** Keys written by the pre-checkbook-details schema (v2/v3); migrated into v4 on load. */
+const LEGACY_KEYS = ['finance.data.v3', 'finance.data.v2'] as const
 
 const DEFAULT_SETTINGS: Settings = { lang: 'fa', theme: 'light', seeded: false }
 
@@ -48,15 +48,25 @@ export const DEMO_LOANS: Loan[] = [
 ]
 
 export const DEMO_CHECKBOOKS: Checkbook[] = [
-  { id: 'demo-checkbook', name: 'دسته چک بانک ملی', bank: 'بانک ملی', createdAt: '2026-03-21T00:00:00.000Z' },
+  {
+    id: 'demo-checkbook',
+    name: 'دسته چک بانک ملی',
+    bank: 'بانک ملی',
+    accountNumber: '0123456789012',
+    serialFrom: 100,
+    serialTo: 125,
+    createdAt: '2026-03-21T00:00:00.000Z',
+  },
 ]
 
 export const DEMO_CHECKS: Check[] = [
   {
     id: 'demo-check-1',
     checkbookId: 'demo-checkbook',
+    serial: 100,
     payee: 'بیمه شخص ثالث',
     amount: 3_200_000,
+    purpose: 'بیمه خودرو',
     dueYear: 1405,
     dueMonth: 11,
     dueDay: 18,
@@ -67,8 +77,10 @@ export const DEMO_CHECKS: Check[] = [
   {
     id: 'demo-check-2',
     checkbookId: 'demo-checkbook',
+    serial: 101,
     payee: 'تعمیرات ساختمان',
     amount: 1_150_000,
+    purpose: 'تعمیرات ملک',
     dueYear: 1405,
     dueMonth: 12,
     dueDay: 5,
@@ -155,7 +167,7 @@ function sanitizeSettings(raw: unknown): Settings {
 export function parseDataFile(raw: unknown): DataFile | null {
   if (!isRecord(raw)) return null
   if (!Array.isArray(raw.loans)) return null
-  if (raw.version !== 2 && raw.version !== 3) return null
+  if (raw.version !== 2 && raw.version !== 3 && raw.version !== 4) return null
 
   const settings = sanitizeSettings(raw.settings)
   const loans = raw.loans.map(sanitizeLoan).filter((loan): loan is Loan => loan !== null)
@@ -171,7 +183,7 @@ export function parseDataFile(raw: unknown): DataFile | null {
         .filter((check): check is Check => check !== null)
     : []
 
-  return { version: 3, settings, loans, checkbooks, checks }
+  return { version: 4, settings, loans, checkbooks, checks }
 }
 
 function readRawKey(key: string): unknown {
@@ -207,7 +219,7 @@ export function loadData(): DataFile {
   }
 
   const seeded: DataFile = {
-    version: 3,
+    version: 4,
     settings: { ...DEFAULT_SETTINGS, seeded: true },
     loans: DEMO_LOANS,
     checkbooks: DEMO_CHECKBOOKS,
