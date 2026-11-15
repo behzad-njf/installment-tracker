@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, type ReactElement } from 'react'
 
 import { UpdateDialog } from '@/components/dashboard/UpdateDialog'
 import { AppShell } from '@/components/layout/AppShell'
@@ -8,11 +8,14 @@ import { APP_VERSION } from '@/lib/version'
 import { ChecksPage } from '@/pages/ChecksPage'
 import { DashboardPage } from '@/pages/DashboardPage'
 import { LoansPage } from '@/pages/LoansPage'
+import { CheckbookDetailPage } from '@/components/checks/CheckbookDetailPage'
+import { CheckDetailPage } from '@/components/checks/CheckDetailPage'
 
 export function App() {
   const route = useRoute()
   const [updateAvailable, setUpdateAvailable] = useState(false)
   const [updateVersion, setUpdateVersion] = useState('')
+  const [reloading, setReloading] = useState(false)
   const swRegRef = useRef<ServiceWorkerRegistration | null>(null)
 
   useEffect(() => {
@@ -38,6 +41,7 @@ export function App() {
     })
 
     const onControllerChange = () => {
+      setReloading(true)
       window.location.reload()
     }
     navigator.serviceWorker.addEventListener('controllerchange', onControllerChange)
@@ -47,19 +51,34 @@ export function App() {
     }
   }, [])
 
+  let page: ReactElement | null
+  if (typeof route === 'string') {
+    page = route === 'loans' ? <LoansPage /> : route === 'checks' ? <ChecksPage /> : <DashboardPage />
+  } else if (route.kind === 'checks.book') {
+    page = <CheckbookDetailPage bookId={route.bookId} />
+  } else if (route.kind === 'checks.check') {
+    page = <CheckDetailPage bookId={route.bookId} serial={route.serial} />
+  } else {
+    page = <DashboardPage />
+  }
+
   return (
     <AppShell route={route}>
       <Toaster />
-      {route === 'loans' ? <LoansPage /> : route === 'checks' ? <ChecksPage /> : <DashboardPage />}
+      {page}
       {updateAvailable && (
         <UpdateDialog
-          open={updateAvailable}
+          open={updateAvailable && !reloading}
           currentVersion={APP_VERSION}
           newVersion={updateVersion}
-          onOpenChange={open => setUpdateAvailable(open)}
+          onOpenChange={open => {
+            if (!open) {
+              setUpdateAvailable(false)
+              setReloading(false)
+            }
+          }}
           onUpdate={() => {
             swRegRef.current?.waiting?.postMessage({ type: 'SKIP_WAITING' })
-            setUpdateAvailable(false)
           }}
         />
       )}

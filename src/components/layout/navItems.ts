@@ -1,9 +1,7 @@
 import { LayoutDashboard, ScrollText, WalletMinimal, type LucideIcon } from 'lucide-react'
 
-import type { Route } from '@/hooks/useRoute'
-
 export interface NavItem {
-  route: Route
+  route: 'dashboard' | 'loans' | 'checks'
   labelKey: string
   icon: LucideIcon
 }

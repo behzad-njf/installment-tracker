@@ -1,30 +1,24 @@
 import { useTranslation } from 'react-i18next'
 import { AlarmClock } from 'lucide-react'
-
 import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { useLocale } from '@/hooks/useLocale'
 import { daysUntilCheckDue, overdueChecks, upcomingChecks } from '@/lib/checks'
-import { monthIndexFrom, monthName } from '@/lib/jalali'
+import { monthName, monthIndexFrom } from '@/lib/jalali'
 import { formatMoney, formatNumber } from '@/lib/money'
 import type { Check, Checkbook } from '@/lib/types'
 
-const NEAR_DAYS = 7
-
-/** Checks due within a week (plus overdue ones) — clicking one opens its checkbook. */
-export function NearDueChecks({
-  checks,
-  checkbooks,
-  onSelectBook,
-}: {
+interface Props {
   checks: Check[]
   checkbooks: Checkbook[]
   onSelectBook: (bookId: string) => void
-}) {
+}
+
+export function NearDueChecks({ checks, checkbooks, onSelectBook }: Props) {
   const { t } = useTranslation()
   const { lang } = useLocale()
 
-  const near = [...overdueChecks(checks), ...upcomingChecks(checks, NEAR_DAYS)]
+  const near = [...overdueChecks(checks), ...upcomingChecks(checks, 7)]
   if (near.length === 0) return null
 
   return (
@@ -37,13 +31,9 @@ export function NearDueChecks({
         {near.map(check => {
           const days = daysUntilCheckDue(check)
           const book = checkbooks.find(b => b.id === check.checkbookId)
-          const dueLabel =
-            check.dueDay !== undefined && check.dueYear !== undefined && check.dueMonth !== undefined
-              ? `${formatNumber(check.dueDay, lang)} ${monthName(
-                  monthIndexFrom(check.dueYear, check.dueMonth),
-                  lang,
-                )}`
-              : '—'
+          const dueLabel = check.dueDay !== undefined && check.dueYear !== undefined && check.dueMonth !== undefined
+            ? `${formatNumber(check.dueDay, lang)} ${monthName(monthIndexFrom(check.dueYear, check.dueMonth), lang)}`
+            : '—'
           return (
             <li key={check.id}>
               <button
@@ -55,11 +45,7 @@ export function NearDueChecks({
                   <span className="flex-1 min-w-0 truncate font-medium">
                     {check.payee || `${t('checks.serial')} ${formatNumber(check.serial ?? 0, lang)}`}
                   </span>
-                  <Badge variant={days !== null && days < 0 ? 'destructive' : 'secondary'}>
-                    {days !== null && days < 0
-                      ? t('checks.overdueDays', { days: formatNumber(Math.abs(days), lang) })
-                      : t('loans.daysRemaining', { days: formatNumber(days ?? 0, lang) })}
-                  </Badge>
+                  <Badge variant={days !== null && days < 0 ? 'destructive' : 'secondary'}>{days !== null && days < 0 ? t('checks.overdueDays', { days: formatNumber(Math.abs(days), lang) }) : t('loans.daysRemaining', { days: formatNumber(days ?? 0, lang) })}</Badge>
                 </span>
                 <span className="mt-1 flex items-center justify-between gap-2 text-xs text-muted-foreground">
                   <span className="truncate">{book?.name ?? ''} · {dueLabel}</span>
