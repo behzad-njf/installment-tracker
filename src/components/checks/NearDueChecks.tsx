@@ -105,10 +105,8 @@ export function NearDueChecks({ checks }: { checks: Check[] }) {
                 </div>
                 {check.purpose ? (
                   <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                    <span className="min-w-0 truncate">
-                      {t('checks.purpose')}: {check.purpose}
-                    </span>
-                    <span className="tabular-nums font-medium whitespace-nowrap text-start">
+                    <span className="min-w-0 flex-1 truncate">{check.purpose}</span>
+                    <span className="tabular-nums font-medium whitespace-nowrap">
                       {formatMoney(check.amount, lang)} {t('common.toman')}
                     </span>
                   </div>
