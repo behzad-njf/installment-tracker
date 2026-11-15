@@ -5,7 +5,6 @@ import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { useLocale } from '@/hooks/useLocale'
-import { remainingChecks } from '@/lib/checks'
 import { formatNumber } from '@/lib/money'
 import type { Check, Checkbook } from '@/lib/types'
 
@@ -24,7 +23,7 @@ export function CheckbookCard({
 }) {
   const { t } = useTranslation()
   const { lang } = useLocale()
-  const remaining = remainingChecks(book, checks)
+  const blankCount = checks.filter(c => c.checkbookId === book.id && c.status === 'blank').length
 
   return (
     <Card className="p-3">
@@ -42,8 +41,8 @@ export function CheckbookCard({
           <span className="mt-1 block text-xs text-muted-foreground" dir="ltr">
             {book.accountNumber ?? ''}
           </span>
-          <Badge variant="secondary" className="mt-2">
-            {t('checks.remaining', { count: formatNumber(remaining, lang) })}
+          <Badge variant={blankCount === 0 ? 'destructive' : 'secondary'} className="mt-2">
+            {blankCount === 0 ? t('checks.exhausted') : t('checks.blankCount', { count: formatNumber(blankCount, lang) })}
           </Badge>
         </button>
         <div className="flex gap-1">

@@ -81,7 +81,9 @@
     "statusNotAllowed": "That status change is not allowed",
     "blankHint": "A blank cheque holds only its serial. Issue it from the status dialog.",
     "defineAs": "Create as",
-    "blankBadge": "Blank"
+    "blankBadge": "Blank",
+    "blankCount": "{{count}} blank cheques",
+    "exhausted": "Exhausted"
   },
   "tabs": {
     "open": "Open loans",

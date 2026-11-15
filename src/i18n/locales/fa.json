@@ -81,7 +81,9 @@
     "statusNotAllowed": "این تغییر وضعیت مجاز نیست",
     "blankHint": "چک سفید فقط شماره دارد. برای صدور، از مودال تغییر وضعیت استفاده کنید.",
     "defineAs": "نوع تعریف",
-    "blankBadge": "سفید"
+    "blankBadge": "سفید",
+    "blankCount": "{{count}} چک سفید",
+    "exhausted": "تمام شده"
   },
   "tabs": {
     "open": "وام های باز",
