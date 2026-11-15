@@ -215,7 +215,7 @@ export function IssueCheckDialog({
                 name="issue-amount"
                 type="text"
                 inputMode="numeric"
-                value={amountRaw ? formatNumber(Number(amountRaw), lang) : ''}
+                value={amountRaw}
                 onChange={e => setAmountRaw(e.target.value.replace(/\D/g, ''))}
               />
               <Label htmlFor="issue-purpose">{t('checks.purpose')}</Label>
@@ -303,7 +303,7 @@ export function IssueCheckDialog({
                 </div>
                 <div className="flex justify-between border-b border-input pb-1">
                   <span className="text-muted-foreground">{t('checks.dueDate')}</span>
-                  <span dir="ltr">
+                  <span>
                     {formatNumber(Number(dueDay), lang)} {monthName(monthIndexFrom(Number(dueYear), Number(dueMonth)), lang)} {formatYear(Number(dueYear), lang)}
                   </span>
                 </div>
