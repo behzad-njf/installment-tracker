@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { CheckbookCard } from '@/components/checks/CheckbookCard'
 import { CheckbookDialog } from '@/components/checks/CheckbookDialog'
+import { IssueCheckDialog } from '@/components/checks/IssueCheckDialog'
 import { NearDueChecks } from '@/components/checks/NearDueChecks'
 import { useLoans } from '@/hooks/useLoans'
 import { navigate } from '@/hooks/useRoute'
@@ -18,10 +19,16 @@ export function ChecksPage() {
   const [addBookOpen, setAddBookOpen] = useState(false)
   const [editBook, setEditBook] = useState<Checkbook | null>(null)
   const [deleteBook, setDeleteBook] = useState<Checkbook | null>(null)
+  const [issueOpen, setIssueOpen] = useState(false)
 
   return (
     <div className="space-y-5">
-      <h1 className="text-xl font-semibold tracking-tight">{t('nav.checks')}</h1>
+      <div className="flex items-center justify-between gap-2">
+        <h1 className="text-xl font-semibold tracking-tight">{t('nav.checks')}</h1>
+        <Button type="button" size="sm" onClick={() => setIssueOpen(true)}>
+          <Plus className="size-4" aria-hidden /> {t('checks.issueCheck')}
+        </Button>
+      </div>
 
       <NearDueChecks checks={checks} onSelectBook={bookId => navigate({ kind: 'checks.book', bookId })} />
 
@@ -66,6 +73,7 @@ export function ChecksPage() {
           if (editBook) updateCheckbook(editBook.id, draft)
         }}
       />
+      <IssueCheckDialog open={issueOpen} onOpenChange={setIssueOpen} />
       <ConfirmDialog
         open={deleteBook !== null}
         title={t('checks.deleteCheckbookTitle')}

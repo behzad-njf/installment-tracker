@@ -8,7 +8,7 @@
     "label": "Main navigation",
     "dashboard": "Dashboard",
     "loans": "Loans",
-    "checks": "Cheques"
+    "checks": "Cheque management"
   },
   "checks": {
     "addCheckbook": "Add chequebook",
@@ -81,7 +81,10 @@
     "defineAs": "Create as",
     "blankBadge": "Blank",
     "blankCount": "{{count}} blank cheques",
-    "exhausted": "Exhausted"
+    "exhausted": "Exhausted",
+    "issueCheck": "Issue new cheque",
+    "selectCheckbook": "Select chequebook",
+    "selectBlankCheck": "Select blank cheque"
   },
   "tabs": {
     "open": "Open loans",
@@ -108,7 +111,8 @@
     "actions": "Actions",
     "offline": "Offline — data stored on device",
     "online": "Online",
-    "back": "Back"
+    "back": "Back",
+    "next": "Next"
   },
   "dashboard": {
     "overview": "This month's overview",

@@ -8,7 +8,7 @@
     "label": "ناوبری اصلی",
     "dashboard": "داشبورد",
     "loans": "وام ها",
-    "checks": "چک ها"
+    "checks": "مدیریت چک ها"
   },
   "checks": {
     "addCheckbook": "افزودن دسته چک",
@@ -81,7 +81,10 @@
     "defineAs": "نوع تعریف",
     "blankBadge": "سفید",
     "blankCount": "{{count}} چک سفید",
-    "exhausted": "تمام شده"
+    "exhausted": "تمام شده",
+    "issueCheck": "صدور چک جدید",
+    "selectCheckbook": "انتخاب دسته چک",
+    "selectBlankCheck": "انتخاب چک سفید"
   },
   "tabs": {
     "open": "وام های باز",
@@ -108,7 +111,8 @@
     "actions": "عملیات",
     "offline": "آفلاین — داده‌ها در دستگاه ذخیره می‌شود",
     "online": "آنلاین",
-    "back": "بازگشت"
+    "back": "بازگشت",
+    "next": "بعدی"
   },
   "dashboard": {
     "overview": "خلاصه این ماه",
