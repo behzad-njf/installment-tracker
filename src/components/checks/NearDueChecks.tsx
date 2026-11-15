@@ -103,6 +103,16 @@ export function NearDueChecks({ checks }: { checks: Check[] }) {
                     </Badge>
                   ) : null}
                 </div>
+                {check.purpose ? (
+                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                    <span className="min-w-0 truncate">
+                      {t('checks.purpose')}: {check.purpose}
+                    </span>
+                    <span className="tabular-nums font-medium whitespace-nowrap text-start">
+                      {formatMoney(check.amount, lang)} {t('common.toman')}
+                    </span>
+                  </div>
+                ) : null}
               </button>
             </li>
           )
