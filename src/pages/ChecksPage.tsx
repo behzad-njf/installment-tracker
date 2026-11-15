@@ -30,7 +30,7 @@ export function ChecksPage() {
         </Button>
       </div>
 
-      <NearDueChecks checks={checks} onSelectBook={bookId => navigate({ kind: 'checks.book', bookId })} />
+      <NearDueChecks checks={checks} />
 
       <section className="space-y-3">
         <div className="flex items-center justify-between gap-2">
