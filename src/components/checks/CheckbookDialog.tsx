@@ -39,14 +39,14 @@ export function CheckbookDialog({
     const form = e.currentTarget as HTMLFormElement
     const field = (name: string): string =>
       (form.elements.namedItem(name) as HTMLInputElement | null)?.value.trim() ?? ''
-    const name = field('name')
     const bank = field('bank')
+    const name = field('name') || bank
     const accountNumber = field('accountNumber')
     const serialFrom = parseSerial(field('serialFrom'))
     const serialTo = parseSerial(field('serialTo'))
 
-    if (!name) {
-      setError(t('checks.nameRequired'))
+    if (!bank) {
+      setError(t('checks.accountRequired'))
       return
     }
     if (!accountNumber) {
