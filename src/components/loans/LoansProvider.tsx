@@ -2,9 +2,8 @@ import { createContext, useEffect, useState, type ReactNode } from 'react'
 import { toast } from 'sonner'
 import { useTranslation } from 'react-i18next'
 import { importDataFile, loadData, newLoanId, saveData, STORAGE_KEY } from '@/lib/storage'
-import { newCheckbook, newCheck, newCheckShell } from '@/lib/checks'
-import { currentMonthIndex, jalaliPartsFromDate, yearMonthOf } from '@/lib/jalali'
-import type { DataFile, Loan, LoanDraft, PaymentRecord, Check, Checkbook, CheckbookDraft, CheckDraft } from '@/lib/types'
+import { canTransitionCheck, newCheckbook, newCheck, newCheckShell } from '@/lib/checks'
+import type { DataFile, Loan, LoanDraft, PaymentRecord, Check, Checkbook, CheckbookDraft, CheckDraft, CheckStatus } from '@/lib/types'
 
 export interface LoansContextValue {
   loans: Loan[]
@@ -27,6 +26,8 @@ export interface LoansContextValue {
   addCheck: (draft: CheckDraft) => void
   addChecksBulk: (bookId: string, from: number, to: number) => number
   updateCheck: (id: string, draft: Partial<Check>) => void
+  /** Move a check between lifecycle states; returns false when the move is not allowed. */
+  setCheckStatus: (id: string, status: CheckStatus, patch?: Partial<Check>) => boolean
   removeCheck: (id: string) => void
 }
 
@@ -143,19 +144,17 @@ export function LoansProvider({ children }: { children: ReactNode }) {
     })
   }
 
-  /** Bulk-create serial-only shells from `from` to `to`; skips serials already in the book. Returns created count. */
+  /** Bulk-create blank checks from `from` to `to`; skips serials already in the book. Returns created count. */
   const addChecksBulk = (bookId: string, from: number, to: number): number => {
     const book = data.checkbooks.find(c => c.id === bookId)
     if (!book) return 0
     const existing = new Set(
       data.checks.filter(c => c.checkbookId === bookId && c.serial !== undefined).map(c => c.serial),
     )
-    const { year, month } = yearMonthOf(currentMonthIndex())
-    const { day } = jalaliPartsFromDate(new Date())
     const created: Check[] = []
     for (let serial = from; serial <= to && created.length < 500; serial += 1) {
       if (existing.has(serial)) continue
-      created.push(newCheckShell(bookId, serial, year, month, day))
+      created.push(newCheckShell(bookId, serial))
     }
     if (created.length === 0) return 0
     persist({ ...data, checks: [...data.checks, ...created] })
@@ -175,6 +174,25 @@ export function LoansProvider({ children }: { children: ReactNode }) {
   /** Remove a check */
   const removeCheck = (id: string) => {
     persist({ ...data, checks: data.checks.filter(c => c.id !== id) })
+  }
+
+  /** Lifecycle move guarded by CHECK_STATUS_TRANSITIONS; issuing also needs payee, amount and purpose. */
+  const setCheckStatus = (id: string, status: CheckStatus, patch: Partial<Check> = {}): boolean => {
+    const check = data.checks.find(c => c.id === id)
+    if (!check || !canTransitionCheck(check.status, status)) return false
+    if (status === 'issued') {
+      const payee = (patch.payee ?? check.payee).trim()
+      const amount = patch.amount ?? check.amount
+      const purpose = (patch.purpose ?? check.purpose ?? '').trim()
+      if (!payee || !Number.isFinite(amount) || amount <= 0 || !purpose) return false
+    }
+    persist({
+      ...data,
+      checks: data.checks.map(c =>
+        c.id === id ? { ...c, ...patch, status, updatedAt: new Date().toISOString() } : c,
+      ),
+    })
+    return true
   }
 
   const replaceData = persist
@@ -200,6 +218,7 @@ export function LoansProvider({ children }: { children: ReactNode }) {
     addCheck,
     addChecksBulk,
     updateCheck,
+    setCheckStatus,
     removeCheck,
   }
   return (

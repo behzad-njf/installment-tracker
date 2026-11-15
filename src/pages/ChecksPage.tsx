@@ -16,13 +16,14 @@ import { CheckbookCard } from '@/components/checks/CheckbookCard'
 import { CheckbookChecks } from '@/components/checks/CheckbookChecks'
 import { CheckbookDialog } from '@/components/checks/CheckbookDialog'
 import { CheckDialog } from '@/components/checks/CheckDialog'
+import { CheckStatusDialog } from '@/components/checks/CheckStatusDialog'
 import { BulkChecksDialog } from '@/components/checks/BulkChecksDialog'
 import { NearDueChecks } from '@/components/checks/NearDueChecks'
 import { useLoans } from '@/hooks/useLoans'
 import { useLocale } from '@/hooks/useLocale'
 import { monthIndexFrom } from '@/lib/jalali'
 import { formatNumber } from '@/lib/money'
-import type { Check, Checkbook, CheckbookDraft, CheckDraft, CheckStatus } from '@/lib/types'
+import type { Check, Checkbook, CheckbookDraft, CheckDraft } from '@/lib/types'
 
 function ConfirmDialog({
   open,
@@ -70,6 +71,7 @@ export function ChecksPage() {
     addCheck,
     addChecksBulk,
     updateCheck,
+    setCheckStatus,
     removeCheck,
   } = useLoans()
 
@@ -80,6 +82,7 @@ export function ChecksPage() {
   const [addCheckOpen, setAddCheckOpen] = useState(false)
   const [editCheck, setEditCheck] = useState<Check | null>(null)
   const [deleteCheck, setDeleteCheck] = useState<Check | null>(null)
+  const [statusCheck, setStatusCheck] = useState<Check | null>(null)
   const [bulkOpen, setBulkOpen] = useState(false)
 
   useEffect(() => {
@@ -91,12 +94,15 @@ export function ChecksPage() {
     () =>
       checks
         .filter(c => c.checkbookId === selectedBookId)
-        .sort(
-          (a, b) =>
-            monthIndexFrom(a.dueYear, a.dueMonth) - monthIndexFrom(b.dueYear, b.dueMonth) ||
-            a.dueDay - b.dueDay ||
-            (a.serial ?? 0) - (b.serial ?? 0),
-        ),
+        .sort((a, b) => {
+          const dueA = a.dueYear !== undefined && a.dueMonth !== undefined ? monthIndexFrom(a.dueYear, a.dueMonth) : null
+          const dueB = b.dueYear !== undefined && b.dueMonth !== undefined ? monthIndexFrom(b.dueYear, b.dueMonth) : null
+          if (dueA === null && dueB !== null) return 1
+          if (dueB === null && dueA !== null) return -1
+          if (dueA !== null && dueB !== null && dueA !== dueB) return dueA - dueB
+          if ((a.dueDay ?? 0) !== (b.dueDay ?? 0)) return (a.dueDay ?? 0) - (b.dueDay ?? 0)
+          return (a.serial ?? 0) - (b.serial ?? 0)
+        }),
     [checks, selectedBookId],
   )
 
@@ -164,7 +170,7 @@ export function ChecksPage() {
           onBulk={() => setBulkOpen(true)}
           onEdit={setEditCheck}
           onDelete={setDeleteCheck}
-          onStatusChange={(check, status: CheckStatus) => updateCheck(check.id, { status })}
+          onStatusChange={setStatusCheck}
         />
       ) : (
         <p className="text-sm text-muted-foreground">{t('checks.selectBook')}</p>
@@ -230,6 +236,19 @@ export function ChecksPage() {
             onOpenChange={setBulkOpen}
             onSave={handleBulk}
           />
+          {statusCheck ? (
+            <CheckStatusDialog
+              check={statusCheck}
+              onOpenChange={open => {
+                if (!open) setStatusCheck(null)
+              }}
+              onSubmit={(status, patch) => {
+                const ok = setCheckStatus(statusCheck.id, status, patch)
+                if (!ok) toast.error(t('checks.statusNotAllowed'))
+                return ok
+              }}
+            />
+          ) : null}
         </>
       ) : null}
       <ConfirmDialog

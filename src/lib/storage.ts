@@ -2,11 +2,11 @@ import { monthIndexFrom } from './jalali'
 import { sanitizeCheck, sanitizeCheckbook } from './checks'
 import type { Check, Checkbook, DataFile, Lang, Loan, PaymentRecord, Settings, Theme } from './types'
 
-export const STORAGE_KEY = 'finance.data.v4'
-export const BACKUP_KEY = 'finance.backup.v4'
+export const STORAGE_KEY = 'finance.data.v5'
+export const BACKUP_KEY = 'finance.backup.v5'
 
-/** Keys written by the pre-checkbook-details schema (v2/v3); migrated into v4 on load. */
-const LEGACY_KEYS = ['finance.data.v3', 'finance.data.v2'] as const
+/** Older schemas, migrated up to v5 on load. */
+const LEGACY_KEYS = ['finance.data.v4', 'finance.data.v3', 'finance.data.v2'] as const
 
 const DEFAULT_SETTINGS: Settings = { lang: 'fa', theme: 'light', seeded: false }
 
@@ -71,7 +71,7 @@ export const DEMO_CHECKS: Check[] = [
     dueMonth: 11,
     dueDay: 18,
     note: '',
-    status: 'pending',
+    status: 'issued',
     updatedAt: '2026-03-21T00:00:00.000Z',
   },
   {
@@ -85,7 +85,18 @@ export const DEMO_CHECKS: Check[] = [
     dueMonth: 12,
     dueDay: 5,
     note: 'تعمیرات ملک',
-    status: 'pending',
+    status: 'issued',
+    updatedAt: '2026-03-21T00:00:00.000Z',
+  },
+  {
+    id: 'demo-check-3',
+    checkbookId: 'demo-checkbook',
+    serial: 102,
+    payee: '',
+    amount: 0,
+    purpose: '',
+    note: '',
+    status: 'blank',
     updatedAt: '2026-03-21T00:00:00.000Z',
   },
 ]
@@ -167,7 +178,7 @@ function sanitizeSettings(raw: unknown): Settings {
 export function parseDataFile(raw: unknown): DataFile | null {
   if (!isRecord(raw)) return null
   if (!Array.isArray(raw.loans)) return null
-  if (raw.version !== 2 && raw.version !== 3 && raw.version !== 4) return null
+  if (raw.version !== 2 && raw.version !== 3 && raw.version !== 4 && raw.version !== 5) return null
 
   const settings = sanitizeSettings(raw.settings)
   const loans = raw.loans.map(sanitizeLoan).filter((loan): loan is Loan => loan !== null)
@@ -183,7 +194,7 @@ export function parseDataFile(raw: unknown): DataFile | null {
         .filter((check): check is Check => check !== null)
     : []
 
-  return { version: 4, settings, loans, checkbooks, checks }
+  return { version: 5, settings, loans, checkbooks, checks }
 }
 
 function readRawKey(key: string): unknown {
@@ -219,7 +230,7 @@ export function loadData(): DataFile {
   }
 
   const seeded: DataFile = {
-    version: 4,
+    version: 5,
     settings: { ...DEFAULT_SETTINGS, seeded: true },
     loans: DEMO_LOANS,
     checkbooks: DEMO_CHECKBOOKS,

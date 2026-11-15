@@ -4,7 +4,7 @@ export type MonthIndex = number
 export type Lang = 'fa' | 'en'
 export type Theme = 'light' | 'dark'
 
-export type CheckStatus = 'pending' | 'paid' | 'bounced'
+export type CheckStatus = 'blank' | 'issued' | 'cleared' | 'bounced' | 'void'
 
 export interface PaymentRecord {
   id: string
@@ -55,18 +55,18 @@ export interface Check {
   checkbookId: string
   /** Serial number of the physical check within its checkbook range. */
   serial?: number
-  /** Payee / recipient name. Empty only for serial-only shells created in bulk. */
+  /** Payee / recipient name. Empty for a blank (defined but unused) check. */
   payee: string
-  /** Amount in Toman. 0 allowed only for serial-only shells. */
+  /** Amount in Toman. 0 for a blank check. */
   amount: number
   /** Purpose of the check (بابت). */
   purpose?: string
-  /** Jalali due year. */
-  dueYear: number
-  /** Due month, 1..12. */
-  dueMonth: number
-  /** Due day, 1..31. */
-  dueDay: number
+  /** Jalali due year — only set once the check is issued. */
+  dueYear?: number
+  /** Due month, 1..12 — only set once the check is issued. */
+  dueMonth?: number
+  /** Due day, 1..31 — only set once the check is issued. */
+  dueDay?: number
   /** Optional note. */
   note?: string
   status: CheckStatus
@@ -82,7 +82,7 @@ export interface Settings {
 }
 
 export interface DataFile {
-  version: 4
+  version: 5
   settings: Settings
   loans: Loan[]
   checkbooks: Checkbook[]

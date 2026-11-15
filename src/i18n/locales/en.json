@@ -55,10 +55,33 @@
     "noBooks": "No chequebooks yet",
     "payeeAmountRequired": "Payee and amount are required",
     "status": {
-      "pending": "Pending",
-      "paid": "Paid",
-      "bounced": "Bounced"
-    }
+      "blank": "Blank",
+      "issued": "Issued",
+      "cleared": "Cleared",
+      "bounced": "Bounced",
+      "void": "Void"
+    },
+    "action": {
+      "issued": "Issue cheque",
+      "cleared": "Mark as cleared",
+      "bounced": "Mark as bounced",
+      "void": "Void cheque"
+    },
+    "confirmStatus": {
+      "cleared": "Was this cheque cleared? It closes and cannot change again.",
+      "bounced": "Did this cheque bounce? It closes and cannot change again.",
+      "void": "Void this cheque? This is final."
+    },
+    "changeStatusTitle": "Change status of cheque {{serial}}",
+    "changeStatusAria": "Change status — current: {{status}}",
+    "pickStatus": "Pick the next status",
+    "terminalStatus": "This cheque is closed; its status no longer changes.",
+    "issueHint": "Issuing requires payee, amount and purpose.",
+    "purposeRequired": "Purpose is required",
+    "statusNotAllowed": "That status change is not allowed",
+    "blankHint": "A blank cheque holds only its serial. Issue it from the status dialog.",
+    "defineAs": "Create as",
+    "blankBadge": "Blank"
   },
   "tabs": {
     "open": "Open loans",
@@ -84,7 +107,8 @@
     "day": "Day",
     "actions": "Actions",
     "offline": "Offline — data stored on device",
-    "online": "Online"
+    "online": "Online",
+    "back": "Back"
   },
   "dashboard": {
     "overview": "This month's overview",

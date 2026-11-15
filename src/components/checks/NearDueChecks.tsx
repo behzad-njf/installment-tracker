@@ -37,10 +37,13 @@ export function NearDueChecks({
         {near.map(check => {
           const days = daysUntilCheckDue(check)
           const book = checkbooks.find(b => b.id === check.checkbookId)
-          const dueLabel = `${formatNumber(check.dueDay, lang)} ${monthName(
-            monthIndexFrom(check.dueYear, check.dueMonth),
-            lang,
-          )}`
+          const dueLabel =
+            check.dueDay !== undefined && check.dueYear !== undefined && check.dueMonth !== undefined
+              ? `${formatNumber(check.dueDay, lang)} ${monthName(
+                  monthIndexFrom(check.dueYear, check.dueMonth),
+                  lang,
+                )}`
+              : '—'
           return (
             <li key={check.id}>
               <button

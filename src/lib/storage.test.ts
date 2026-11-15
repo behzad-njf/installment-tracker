@@ -4,7 +4,7 @@ import { exportDataFile, importDataFile } from './storage'
 import type { DataFile } from './types'
 
 const VALID: DataFile = {
-  version: 4,
+  version: 5,
   settings: { lang: 'fa', theme: 'light', seeded: true },
   loans: [
     {
@@ -49,34 +49,47 @@ const VALID: DataFile = {
       dueMonth: 11,
       dueDay: 18,
       note: '',
-      status: 'pending',
+      status: 'issued',
+      updatedAt: '2026-11-01T00:00:00.000Z',
+    },
+    {
+      id: 'c2',
+      checkbookId: 'cb1',
+      serial: 101,
+      payee: '',
+      amount: 0,
+      purpose: '',
+      note: '',
+      status: 'blank',
       updatedAt: '2026-11-01T00:00:00.000Z',
     },
   ],
 }
 
 describe('importDataFile', () => {
-  it('imports a real v4 payload with loans, checkbooks and checks', () => {
+  it('imports a real v5 payload with loans, checkbooks and checks', () => {
     const result = importDataFile(JSON.stringify(VALID))
     expect(result).not.toBeNull()
-    expect(result?.version).toBe(4)
+    expect(result?.version).toBe(5)
     expect(result?.loans[0].name).toBe('وام ازدواج')
     expect(result?.loans[0].payments).toHaveLength(1)
     expect(result?.loans[0].payments[0].monthIndex).toBe(16865)
     expect(result?.checkbooks).toHaveLength(1)
     expect(result?.checkbooks[0].accountNumber).toBe('0123456789012')
     expect(result?.checkbooks[0].serialFrom).toBe(100)
-    expect(result?.checks).toHaveLength(1)
+    expect(result?.checks).toHaveLength(2)
     expect(result?.checks[0].serial).toBe(100)
     expect(result?.checks[0].purpose).toBe('بیمه خودرو')
-    expect(result?.checks[0].status).toBe('pending')
+    expect(result?.checks[0].status).toBe('issued')
+    expect(result?.checks[1].status).toBe('blank')
+    expect(result?.checks[1].dueYear).toBeUndefined()
   })
 
   it('accepts a pre-checks v2 payload (backwards-compatible import)', () => {
     const legacy = { ...VALID, version: 2, checkbooks: undefined, checks: undefined }
     const result = importDataFile(JSON.stringify(legacy as unknown as DataFile))
     expect(result).not.toBeNull()
-    expect(result?.version).toBe(4)
+    expect(result?.version).toBe(5)
     expect(result?.loans[0].name).toBe('وام ازدواج')
     expect(result?.checkbooks).toEqual([])
     expect(result?.checks).toEqual([])
@@ -102,11 +115,48 @@ describe('importDataFile', () => {
       ],
     }
     const result = importDataFile(JSON.stringify(legacy))
-    expect(result?.version).toBe(4)
+    expect(result?.version).toBe(5)
     expect(result?.checkbooks[0].accountNumber).toBe('')
     expect(result?.checks).toHaveLength(1)
     expect(result?.checks[0].serial).toBe(101)
-    expect(result?.checks[0].amount).toBe(0)
+    expect(result?.checks[0].status).toBe('blank')
+    expect(result?.checks[0].dueYear).toBeUndefined()
+  })
+
+  it('migrates a v4 pending check with content to issued', () => {
+    const legacy = {
+      ...VALID,
+      version: 4,
+      checks: [
+        {
+          id: 'c4',
+          checkbookId: 'cb1',
+          serial: 103,
+          payee: 'فروشنده',
+          amount: 500_000,
+          purpose: 'خرید',
+          dueYear: 1405,
+          dueMonth: 10,
+          dueDay: 5,
+          status: 'pending',
+        },
+        {
+          id: 'c5',
+          checkbookId: 'cb1',
+          serial: 104,
+          payee: 'حسابدار',
+          amount: 700_000,
+          purpose: 'حقوق',
+          dueYear: 1405,
+          dueMonth: 10,
+          dueDay: 6,
+          status: 'paid',
+        },
+      ],
+    }
+    const result = importDataFile(JSON.stringify(legacy))
+    expect(result?.checks[0].status).toBe('issued')
+    expect(result?.checks[1].status).toBe('cleared')
   })
 
   it('rejects non-JSON garbage', () => {
@@ -136,12 +186,12 @@ describe('importDataFile', () => {
           dueYear: 1405,
           dueMonth: 1,
           dueDay: 1,
-          status: 'pending',
+          status: 'issued',
         },
       ],
     })
     const result = importDataFile(orphan)
-    expect(result?.checks).toHaveLength(1)
+    expect(result?.checks).toHaveLength(2)
   })
 })
 

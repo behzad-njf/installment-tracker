@@ -1,35 +1,38 @@
 import { useTranslation } from 'react-i18next'
-import { Edit3, Layers, Plus, Trash2 } from 'lucide-react'
+import { Edit3, Layers, Plus, RefreshCw, Trash2 } from 'lucide-react'
 
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
 import { useLocale } from '@/hooks/useLocale'
-import { CHECK_STATUS_KEYS, checkSummary, remainingChecks } from '@/lib/checks'
-import { monthIndexFrom, monthName } from '@/lib/jalali'
+import { checkSummary, remainingChecks } from '@/lib/checks'
+import { monthName } from '@/lib/jalali'
 import { formatMoney, formatNumber } from '@/lib/money'
 import type { Check, Checkbook, CheckStatus } from '@/lib/types'
 
-function StatusSelect({ check, onChange }: { check: Check; onChange: (status: CheckStatus) => void }) {
+const STATUS_VARIANT: Record<CheckStatus, 'default' | 'secondary' | 'destructive' | 'outline'> = {
+  blank: 'outline',
+  issued: 'default',
+  cleared: 'secondary',
+  bounced: 'destructive',
+  void: 'outline',
+}
+
+/** Status is read-only here — every move goes through the status dialog. */
+function StatusButton({ check, onClick }: { check: Check; onClick: () => void }) {
   const { t } = useTranslation()
   return (
-    <Select value={check.status} onValueChange={value => onChange(value as CheckStatus)}>
-      <SelectTrigger className="h-7 w-28 text-xs" aria-label={t('checks.statusLabel')}>
-        <SelectValue />
-      </SelectTrigger>
-      <SelectContent>
-        {CHECK_STATUS_KEYS.map(status => (
-          <SelectItem key={status} value={status}>{t(`checks.status.${status}`)}</SelectItem>
-        ))}
-      </SelectContent>
-    </Select>
+    <Button
+      type="button"
+      size="sm"
+      variant="ghost"
+      className="h-7 gap-1 px-2 text-xs"
+      onClick={onClick}
+      aria-label={t('checks.changeStatusAria', { status: t(`checks.status.${check.status}`) })}
+    >
+      <Badge variant={STATUS_VARIANT[check.status]}>{t(`checks.status.${check.status}`)}</Badge>
+      <RefreshCw className="size-3" aria-hidden />
+    </Button>
   )
 }
 
@@ -48,7 +51,7 @@ export function CheckbookChecks({
   onBulk: () => void
   onEdit: (check: Check) => void
   onDelete: (check: Check) => void
-  onStatusChange: (check: Check, status: CheckStatus) => void
+  onStatusChange: (check: Check) => void
 }) {
   const { t } = useTranslation()
   const { lang } = useLocale()
@@ -56,7 +59,26 @@ export function CheckbookChecks({
   const remaining = remainingChecks(book, checks)
 
   const dueLabel = (check: Check): string =>
-    `${formatNumber(check.dueDay, lang)} ${monthName(monthIndexFrom(check.dueYear, check.dueMonth), lang)}`
+    check.dueDay !== undefined && check.dueYear !== undefined && check.dueMonth !== undefined
+      ? `${formatNumber(check.dueDay, lang)} ${monthName(
+          check.dueYear * 12 + (check.dueMonth - 1),
+          lang,
+        )}`
+      : '—'
+
+  const payeeLabel = (check: Check) =>
+    check.payee ? check.payee : <Badge variant="outline">{t('checks.blankBadge')}</Badge>
+
+  const actions = (check: Check) => (
+    <div className="flex gap-1">
+      <Button type="button" size="icon-sm" variant="outline" onClick={() => onEdit(check)} aria-label={t('loans.edit')}>
+        <Edit3 className="size-4" aria-hidden />
+      </Button>
+      <Button type="button" size="icon-sm" variant="outline" onClick={() => onDelete(check)} aria-label={t('loans.delete')}>
+        <Trash2 className="size-4" aria-hidden />
+      </Button>
+    </div>
+  )
 
   return (
     <div id="book-checks" className="space-y-4">
@@ -83,25 +105,25 @@ export function CheckbookChecks({
         <Card className="p-3">
           <CardContent className="px-0">
             <p className="text-xs text-muted-foreground">{t('checks.list')}</p>
-            <p className="font-semibold">{formatNumber(checks.length, lang)}</p>
+            <p className="font-semibold">{formatNumber(summary.count, lang)}</p>
           </CardContent>
         </Card>
         <Card className="p-3">
           <CardContent className="px-0">
-            <p className="text-xs text-muted-foreground">{t('checks.status.pending')}</p>
-            <p className="font-semibold">{formatMoney(summary.pendingAmount, lang)}</p>
+            <p className="text-xs text-muted-foreground">{t('checks.status.blank')}</p>
+            <p className="font-semibold">{formatNumber(summary.counts.blank, lang)}</p>
           </CardContent>
         </Card>
         <Card className="p-3">
           <CardContent className="px-0">
-            <p className="text-xs text-muted-foreground">{t('checks.status.paid')}</p>
-            <p className="font-semibold">{formatMoney(summary.paid, lang)}</p>
+            <p className="text-xs text-muted-foreground">{t('checks.status.issued')}</p>
+            <p className="font-semibold">{formatMoney(summary.amounts.issued, lang)}</p>
           </CardContent>
         </Card>
         <Card className="p-3">
           <CardContent className="px-0">
-            <p className="text-xs text-muted-foreground">{t('checks.status.bounced')}</p>
-            <p className="font-semibold text-destructive">{formatMoney(summary.bounced, lang)}</p>
+            <p className="text-xs text-muted-foreground">{t('checks.status.cleared')}</p>
+            <p className="font-semibold">{formatMoney(summary.amounts.cleared, lang)}</p>
           </CardContent>
         </Card>
       </div>
@@ -127,23 +149,12 @@ export function CheckbookChecks({
               {checks.map(check => (
                 <tr key={check.id} className="border-b">
                   <td className="p-2 tabular-nums">{check.serial !== undefined ? formatNumber(check.serial, lang) : '—'}</td>
-                  <td className="p-2">
-                    {check.payee ? check.payee : <Badge variant="outline">{t('checks.unassigned')}</Badge>}
-                  </td>
+                  <td className="p-2">{payeeLabel(check)}</td>
                   <td className="p-2 text-muted-foreground">{check.purpose ?? ''}</td>
                   <td className="p-2 tabular-nums">{check.amount > 0 ? formatMoney(check.amount, lang) : '—'}</td>
                   <td className="p-2">{dueLabel(check)}</td>
-                  <td className="p-2"><StatusSelect check={check} onChange={status => onStatusChange(check, status)} /></td>
-                  <td className="p-2">
-                    <div className="flex gap-1">
-                      <Button type="button" size="icon-sm" variant="outline" onClick={() => onEdit(check)} aria-label={t('loans.edit')}>
-                        <Edit3 className="size-4" aria-hidden />
-                      </Button>
-                      <Button type="button" size="icon-sm" variant="outline" onClick={() => onDelete(check)} aria-label={t('loans.delete')}>
-                        <Trash2 className="size-4" aria-hidden />
-                      </Button>
-                    </div>
-                  </td>
+                  <td className="p-2"><StatusButton check={check} onClick={() => onStatusChange(check)} /></td>
+                  <td className="p-2">{actions(check)}</td>
                 </tr>
               ))}
             </tbody>
@@ -158,7 +169,7 @@ export function CheckbookChecks({
                     <div className="min-w-0">
                       <p className="text-sm font-medium">
                         {check.serial !== undefined ? `#${formatNumber(check.serial, lang)} · ` : ''}
-                        {check.payee ? check.payee : <Badge variant="outline">{t('checks.unassigned')}</Badge>}
+                        {payeeLabel(check)}
                       </p>
                       <p className="text-xs text-muted-foreground">
                         {dueLabel(check)}
@@ -170,15 +181,8 @@ export function CheckbookChecks({
                     </span>
                   </div>
                   <div className="flex items-center justify-between gap-2">
-                    <StatusSelect check={check} onChange={status => onStatusChange(check, status)} />
-                    <div className="flex gap-1">
-                      <Button type="button" size="icon-sm" variant="outline" onClick={() => onEdit(check)} aria-label={t('loans.edit')}>
-                        <Edit3 className="size-4" aria-hidden />
-                      </Button>
-                      <Button type="button" size="icon-sm" variant="outline" onClick={() => onDelete(check)} aria-label={t('loans.delete')}>
-                        <Trash2 className="size-4" aria-hidden />
-                      </Button>
-                    </div>
+                    <StatusButton check={check} onClick={() => onStatusChange(check)} />
+                    {actions(check)}
                   </div>
                 </CardContent>
               </Card>
