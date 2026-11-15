@@ -37,7 +37,6 @@ export function CheckbookCard({
             <CreditCard className="size-4 shrink-0 text-muted-foreground" aria-hidden />
             <span className="truncate">{book.bank}</span>
           </span>
-          <span className="mt-1 block truncate text-xs text-muted-foreground">{book.bank}</span>
           <span className="mt-1 block text-xs text-muted-foreground" dir="ltr">
             {book.accountNumber ?? ''}
           </span>
@@ -45,17 +44,11 @@ export function CheckbookCard({
             {blankCount === 0 ? t('checks.exhausted') : t('checks.blankCount', { count: formatNumber(blankCount, lang) })}
           </Badge>
         </button>
-        <div className="flex gap-1">
+        <div className="flex flex-col gap-1">
           <Button type="button" size="icon-sm" variant="outline" onClick={onEdit} aria-label={t('loans.edit')}>
             <Edit3 className="size-4" aria-hidden />
           </Button>
-          <Button
-            type="button"
-            size="icon-sm"
-            variant="outline"
-            onClick={onDelete}
-            aria-label={t('loans.delete')}
-          >
+          <Button type="button" size="icon-sm" variant="destructive" onClick={onDelete} aria-label={t('loans.delete')}>
             <Trash2 className="size-4" aria-hidden />
           </Button>
         </div>
