@@ -70,6 +70,8 @@
       "bounced": "Did this cheque bounce? It closes and cannot change again.",
       "void": "Void this cheque? This is final."
     },
+    "confirmStatusTitle": "Confirm status change",
+    "confirmStatusDesc": "Are you sure you want to change this cheque's status to \"{{status}}\"?",
     "changeStatusTitle": "Change status of cheque {{serial}}",
     "changeStatusAria": "Change status — current: {{status}}",
     "pickStatus": "Pick the next status",

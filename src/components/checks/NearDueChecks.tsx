@@ -6,6 +6,14 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { CheckStatusDialog } from '@/components/checks/CheckStatusDialog'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
 import { useLoans } from '@/hooks/useLoans'
 import { useLocale } from '@/hooks/useLocale'
 import { daysUntilCheckDue, overdueChecks, upcomingChecks } from '@/lib/checks'
@@ -13,22 +21,33 @@ import { monthName, monthIndexFrom } from '@/lib/jalali'
 import { formatMoney, formatNumber } from '@/lib/money'
 import type { Check } from '@/lib/types'
 
+type StatusAction = 'cleared' | 'bounced' | 'void'
+
 export function NearDueChecks({ checks }: { checks: Check[] }) {
   const { t } = useTranslation()
   const { lang } = useLocale()
   const { setCheckStatus } = useLoans()
   const [statusCheck, setStatusCheck] = useState<Check | null>(null)
+  const [pendingStatus, setPendingStatus] = useState<{ id: string; status: StatusAction } | null>(null)
 
   const near = [...overdueChecks(checks), ...upcomingChecks(checks, 7)]
   if (near.length === 0) return null
 
-  const handleStatus = (id: string, status: 'cleared' | 'bounced' | 'void') => {
-    const ok = setCheckStatus(id, status)
+  const confirmStatus = (id: string, status: StatusAction) => {
+    setPendingStatus({ id, status })
+  }
+
+  const applyPending = () => {
+    if (!pendingStatus) return
+    const ok = setCheckStatus(pendingStatus.id, pendingStatus.status)
     if (!ok) {
       // eslint-disable-next-line no-console
       console.warn(t('checks.statusNotAllowed'))
     }
+    setPendingStatus(null)
   }
+
+  const statusLabel = (s: StatusAction) => t(`checks.status.${s}`)
 
   return (
     <Card className="p-3 space-y-2" role="alert">
@@ -84,7 +103,7 @@ export function NearDueChecks({ checks }: { checks: Check[] }) {
                     variant="outline"
                     onClick={e => {
                       e.stopPropagation()
-                      handleStatus(check.id, 'cleared')
+                      confirmStatus(check.id, 'cleared')
                     }}
                   >
                     {t('checks.action.cleared')}
@@ -95,7 +114,7 @@ export function NearDueChecks({ checks }: { checks: Check[] }) {
                     variant="outline"
                     onClick={e => {
                       e.stopPropagation()
-                      handleStatus(check.id, 'bounced')
+                      confirmStatus(check.id, 'bounced')
                     }}
                   >
                     {t('checks.action.bounced')}
@@ -106,7 +125,7 @@ export function NearDueChecks({ checks }: { checks: Check[] }) {
                     variant="destructive"
                     onClick={e => {
                       e.stopPropagation()
-                      handleStatus(check.id, 'void')
+                      confirmStatus(check.id, 'void')
                     }}
                   >
                     {t('checks.action.void')}
@@ -132,6 +151,28 @@ export function NearDueChecks({ checks }: { checks: Check[] }) {
             return ok
           }}
         />
+      ) : null}
+      {pendingStatus ? (
+        <Dialog open onOpenChange={open => {
+          if (!open) setPendingStatus(null)
+        }}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>{t('checks.confirmStatusTitle')}</DialogTitle>
+              <DialogDescription>
+                {t('checks.confirmStatusDesc', { status: statusLabel(pendingStatus.status) })}
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={() => setPendingStatus(null)}>
+                {t('common.cancel')}
+              </Button>
+              <Button type="button" variant="destructive" onClick={applyPending}>
+                {statusLabel(pendingStatus.status)}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       ) : null}
     </Card>
   )

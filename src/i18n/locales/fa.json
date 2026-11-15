@@ -70,6 +70,8 @@
       "bounced": "چک برگشت خورد؟ چک بسته می‌شود و دیگر قابل تغییر نیست.",
       "void": "چک ابطال شود؟ این وضعیت نهایی است."
     },
+    "confirmStatusTitle": "تأیید تغییر وضعیت",
+    "confirmStatusDesc": "آیا از تغییر وضعیت چک به «{{status}}» مطمئن هستید؟",
     "changeStatusTitle": "تغییر وضعیت چک {{serial}}",
     "changeStatusAria": "تغییر وضعیت — وضعیت فعلی: {{status}}",
     "pickStatus": "وضعیت جدید را انتخاب کنید",
