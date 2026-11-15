@@ -169,11 +169,12 @@ export function NearDueChecks({ checks }: { checks: Check[] }) {
                 </div>
               ) : null}
             </div>
-            <DialogFooter className="flex gap-1">
+            <DialogFooter className="flex gap-2 justify-center">
               <Button
                 type="button"
                 size="sm"
-                variant="outline"
+                variant="default"
+                className="bg-green-600 text-white hover:bg-green-700"
                 onClick={() => requestStatus('cleared')}
               >
                 {t('checks.action.cleared')}
@@ -182,15 +183,13 @@ export function NearDueChecks({ checks }: { checks: Check[] }) {
                 type="button"
                 size="sm"
                 variant="outline"
+                className="border-orange-500 text-orange-700 hover:bg-orange-50"
                 onClick={() => requestStatus('bounced')}
               >
                 {t('checks.action.bounced')}
               </Button>
               <Button type="button" size="sm" variant="destructive" onClick={() => requestStatus('void')}>
                 {t('checks.action.void')}
-              </Button>
-              <Button type="button" size="sm" variant="outline" onClick={() => setSummaryCheck(null)}>
-                {t('common.close')}
               </Button>
             </DialogFooter>
           </DialogContent>
