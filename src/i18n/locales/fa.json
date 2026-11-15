@@ -88,7 +88,10 @@
     "selectCheckbook": "انتخاب دسته چک",
     "selectBlankCheck": "انتخاب چک سفید",
     "checkbook": "دسته چک",
-    "confirmIssue": "تأیید صدور چک"
+    "confirmIssue": "تأیید صدور چک",
+    "checkDetails": "جزئیات چک",
+    "issuedThisMonth": "صدور این ماه",
+    "checkUnit": "چک"
   },
   "tabs": {
     "open": "وام های باز",

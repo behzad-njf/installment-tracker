@@ -88,7 +88,10 @@
     "selectCheckbook": "Select chequebook",
     "selectBlankCheck": "Select blank cheque",
     "checkbook": "Chequebook",
-    "confirmIssue": "Confirm issue"
+    "confirmIssue": "Confirm issue",
+    "checkDetails": "Cheque details",
+    "issuedThisMonth": "Issued this month",
+    "checkUnit": "cheque(s)"
   },
   "tabs": {
     "open": "Open loans",

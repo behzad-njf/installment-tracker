@@ -5,7 +5,6 @@ import { AlarmClock } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
-import { CheckStatusDialog } from '@/components/checks/CheckStatusDialog'
 import {
   Dialog,
   DialogContent,
@@ -18,7 +17,7 @@ import { useLoans } from '@/hooks/useLoans'
 import { useLocale } from '@/hooks/useLocale'
 import { daysUntilCheckDue, overdueChecks, upcomingChecks } from '@/lib/checks'
 import { monthName, monthIndexFrom } from '@/lib/jalali'
-import { formatMoney, formatNumber } from '@/lib/money'
+import { formatMoney, formatNumber, formatYear } from '@/lib/money'
 import type { Check } from '@/lib/types'
 
 type StatusAction = 'cleared' | 'bounced' | 'void'
@@ -27,7 +26,7 @@ export function NearDueChecks({ checks }: { checks: Check[] }) {
   const { t } = useTranslation()
   const { lang } = useLocale()
   const { setCheckStatus } = useLoans()
-  const [statusCheck, setStatusCheck] = useState<Check | null>(null)
+  const [summaryCheck, setSummaryCheck] = useState<Check | null>(null)
   const [pendingStatus, setPendingStatus] = useState<{ id: string; status: StatusAction } | null>(null)
 
   const near = [...overdueChecks(checks), ...upcomingChecks(checks, 7)]
@@ -48,6 +47,17 @@ export function NearDueChecks({ checks }: { checks: Check[] }) {
   }
 
   const statusLabel = (s: StatusAction) => t(`checks.status.${s}`)
+
+  const statusColor = (s: Check['status']) =>
+    s === 'issued'
+      ? 'text-green-700'
+      : s === 'cleared'
+        ? 'text-blue-700'
+        : s === 'bounced'
+          ? 'text-orange-700'
+          : s === 'void'
+            ? 'text-destructive'
+            : 'text-muted-foreground'
 
   return (
     <Card className="p-3 space-y-2" role="alert">
@@ -73,7 +83,7 @@ export function NearDueChecks({ checks }: { checks: Check[] }) {
               <button
                 type="button"
                 className="w-full rounded-md border p-2 text-start hover:bg-accent"
-                onClick={() => setStatusCheck(check)}
+                onClick={() => setSummaryCheck(check)}
               >
                 <div className="grid grid-cols-2 gap-2 text-sm">
                   <div className="col-span-2 font-medium truncate">
@@ -136,22 +146,66 @@ export function NearDueChecks({ checks }: { checks: Check[] }) {
           )
         })}
       </ul>
-      {statusCheck ? (
-        <CheckStatusDialog
-          check={statusCheck}
-          onOpenChange={open => {
-            if (!open) setStatusCheck(null)
-          }}
-          onSubmit={(status, patch) => {
-            const ok = setCheckStatus(statusCheck!.id, status, patch)
-            if (!ok) {
-              // eslint-disable-next-line no-console
-              console.warn(t('checks.statusNotAllowed'))
-            }
-            return ok
-          }}
-        />
+
+      {summaryCheck ? (
+        <Dialog open onOpenChange={open => {
+          if (!open) setSummaryCheck(null)
+        }}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>{t('checks.checkDetails')}</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-2">
+              <div className="flex justify-between border-b border-input pb-1 text-sm">
+                <span className="text-muted-foreground">{t('checks.serial')}</span>
+                <span dir="ltr">{summaryCheck.serial}</span>
+              </div>
+              <div className="flex justify-between border-b border-input pb-1 text-sm">
+                <span className="text-muted-foreground">{t('checks.payee')}</span>
+                <span className="truncate">{summaryCheck.payee || '—'}</span>
+              </div>
+              <div className="flex justify-between border-b border-input pb-1 text-sm">
+                <span className="text-muted-foreground">{t('checks.amount')}</span>
+                <span dir="ltr">
+                  {formatMoney(summaryCheck.amount, lang)} {t('common.toman')}
+                </span>
+              </div>
+              {summaryCheck.purpose ? (
+                <div className="flex justify-between border-b border-input pb-1 text-sm">
+                  <span className="text-muted-foreground">{t('checks.purpose')}</span>
+                  <span className="truncate">{summaryCheck.purpose}</span>
+                </div>
+              ) : null}
+              <div className="flex justify-between border-b border-input pb-1 text-sm">
+                <span className="text-muted-foreground">{t('checks.dueDate')}</span>
+                <span>
+                  {summaryCheck.dueDay !== undefined
+                    ? `${formatNumber(summaryCheck.dueDay, lang)} ${monthName(monthIndexFrom(summaryCheck.dueYear ?? 0, summaryCheck.dueMonth ?? 1), lang)} ${formatYear(summaryCheck.dueYear ?? 0, lang)}`
+                    : '—'}
+                </span>
+              </div>
+              <div className="flex justify-between border-b border-input pb-1 text-sm">
+                <span className="text-muted-foreground">{t('checks.statusLabel')}</span>
+                <span className={`text-sm font-medium ${statusColor(summaryCheck.status)}`}>
+                  {t(`checks.status.${summaryCheck.status}`)}
+                </span>
+              </div>
+              {summaryCheck.note ? (
+                <div className="flex justify-between border-b border-input pb-1 text-sm">
+                  <span className="text-muted-foreground">{t('checks.note')}</span>
+                  <span className="truncate">{summaryCheck.note}</span>
+                </div>
+              ) : null}
+            </div>
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={() => setSummaryCheck(null)}>
+                {t('common.close')}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       ) : null}
+
       {pendingStatus ? (
         <Dialog open onOpenChange={open => {
           if (!open) setPendingStatus(null)
