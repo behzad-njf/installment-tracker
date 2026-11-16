@@ -56,11 +56,14 @@ export function LoanCard({
         <div className="flex gap-3 items-start">
           <div className="flex-1 min-w-0">
             <div className="font-medium truncate mb-1">{loan.name}</div>
-            <div className="text-sm text-muted-foreground mb-1">
-              {formatMoney(loan.amount, lang)}
+            <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground mb-1">
+              <span className="font-semibold">
+                {formatNumber(remainingCount, lang)} {t('loans.installmentUnit')}
+              </span>
+              <span className="px-0.5">-</span>
+              <span>{formatMoney(loan.amount, lang)}</span>
             </div>
             <div className="flex flex-wrap items-center gap-2 text-sm font-medium">
-              <span>{t('loans.remainingCount', { count: formatNumber(remainingCount, lang) })}</span>
               <span
                 className={`inline-block rounded px-2 py-0.5 text-xs font-medium ${
                   settled

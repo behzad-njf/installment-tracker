@@ -149,6 +149,7 @@
     "statusColumn": "Status",
     "remaining": "Remaining",
     "remainingCount": "{{count}} installments",
+    "installmentUnit": "installment",
     "actions": "Actions",
     "edit": "Edit",
     "delete": "Delete",

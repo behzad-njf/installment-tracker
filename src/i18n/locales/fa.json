@@ -149,6 +149,7 @@
     "statusColumn": "وضعیت",
     "remaining": "باقی‌مانده",
     "remainingCount": "{{count}} قسط",
+    "installmentUnit": "قسط",
     "actions": "عملیات",
     "edit": "ویرایش",
     "delete": "حذف",
