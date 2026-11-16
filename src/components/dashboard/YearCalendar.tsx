@@ -212,9 +212,6 @@ export function YearCalendar({ loans, checks, year, onYearChange, onPay, onHisto
                     </div>
                     <span className="shrink-0 tabular-nums">{formatMoney(check.amount, lang)}</span>
                     <div className="flex gap-0.5 shrink-0">
-                      <span className="shrink-0 text-muted-foreground text-[10px]">
-                        {check.serial != null && check.serial > 0 ? `#${check.serial}` : ''}
-                      </span>
                       {CHECK_STATUS_TRANSITIONS[check.status].length > 0 && (
                         <Button
                           type="button"
@@ -239,9 +236,6 @@ export function YearCalendar({ loans, checks, year, onYearChange, onPay, onHisto
                     </div>
                     <span className="shrink-0 tabular-nums">{formatMoney(check.amount, lang)}</span>
                     <div className="flex gap-0.5 shrink-0">
-                      <span className="shrink-0 text-muted-foreground text-[10px]">
-                        {check.serial != null && check.serial > 0 ? `#${check.serial}` : ''}
-                      </span>
                       {CHECK_STATUS_TRANSITIONS[check.status].length > 0 && (
                         <Button
                           type="button"
