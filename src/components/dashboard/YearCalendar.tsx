@@ -7,16 +7,20 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import { CheckStatusDialog } from '@/components/checks/CheckStatusDialog'
+import { useLoans } from '@/hooks/useLoans'
 import { useLocale } from '@/hooks/useLocale'
-import { currentMonthIndex, monthsOfYear, monthName, yearMonthOf } from '@/lib/jalali'
+import { currentMonthIndex, monthsOfYear, monthName, monthIndexFrom, yearMonthOf } from '@/lib/jalali'
 import { isActiveIn, isFullyPaidIn, isPartiallyPaidIn, paidAmountIn } from '@/lib/loans'
 import { checksInMonth, CHECK_STATUS_TRANSITIONS } from '@/lib/checks'
 import { formatMoney, formatNumber, formatYear } from '@/lib/money'
-import type { Loan, MonthIndex, Check, CheckStatus } from '@/lib/types'
+import type { Loan, MonthIndex, Check } from '@/lib/types'
+
+type StatusAction = 'cleared' | 'bounced' | 'void' | 'issued'
 
 interface Props {
   loans: Loan[]
@@ -25,14 +29,15 @@ interface Props {
   onYearChange: (year: number) => void
   onPay?: (loanId: string, monthIdx: number) => void
   onHistory?: (loan: Loan) => void
-  onCheckStatusChange?: (id: string, status: CheckStatus, patch?: Partial<Check>) => boolean
 }
 
-export function YearCalendar({ loans, checks, year, onYearChange, onPay, onHistory, onCheckStatusChange }: Props) {
+export function YearCalendar({ loans, checks, year, onYearChange, onPay, onHistory }: Props) {
   const { t } = useTranslation()
   const { lang, dir } = useLocale()
+  const { setCheckStatus } = useLoans()
   const [selected, setSelected] = useState<MonthIndex | null>(null)
-  const [statusCheck, setStatusCheck] = useState<Check | null>(null)
+  const [summaryCheck, setSummaryCheck] = useState<Check | null>(null)
+  const [pendingStatus, setPendingStatus] = useState<{ id: string; status: StatusAction } | null>(null)
 
   const months = monthsOfYear(year)
   const now = currentMonthIndex()
@@ -70,6 +75,41 @@ export function YearCalendar({ loans, checks, year, onYearChange, onPay, onHisto
   const totalAmount = selectedEntry ? selectedEntry.total : 0
   const paidTotal = loanPaidTotal + checksClearedTotal
   const unpaidTotal = totalAmount - paidTotal
+
+  const statusColor = (s: Check['status']) =>
+    s === 'issued'
+      ? 'text-amber-700'
+      : s === 'cleared'
+        ? 'text-green-700'
+        : s === 'bounced'
+          ? 'text-orange-700'
+          : s === 'void'
+            ? 'text-destructive'
+            : 'text-muted-foreground'
+
+  /** Open details dialog for one check. */
+  const openSummary = (check: Check) => setSummaryCheck(check)
+
+  /** Details open: click a status button → close details, open confirmation. */
+  const requestStatus = (status: StatusAction) => {
+    if (!summaryCheck) return
+    const id = summaryCheck.id
+    setSummaryCheck(null)
+    setPendingStatus({ id, status })
+  }
+
+  const applyPending = () => {
+    if (!pendingStatus) return
+    const ok = setCheckStatus(pendingStatus.id, pendingStatus.status)
+    if (!ok) {
+      // eslint-disable-next-line no-console
+      console.warn(t('checks.statusNotAllowed'))
+    }
+    setPendingStatus(null)
+  }
+
+  const statusLabel = (s: StatusAction) => t(`checks.status.${s}`)
+
   const PrevIcon = dir === 'rtl' ? ChevronRight : ChevronLeft
   const NextIcon = dir === 'rtl' ? ChevronLeft : ChevronRight
 
@@ -149,54 +189,54 @@ export function YearCalendar({ loans, checks, year, onYearChange, onPay, onHisto
                   </div>
                 )}
                 {selectedEntry.due.map((loan) => {
-            const fullyPaid = isFullyPaidIn(loan, selectedEntry.monthIdx)
-            const partiallyPaid = isPartiallyPaidIn(loan, selectedEntry.monthIdx)
-            const statusLabel = fullyPaid
-              ? t('loans.status.paid')
-              : partiallyPaid
-                ? t('loans.status.partial')
-                : t('loans.status.unpaid')
-            const statusClass = fullyPaid
-              ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
-              : partiallyPaid
-                ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400'
-                : 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400'
-            return (
-              <div key={loan.id} className="flex items-center justify-between gap-2 border-b border-border/50 py-1 text-sm sm:text-xs last:border-0">
-                <div className="flex items-center gap-2 flex-1 min-w-0">
-                  <span className="truncate">{loan.name}</span>
-                  <span className={`inline-block px-1.5 py-0 rounded text-[11px] sm:text-[10px] font-medium ${statusClass}`}>
-                    {statusLabel}
-                  </span>
-                </div>
-                <span className="shrink-0 tabular-nums">{formatMoney(loan.amount, lang)}</span>
-                <div className="flex gap-0.5 shrink-0">
-                  {(fullyPaid || partiallyPaid) && onHistory && (
-                    <Button
-                      type="button"
-                      size="icon-xs"
-                      variant="outline"
-                      aria-label={t('loans.details')}
-                      onClick={() => onHistory(loan)}
-                    >
-                      <History className="size-3" aria-hidden="true" />
-                    </Button>
-                  )}
-                  {!fullyPaid && onPay && (
-                    <Button
-                      type="button"
-                      size="icon-xs"
-                      variant="outline"
-                      aria-label={t('loans.pay')}
-                      onClick={() => onPay(loan.id, selectedEntry.monthIdx)}
-                    >
-                      <DollarSign className="size-3" aria-hidden="true" />
-                    </Button>
-                  )}
-                </div>
-              </div>
-            )
-          })}
+                  const fullyPaid = isFullyPaidIn(loan, selectedEntry.monthIdx)
+                  const partiallyPaid = isPartiallyPaidIn(loan, selectedEntry.monthIdx)
+                  const statusLabelText = fullyPaid
+                    ? t('loans.status.paid')
+                    : partiallyPaid
+                      ? t('loans.status.partial')
+                      : t('loans.status.unpaid')
+                  const statusClass = fullyPaid
+                    ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
+                    : partiallyPaid
+                      ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400'
+                      : 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400'
+                  return (
+                    <div key={loan.id} className="flex items-center justify-between gap-2 border-b border-border/50 py-1 text-sm sm:text-xs last:border-0">
+                      <div className="flex items-center gap-2 flex-1 min-w-0">
+                        <span className="truncate">{loan.name}</span>
+                        <span className={`inline-block px-1.5 py-0 rounded text-[11px] sm:text-[10px] font-medium ${statusClass}`}>
+                          {statusLabelText}
+                        </span>
+                      </div>
+                      <span className="shrink-0 tabular-nums">{formatMoney(loan.amount, lang)}</span>
+                      <div className="flex gap-0.5 shrink-0">
+                        {(fullyPaid || partiallyPaid) && onHistory && (
+                          <Button
+                            type="button"
+                            size="icon-xs"
+                            variant="outline"
+                            aria-label={t('loans.details')}
+                            onClick={() => onHistory(loan)}
+                          >
+                            <History className="size-3" aria-hidden="true" />
+                          </Button>
+                        )}
+                        {!fullyPaid && onPay && (
+                          <Button
+                            type="button"
+                            size="icon-xs"
+                            variant="outline"
+                            aria-label={t('loans.pay')}
+                            onClick={() => onPay(loan.id, selectedEntry.monthIdx)}
+                          >
+                            <DollarSign className="size-3" aria-hidden="true" />
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                  )
+                })}
                 {(selectedEntry.issuedChecks.length > 0 || selectedEntry.clearedChecks.length > 0) && (
                   <div className="text-[11px] font-medium text-muted-foreground mb-1 ms-1 mt-2">
                     {t('nav.checks')}
@@ -212,17 +252,15 @@ export function YearCalendar({ loans, checks, year, onYearChange, onPay, onHisto
                     </div>
                     <span className="shrink-0 tabular-nums">{formatMoney(check.amount, lang)}</span>
                     <div className="flex gap-0.5 shrink-0">
-                      {CHECK_STATUS_TRANSITIONS[check.status].length > 0 && (
-                        <Button
-                          type="button"
-                          size="icon-xs"
-                          variant="outline"
-                          aria-label={t('checks.changeStatusAria', { status: t(`checks.status.${check.status}`) })}
-                          onClick={() => setStatusCheck(check)}
-                        >
-                          <RefreshCw className="size-3" aria-hidden="true" />
-                        </Button>
-                      )}
+                      <Button
+                        type="button"
+                        size="icon-xs"
+                        variant="outline"
+                        aria-label={t('checks.detailsAria')}
+                        onClick={() => openSummary(check)}
+                      >
+                        <RefreshCw className="size-3" aria-hidden="true" />
+                      </Button>
                     </div>
                   </div>
                 ))}
@@ -236,17 +274,15 @@ export function YearCalendar({ loans, checks, year, onYearChange, onPay, onHisto
                     </div>
                     <span className="shrink-0 tabular-nums">{formatMoney(check.amount, lang)}</span>
                     <div className="flex gap-0.5 shrink-0">
-                      {CHECK_STATUS_TRANSITIONS[check.status].length > 0 && (
-                        <Button
-                          type="button"
-                          size="icon-xs"
-                          variant="outline"
-                          aria-label={t('checks.changeStatusAria', { status: t(`checks.status.${check.status}`) })}
-                          onClick={() => setStatusCheck(check)}
-                        >
-                          <RefreshCw className="size-3" aria-hidden="true" />
-                        </Button>
-                      )}
+                      <Button
+                        type="button"
+                        size="icon-xs"
+                        variant="outline"
+                        aria-label={t('checks.detailsAria')}
+                        onClick={() => openSummary(check)}
+                      >
+                        <RefreshCw className="size-3" aria-hidden="true" />
+                      </Button>
                     </div>
                   </div>
                 ))}
@@ -275,13 +311,119 @@ export function YearCalendar({ loans, checks, year, onYearChange, onPay, onHisto
           )}
         </DialogContent>
       </Dialog>
-      {statusCheck && (
-        <CheckStatusDialog
-          check={statusCheck}
-          onOpenChange={() => setStatusCheck(null)}
-          onSubmit={(status, patch) => onCheckStatusChange?.(statusCheck.id, status, patch) ?? false}
-        />
-      )}
+
+      {summaryCheck ? (
+        <Dialog open onOpenChange={(open) => { if (!open) setSummaryCheck(null) }}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle className="text-center text-base sm:text-sm">{t('checks.checkDetails')}</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-2">
+              <div className="flex justify-between border-b border-input pb-1 text-sm">
+                <span className="text-muted-foreground">{t('checks.serial')}</span>
+                <span dir="ltr">{summaryCheck.serial}</span>
+              </div>
+              <div className="flex justify-between border-b border-input pb-1 text-sm">
+                <span className="text-muted-foreground">{t('checks.payee')}</span>
+                <span className="truncate">{summaryCheck.payee || '—'}</span>
+              </div>
+              <div className="flex justify-between border-b border-input pb-1 text-sm">
+                <span className="text-muted-foreground">{t('checks.amount')}</span>
+                <span dir="ltr">
+                  {formatMoney(summaryCheck.amount, lang)} {t('common.toman')}
+                </span>
+              </div>
+              {summaryCheck.purpose ? (
+                <div className="flex justify-between border-b border-input pb-1 text-sm">
+                  <span className="text-muted-foreground">{t('checks.purpose')}</span>
+                  <span className="truncate">{summaryCheck.purpose}</span>
+                </div>
+              ) : null}
+              <div className="flex justify-between border-b border-input pb-1 text-sm">
+                <span className="text-muted-foreground">{t('checks.dueDate')}</span>
+                <span>
+                  {summaryCheck.dueDay !== undefined && summaryCheck.dueMonth !== undefined && summaryCheck.dueYear !== undefined
+                    ? `${formatNumber(summaryCheck.dueDay, lang)} ${monthName(monthIndexFrom(summaryCheck.dueYear, summaryCheck.dueMonth), lang)} ${formatYear(summaryCheck.dueYear, lang)}`
+                    : '—'}
+                </span>
+              </div>
+              <div className="flex justify-between border-b border-input pb-1 text-sm">
+                <span className="text-muted-foreground">{t('checks.statusLabel')}</span>
+                <span className={`text-sm font-medium ${statusColor(summaryCheck.status)}`}>
+                  {t(`checks.status.${summaryCheck.status}`)}
+                </span>
+              </div>
+              {summaryCheck.note ? (
+                <div className="flex justify-between border-b border-input pb-1 text-sm">
+                  <span className="text-muted-foreground">{t('checks.note')}</span>
+                  <span className="truncate">{summaryCheck.note}</span>
+                </div>
+              ) : null}
+            </div>
+            <DialogFooter className="flex flex-row gap-2 justify-center">
+              {CHECK_STATUS_TRANSITIONS[summaryCheck.status].includes('cleared') && (
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="default"
+                  className="bg-green-600 text-white hover:bg-green-700"
+                  onClick={() => requestStatus('cleared')}
+                >
+                  {t('checks.action.cleared')}
+                </Button>
+              )}
+              {CHECK_STATUS_TRANSITIONS[summaryCheck.status].includes('bounced') && (
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  className="border-orange-500 text-orange-700 hover:bg-orange-50"
+                  onClick={() => requestStatus('bounced')}
+                >
+                  {t('checks.action.bounced')}
+                </Button>
+              )}
+              {CHECK_STATUS_TRANSITIONS[summaryCheck.status].includes('void') && (
+                <Button type="button" size="sm" variant="destructive" onClick={() => requestStatus('void')}>
+                  {t('checks.action.void')}
+                </Button>
+              )}
+              {CHECK_STATUS_TRANSITIONS[summaryCheck.status].includes('issued') && (
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="default"
+                  className="bg-blue-600 text-white hover:bg-blue-700"
+                  onClick={() => requestStatus('issued')}
+                >
+                  {t('checks.action.issued')}
+                </Button>
+              )}
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      ) : null}
+
+      {pendingStatus ? (
+        <Dialog open onOpenChange={(open) => { if (!open) setPendingStatus(null) }}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>{t('checks.confirmStatusTitle')}</DialogTitle>
+              <DialogDescription>
+                {t('checks.confirmStatusDesc', { status: statusLabel(pendingStatus.status) })}
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={() => setPendingStatus(null)}>
+                {t('common.cancel')}
+              </Button>
+              <Button type="button" variant="destructive" onClick={applyPending}>
+                {statusLabel(pendingStatus.status)}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      ) : null}
     </Card>
   )
 }
