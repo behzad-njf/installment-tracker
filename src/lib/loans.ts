@@ -145,6 +145,13 @@ export function daysUntilLoanDeadline(loan: Loan, currentMonth: MonthIndex): num
   return daysUntilDeadline(loan.deadlineDay)
 }
 
+/** Count of installments before `currentMonth` that are still not fully paid. */
+export function overdueInstallments(loan: Loan, currentMonth: MonthIndex): number {
+  return activeMonthIndices(loan).filter(
+    m => m < currentMonth && paidAmountIn(loan, m) < loan.amount,
+  ).length
+}
+
 /** Unpaid loans whose deadline is within 3 days (`upcoming`) or already past (`overdue`). */
 export function deadlineBuckets(
   loans: Loan[],

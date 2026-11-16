@@ -9,8 +9,10 @@ import {
   daysUntilLoanDeadline,
   isFullyPaidIn,
   loanStatus,
+  overdueInstallments,
   remainingInstallments,
 } from '@/lib/loans'
+import { cn } from '@/lib/utils'
 import type { Loan, MonthIndex } from '@/lib/types'
 
 interface Props {
@@ -37,11 +39,20 @@ export function LoanCard({
   const finished = status === 'finished'
   const fullyPaid = isFullyPaidIn(loan, month)
   const remainingCount = remainingInstallments(loan)
+  const overdueCount = overdueInstallments(loan, month)
   const deadlineInfo = daysUntilLoanDeadline(loan, month)
   const deadlineOverdue = typeof deadlineInfo === 'number' && deadlineInfo < 0
+  const settled = fullyPaid || finished
+  const needsAttention =
+    status === 'active' || status === 'partial' || overdueCount > 0 || deadlineOverdue
+  const accent = settled
+    ? 'ring-2 ring-green-600 dark:ring-green-500'
+    : needsAttention
+      ? 'ring-2 ring-red-600 dark:ring-red-500'
+      : ''
 
   return (
-    <Card className="p-3">
+    <Card className={cn('p-3', accent)}>
       <CardContent className="p-0">
         <div className="flex gap-3 items-start">
           <div className="flex-1 min-w-0">
@@ -56,22 +67,28 @@ export function LoanCard({
                 )}
               </span>
             </div>
-            <div className="text-sm font-medium">
-              {t('loans.remainingCount', { count: formatNumber(remainingCount, lang) })}
+            <div className="flex flex-wrap items-center gap-2 text-sm font-medium">
+              <span>{t('loans.remainingCount', { count: formatNumber(remainingCount, lang) })}</span>
+              <span
+                className={`inline-block rounded px-2 py-0.5 text-xs font-medium ${
+                  settled
+                    ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
+                    : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
+                }`}
+              >
+                {settled ? t('loans.status.paid') : t('loans.status.unpaid')}
+              </span>
+              {overdueCount > 0 && (
+                <span className="text-xs text-red-600 dark:text-red-400">
+                  {t('loans.overdueCount', { count: formatNumber(overdueCount, lang) })}
+                </span>
+              )}
             </div>
-            {!finished && deadlineInfo !== null && (
+            {!finished && deadlineInfo !== null && !deadlineOverdue && (
               <div className="text-xs text-muted-foreground mt-1">
-                {deadlineOverdue ? (
-                  <span className="text-red-600 dark:text-red-400">
-                    {t('loans.overdue')}
-                  </span>
-                ) : (
-                  <span className="text-muted-foreground">
-                    {t('loans.daysUntilDeadline', {
-                      days: formatNumber(deadlineInfo, lang),
-                    })}
-                  </span>
-                )}
+                {t('loans.daysUntilDeadline', {
+                  days: formatNumber(deadlineInfo, lang),
+                })}
               </div>
             )}
           </div>

@@ -180,6 +180,7 @@
     "deadlineTo": "مهلت تا روز",
     "deadlinePaid": "این ماه پرداخت شده",
     "overdue": "مهلت گذشته",
+    "overdueCount": "{{count}} قسط عقب افتاده",
     "daysUntilDeadline": "{{days}} روز تا مهلت",
     "daysRemaining": "({{days}} روز)",
     "status": {

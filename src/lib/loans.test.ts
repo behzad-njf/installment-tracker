@@ -11,6 +11,7 @@ import {
   isActiveIn,
   loanStatus,
   monthlyTotals,
+  overdueInstallments,
   paidAmountIn,
   progressOf,
   remainingInstallments,
@@ -199,6 +200,13 @@ describe('loan math', () => {
     expect(upcoming.map(l => l.id)).toEqual(['soon'])
     expect(overdue.map(l => l.id)).toEqual(['late'])
     vi.useRealTimers()
+  })
+
+  it('counts unpaid months before the current one as overdue installments', () => {
+    const l = loan({ duration: 5, payments: [payment({ amount: 1_000_000 })] })
+    expect(overdueInstallments(l, APR_1405)).toBe(0)
+    expect(overdueInstallments(l, APR_1405 + 2)).toBe(1)
+    expect(overdueInstallments(l, APR_1405 + 9)).toBe(4)
   })
 })
 

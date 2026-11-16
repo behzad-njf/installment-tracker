@@ -180,6 +180,7 @@
     "deadlineTo": "Deadline to day",
     "deadlinePaid": "Paid this month",
     "overdue": "Overdue",
+    "overdueCount": "{{count}} installments overdue",
     "daysUntilDeadline": "{{days}} days until deadline",
     "daysRemaining": "({{days}} days remaining)",
     "status": {
