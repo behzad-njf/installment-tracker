@@ -49,6 +49,7 @@
     "nearDue": "Cheques due soon",
     "overdueDays": "{{days}} days overdue",
     "unassigned": "Unassigned",
+    "unnamed": "Unnamed",
     "selectBook": "Pick a chequebook to view and manage its cheques",
     "noBooks": "No chequebooks yet",
     "payeeAmountRequired": "Payee and amount are required",

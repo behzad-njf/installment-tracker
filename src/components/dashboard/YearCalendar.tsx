@@ -13,18 +13,20 @@ import {
 import { useLocale } from '@/hooks/useLocale'
 import { currentMonthIndex, monthsOfYear, monthName, yearMonthOf } from '@/lib/jalali'
 import { isActiveIn, isFullyPaidIn, isPartiallyPaidIn, paidAmountIn } from '@/lib/loans'
+import { checksInMonth } from '@/lib/checks'
 import { formatMoney, formatNumber, formatYear } from '@/lib/money'
-import type { Loan, MonthIndex } from '@/lib/types'
+import type { Loan, MonthIndex, Check } from '@/lib/types'
 
 interface Props {
   loans: Loan[]
+  checks: Check[]
   year: number
   onYearChange: (year: number) => void
   onPay?: (loanId: string, monthIdx: number) => void
   onHistory?: (loan: Loan) => void
 }
 
-export function YearCalendar({ loans, year, onYearChange, onPay, onHistory }: Props) {
+export function YearCalendar({ loans, checks, year, onYearChange, onPay, onHistory }: Props) {
   const { t } = useTranslation()
   const { lang, dir } = useLocale()
   const [selected, setSelected] = useState<MonthIndex | null>(null)
@@ -33,12 +35,19 @@ export function YearCalendar({ loans, year, onYearChange, onPay, onHistory }: Pr
   const now = currentMonthIndex()
   const perMonth = months.map((monthIdx) => {
     const due = loans.filter((loan) => isActiveIn(loan, monthIdx))
-    const allPaid = due.length > 0 && due.every((loan) => isFullyPaidIn(loan, monthIdx))
-    const anyUnpaid = due.some((loan) => !isFullyPaidIn(loan, monthIdx))
+    const monthChecks = checksInMonth(checks, monthIdx)
+    const issuedChecks = monthChecks.filter(c => c.status === 'issued')
+    const clearedChecks = monthChecks.filter(c => c.status === 'cleared')
+    const allPaid = due.length > 0 && issuedChecks.length === 0 && due.every((loan) => isFullyPaidIn(loan, monthIdx))
+    const anyUnpaid = due.some((loan) => !isFullyPaidIn(loan, monthIdx)) || issuedChecks.length > 0
+    const loanTotal = due.reduce((sum, loan) => sum + loan.amount, 0)
+    const checksTotal = issuedChecks.reduce((sum, c) => sum + c.amount, 0) + clearedChecks.reduce((sum, c) => sum + c.amount, 0)
     return {
       monthIdx,
       due,
-      total: due.reduce((sum, loan) => sum + loan.amount, 0),
+      issuedChecks,
+      clearedChecks,
+      total: loanTotal + checksTotal,
       past: monthIdx < now,
       allPaid,
       anyUnpaid,
@@ -46,12 +55,18 @@ export function YearCalendar({ loans, year, onYearChange, onPay, onHistory }: Pr
   })
 
   const selectedEntry = perMonth.find((entry) => entry.monthIdx === selected) ?? null
-  const paidTotal = selectedEntry
+  const loanPaidTotal = selectedEntry
     ? selectedEntry.due.reduce(
         (sum, loan) => sum + Math.min(paidAmountIn(loan, selectedEntry.monthIdx), loan.amount),
         0,
       )
     : 0
+  const checksClearedTotal = selectedEntry
+    ? selectedEntry.clearedChecks.reduce((sum, c) => sum + c.amount, 0)
+    : 0
+  const totalAmount = selectedEntry ? selectedEntry.total : 0
+  const paidTotal = loanPaidTotal + checksClearedTotal
+  const unpaidTotal = totalAmount - paidTotal
   const PrevIcon = dir === 'rtl' ? ChevronRight : ChevronLeft
   const NextIcon = dir === 'rtl' ? ChevronLeft : ChevronRight
 
@@ -114,7 +129,7 @@ export function YearCalendar({ loans, year, onYearChange, onPay, onHistory }: Pr
       </CardContent>
 
       <Dialog open={selected !== null} onOpenChange={(open) => { if (!open) setSelected(null) }}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-md flex flex-col max-h-[80vh]">
           <DialogHeader>
             <DialogTitle className="text-center text-base sm:text-sm">
               {selectedEntry
@@ -122,9 +137,10 @@ export function YearCalendar({ loans, year, onYearChange, onPay, onHistory }: Pr
                 : ''}
             </DialogTitle>
           </DialogHeader>
-          {selectedEntry && selectedEntry.due.length > 0 ? (
-            <div className="space-y-1">
-              {selectedEntry.due.map((loan) => {
+          {selectedEntry && (selectedEntry.due.length > 0 || selectedEntry.issuedChecks.length > 0 || selectedEntry.clearedChecks.length > 0) ? (
+            <>
+              <div className="flex-1 overflow-y-auto space-y-1 pb-2 pr-1">
+                {selectedEntry.due.map((loan) => {
             const fullyPaid = isFullyPaidIn(loan, selectedEntry.monthIdx)
             const partiallyPaid = isPartiallyPaidIn(loan, selectedEntry.monthIdx)
             const statusLabel = fullyPaid
@@ -173,10 +189,39 @@ export function YearCalendar({ loans, year, onYearChange, onPay, onHistory }: Pr
               </div>
             )
           })}
-              <div className="space-y-1 border-t border-border/50 pt-2 text-sm sm:text-xs">
+                {selectedEntry.issuedChecks.map((check) => (
+                  <div key={check.id} className="flex items-center justify-between gap-2 border-b border-border/50 py-1 text-sm sm:text-xs">
+                    <div className="flex items-center gap-2 flex-1 min-w-0">
+                      <span className="truncate">{check.payee || t('checks.unnamed')}</span>
+                      <span className="inline-block px-1.5 py-0 rounded text-[11px] sm:text-[10px] font-medium bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">
+                        {t('checks.status.issued')}
+                      </span>
+                    </div>
+                    <span className="shrink-0 tabular-nums">{formatMoney(check.amount, lang)}</span>
+                    <span className="shrink-0 text-muted-foreground text-[10px]">
+                      {check.serial != null && check.serial > 0 ? `#${check.serial}` : ''}
+                    </span>
+                  </div>
+                ))}
+                {selectedEntry.clearedChecks.map((check) => (
+                  <div key={check.id} className="flex items-center justify-between gap-2 border-b border-border/50 py-1 text-sm sm:text-xs">
+                    <div className="flex items-center gap-2 flex-1 min-w-0">
+                      <span className="truncate">{check.payee || t('checks.unnamed')}</span>
+                      <span className="inline-block px-1.5 py-0 rounded text-[11px] sm:text-[10px] font-medium bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">
+                        {t('checks.status.cleared')}
+                      </span>
+                    </div>
+                    <span className="shrink-0 tabular-nums">{formatMoney(check.amount, lang)}</span>
+                    <span className="shrink-0 text-muted-foreground text-[10px]">
+                      {check.serial != null && check.serial > 0 ? `#${check.serial}` : ''}
+                    </span>
+                  </div>
+                ))}
+              </div>
+              <div className="border-t border-border/50 pt-2 text-sm sm:text-xs flex-shrink-0">
                 <div className="flex items-center justify-between gap-2 font-semibold">
                   <span>{t('common.total')}</span>
-                  <span className="tabular-nums">{formatMoney(selectedEntry.total, lang)}</span>
+                  <span className="tabular-nums">{formatMoney(totalAmount, lang)}</span>
                 </div>
                 <div className="flex items-center justify-between gap-2">
                   <span className="text-muted-foreground">{t('common.paid')}</span>
@@ -187,11 +232,11 @@ export function YearCalendar({ loans, year, onYearChange, onPay, onHistory }: Pr
                 <div className="flex items-center justify-between gap-2">
                   <span className="text-muted-foreground">{t('common.unpaid')}</span>
                   <span className="tabular-nums text-red-700 dark:text-red-400">
-                    {formatMoney(selectedEntry.total - paidTotal, lang)}
+                    {formatMoney(unpaidTotal, lang)}
                   </span>
                 </div>
               </div>
-            </div>
+            </>
           ) : (
             <p className="text-muted-foreground py-2 text-center text-sm sm:text-xs">{t('calendar.empty')}</p>
           )}

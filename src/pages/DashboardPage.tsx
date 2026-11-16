@@ -99,6 +99,7 @@ export function DashboardPage() {
         </Card>
         <YearCalendar
           loans={loans}
+          checks={checks}
           year={calYear}
           onYearChange={setCalYear}
           onPay={(loanId, monthIdx) => setPayDialog({ id: loanId, month: monthIdx })}
@@ -136,6 +137,7 @@ export function DashboardPage() {
         ) : (
           <YearCalendar
             loans={loans}
+            checks={checks}
             year={calYear}
             onYearChange={setCalYear}
             onPay={(loanId, monthIdx) => setPayDialog({ id: loanId, month: monthIdx })}
