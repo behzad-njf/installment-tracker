@@ -40,7 +40,6 @@ export function LoanTable({
               <TableHead>{t('loans.name')}</TableHead>
               <TableHead>{t('loans.amount')}</TableHead>
               <TableHead>{t('loans.startMonth')}</TableHead>
-              <TableHead>{t('loans.duration')}</TableHead>
               <TableHead>{t('loans.statusColumn')}</TableHead>
               <TableHead>{t('loans.remaining')}</TableHead>
               <TableHead>{t('loans.deadline')}</TableHead>

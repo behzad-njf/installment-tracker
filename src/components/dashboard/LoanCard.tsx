@@ -55,7 +55,6 @@ export function LoanCard({
                   (y) => formatYear(y, lang),
                 )}
               </span>
-              <span>{formatNumber(loan.duration, lang)} ماه</span>
             </div>
             <div className="text-sm font-medium">
               {t('loans.remainingCount', { count: formatNumber(remainingCount, lang) })}
