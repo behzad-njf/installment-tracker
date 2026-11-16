@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { ChevronLeft, ChevronRight, DollarSign, History } from 'lucide-react'
+import { ChevronLeft, ChevronRight, DollarSign, History, RefreshCw } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -10,12 +10,13 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
+import { CheckStatusDialog } from '@/components/checks/CheckStatusDialog'
 import { useLocale } from '@/hooks/useLocale'
 import { currentMonthIndex, monthsOfYear, monthName, yearMonthOf } from '@/lib/jalali'
 import { isActiveIn, isFullyPaidIn, isPartiallyPaidIn, paidAmountIn } from '@/lib/loans'
-import { checksInMonth } from '@/lib/checks'
+import { checksInMonth, CHECK_STATUS_TRANSITIONS } from '@/lib/checks'
 import { formatMoney, formatNumber, formatYear } from '@/lib/money'
-import type { Loan, MonthIndex, Check } from '@/lib/types'
+import type { Loan, MonthIndex, Check, CheckStatus } from '@/lib/types'
 
 interface Props {
   loans: Loan[]
@@ -24,12 +25,14 @@ interface Props {
   onYearChange: (year: number) => void
   onPay?: (loanId: string, monthIdx: number) => void
   onHistory?: (loan: Loan) => void
+  onCheckStatusChange?: (id: string, status: CheckStatus, patch?: Partial<Check>) => boolean
 }
 
-export function YearCalendar({ loans, checks, year, onYearChange, onPay, onHistory }: Props) {
+export function YearCalendar({ loans, checks, year, onYearChange, onPay, onHistory, onCheckStatusChange }: Props) {
   const { t } = useTranslation()
   const { lang, dir } = useLocale()
   const [selected, setSelected] = useState<MonthIndex | null>(null)
+  const [statusCheck, setStatusCheck] = useState<Check | null>(null)
 
   const months = monthsOfYear(year)
   const now = currentMonthIndex()
@@ -140,6 +143,11 @@ export function YearCalendar({ loans, checks, year, onYearChange, onPay, onHisto
           {selectedEntry && (selectedEntry.due.length > 0 || selectedEntry.issuedChecks.length > 0 || selectedEntry.clearedChecks.length > 0) ? (
             <>
               <div className="flex-1 overflow-y-auto space-y-1 pb-2 pr-1">
+                {selectedEntry.due.length > 0 && (
+                  <div className="text-[11px] font-medium text-muted-foreground mb-1 ms-1">
+                    {t('common.loans')}
+                  </div>
+                )}
                 {selectedEntry.due.map((loan) => {
             const fullyPaid = isFullyPaidIn(loan, selectedEntry.monthIdx)
             const partiallyPaid = isPartiallyPaidIn(loan, selectedEntry.monthIdx)
@@ -189,6 +197,11 @@ export function YearCalendar({ loans, checks, year, onYearChange, onPay, onHisto
               </div>
             )
           })}
+                {(selectedEntry.issuedChecks.length > 0 || selectedEntry.clearedChecks.length > 0) && (
+                  <div className="text-[11px] font-medium text-muted-foreground mb-1 ms-1 mt-2">
+                    {t('nav.checks')}
+                  </div>
+                )}
                 {selectedEntry.issuedChecks.map((check) => (
                   <div key={check.id} className="flex items-center justify-between gap-2 border-b border-border/50 py-1 text-sm sm:text-xs">
                     <div className="flex items-center gap-2 flex-1 min-w-0">
@@ -198,9 +211,22 @@ export function YearCalendar({ loans, checks, year, onYearChange, onPay, onHisto
                       </span>
                     </div>
                     <span className="shrink-0 tabular-nums">{formatMoney(check.amount, lang)}</span>
-                    <span className="shrink-0 text-muted-foreground text-[10px]">
-                      {check.serial != null && check.serial > 0 ? `#${check.serial}` : ''}
-                    </span>
+                    <div className="flex gap-0.5 shrink-0">
+                      <span className="shrink-0 text-muted-foreground text-[10px]">
+                        {check.serial != null && check.serial > 0 ? `#${check.serial}` : ''}
+                      </span>
+                      {CHECK_STATUS_TRANSITIONS[check.status].length > 0 && (
+                        <Button
+                          type="button"
+                          size="icon-xs"
+                          variant="outline"
+                          aria-label={t('checks.changeStatusAria', { status: t(`checks.status.${check.status}`) })}
+                          onClick={() => setStatusCheck(check)}
+                        >
+                          <RefreshCw className="size-3" aria-hidden="true" />
+                        </Button>
+                      )}
+                    </div>
                   </div>
                 ))}
                 {selectedEntry.clearedChecks.map((check) => (
@@ -212,9 +238,22 @@ export function YearCalendar({ loans, checks, year, onYearChange, onPay, onHisto
                       </span>
                     </div>
                     <span className="shrink-0 tabular-nums">{formatMoney(check.amount, lang)}</span>
-                    <span className="shrink-0 text-muted-foreground text-[10px]">
-                      {check.serial != null && check.serial > 0 ? `#${check.serial}` : ''}
-                    </span>
+                    <div className="flex gap-0.5 shrink-0">
+                      <span className="shrink-0 text-muted-foreground text-[10px]">
+                        {check.serial != null && check.serial > 0 ? `#${check.serial}` : ''}
+                      </span>
+                      {CHECK_STATUS_TRANSITIONS[check.status].length > 0 && (
+                        <Button
+                          type="button"
+                          size="icon-xs"
+                          variant="outline"
+                          aria-label={t('checks.changeStatusAria', { status: t(`checks.status.${check.status}`) })}
+                          onClick={() => setStatusCheck(check)}
+                        >
+                          <RefreshCw className="size-3" aria-hidden="true" />
+                        </Button>
+                      )}
+                    </div>
                   </div>
                 ))}
               </div>
@@ -242,6 +281,13 @@ export function YearCalendar({ loans, checks, year, onYearChange, onPay, onHisto
           )}
         </DialogContent>
       </Dialog>
+      {statusCheck && (
+        <CheckStatusDialog
+          check={statusCheck}
+          onOpenChange={() => setStatusCheck(null)}
+          onSubmit={(status, patch) => onCheckStatusChange?.(statusCheck.id, status, patch) ?? false}
+        />
+      )}
     </Card>
   )
 }

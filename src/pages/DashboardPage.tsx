@@ -26,7 +26,7 @@ interface PayContext {
 export function DashboardPage() {
   const { t } = useTranslation()
   const { lang } = useLocale()
-  const { loans, checks } = useLoans()
+  const { loans, checks, setCheckStatus } = useLoans()
   const month = useMemo(() => currentMonthIndex(), [])
   const chartYear = useMemo(() => yearMonthOf(month).year, [month])
   const summary = useMemo(() => summaryFor(loans, month), [loans, month])
@@ -104,6 +104,7 @@ export function DashboardPage() {
           onYearChange={setCalYear}
           onPay={(loanId, monthIdx) => setPayDialog({ id: loanId, month: monthIdx })}
           onHistory={loan => setHistoryLoan(loan)}
+          onCheckStatusChange={setCheckStatus}
         />
       </div>
 
@@ -142,6 +143,7 @@ export function DashboardPage() {
             onYearChange={setCalYear}
             onPay={(loanId, monthIdx) => setPayDialog({ id: loanId, month: monthIdx })}
             onHistory={loan => setHistoryLoan(loan)}
+            onCheckStatusChange={setCheckStatus}
           />
         )}
       </div>
