@@ -5,7 +5,6 @@ import { Card, CardContent } from '@/components/ui/card'
 import { DollarSign, History, Edit, Trash2 } from 'lucide-react'
 import { formatMoney, formatNumber } from '@/lib/money'
 import {
-  daysUntilLoanDeadline,
   isFullyPaidIn,
   loanStatus,
   remainingInstallments,
@@ -36,7 +35,6 @@ export function LoanCard({
   const finished = status === 'finished'
   const fullyPaid = isFullyPaidIn(loan, month)
   const remainingCount = remainingInstallments(loan)
-  const deadlineInfo = daysUntilLoanDeadline(loan, month)
   const settled = fullyPaid || finished
 
   return (
@@ -63,13 +61,6 @@ export function LoanCard({
                 {settled ? t('loans.status.paid') : t('loans.status.unpaid')}
               </span>
             </div>
-            {!finished && deadlineInfo !== null && (
-              <div className="text-xs text-muted-foreground mt-1">
-                {t('loans.daysUntilDeadline', {
-                  days: formatNumber(deadlineInfo, lang),
-                })}
-              </div>
-            )}
           </div>
           <div className="flex flex-col gap-1 shrink-0">
             <div className="flex gap-1">
