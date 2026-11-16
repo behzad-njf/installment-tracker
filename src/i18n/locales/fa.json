@@ -91,6 +91,7 @@
     "confirmIssue": "تأیید صدور چک",
     "checkDetails": "جزئیات چک",
     "issuedThisMonth": "صدور این ماه",
+    "issuedNextMonth": "صدور ماه بعد",
     "checkUnit": "چک"
   },
   "tabs": {

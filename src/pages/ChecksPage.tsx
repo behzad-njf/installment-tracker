@@ -26,12 +26,17 @@ export function ChecksPage() {
   const [editBook, setEditBook] = useState<Checkbook | null>(null)
   const [deleteBook, setDeleteBook] = useState<Checkbook | null>(null)
   const [issueOpen, setIssueOpen] = useState(false)
-  const [monthlyOpen, setMonthlyOpen] = useState(false)
+  const [monthlyMonth, setMonthlyMonth] = useState<number | null>(null)
 
   const thisMonth = currentMonthIndex()
+  const nextMonth = thisMonth + 1
   const issuedThisMonth = checks.filter(c => c.status === 'issued' && checkMonthIndex(c) === thisMonth)
+  const issuedNextMonth = checks.filter(c => c.status === 'issued' && checkMonthIndex(c) === nextMonth)
   const issuedCount = issuedThisMonth.length
   const issuedTotal = issuedThisMonth.reduce((sum, c) => sum + c.amount, 0)
+  const nextCount = issuedNextMonth.length
+  const nextTotal = issuedNextMonth.reduce((sum, c) => sum + c.amount, 0)
+  const monthlyChecks = monthlyMonth === nextMonth ? issuedNextMonth : issuedThisMonth
 
   return (
     <div className="space-y-5">
@@ -42,22 +47,42 @@ export function ChecksPage() {
         </Button>
       </div>
 
-      <button
-        type="button"
-        onClick={() => setMonthlyOpen(true)}
-        className="block w-full rounded-md text-start"
-        aria-label={t('checks.issuedThisMonth')}
-      >
-        <Card className="p-3 transition-colors hover:bg-accent">
-          <div className="text-sm font-medium">{t('checks.issuedThisMonth')}</div>
-          <div className="mt-1 flex items-baseline gap-3">
-            <span className="text-2xl font-semibold tabular-nums">{formatNumber(issuedCount, lang)}</span>
-            <span className="text-sm text-muted-foreground">{t('checks.checkUnit')}</span>
-            <span className="text-lg font-semibold tabular-nums">{formatMoney(issuedTotal, lang)}</span>
-            <span className="text-sm text-muted-foreground">{t('common.toman')}</span>
-          </div>
-        </Card>
-      </button>
+      <div className="flex items-stretch gap-3">
+        <button
+          type="button"
+          onClick={() => setMonthlyMonth(thisMonth)}
+          className="block min-w-0 flex-1 rounded-md text-start"
+          aria-label={t('checks.issuedThisMonth')}
+        >
+          <Card className="p-3 transition-colors hover:bg-accent">
+            <div className="text-sm font-medium">{t('checks.issuedThisMonth')}</div>
+            <div className="mt-1 flex items-baseline gap-3">
+              <span className="text-2xl font-semibold tabular-nums">{formatNumber(issuedCount, lang)}</span>
+              <span className="text-sm text-muted-foreground">{t('checks.checkUnit')}</span>
+              <span className="text-lg font-semibold tabular-nums">{formatMoney(issuedTotal, lang)}</span>
+              <span className="text-sm text-muted-foreground">{t('common.toman')}</span>
+            </div>
+          </Card>
+        </button>
+        <button
+          type="button"
+          onClick={() => setMonthlyMonth(nextMonth)}
+          className="block w-32 shrink-0 rounded-md text-start"
+          aria-label={t('checks.issuedNextMonth')}
+        >
+          <Card className="flex aspect-square flex-col justify-between p-3 transition-colors hover:bg-accent">
+            <div className="text-xs font-medium leading-tight">{t('checks.issuedNextMonth')}</div>
+            <div className="flex items-baseline gap-1">
+              <span className="text-2xl font-semibold tabular-nums">{formatNumber(nextCount, lang)}</span>
+              <span className="text-xs text-muted-foreground">{t('checks.checkUnit')}</span>
+            </div>
+            <div className="text-sm font-semibold tabular-nums leading-tight">
+              {formatMoney(nextTotal, lang)}{' '}
+              <span className="text-xs font-normal text-muted-foreground">{t('common.toman')}</span>
+            </div>
+          </Card>
+        </button>
+      </div>
 
       <NearDueChecks checks={checks} />
 
@@ -103,21 +128,23 @@ export function ChecksPage() {
         }}
       />
       <IssueCheckDialog open={issueOpen} onOpenChange={setIssueOpen} />
-      {monthlyOpen ? (
+      {monthlyMonth !== null ? (
         <Dialog open onOpenChange={open => {
-          if (!open) setMonthlyOpen(false)
+          if (!open) setMonthlyMonth(null)
         }}>
           <DialogContent className="sm:max-w-lg">
             <DialogHeader>
-              <DialogTitle>{t('checks.issuedThisMonth')}</DialogTitle>
+              <DialogTitle>
+                {monthlyMonth === nextMonth ? t('checks.issuedNextMonth') : t('checks.issuedThisMonth')}
+              </DialogTitle>
             </DialogHeader>
             <div className="max-h-[60vh] overflow-y-auto">
-              {issuedThisMonth.length === 0 ? (
+              {monthlyChecks.length === 0 ? (
                 <p className="text-sm text-muted-foreground">{t('checks.empty')}</p>
               ) : (
                 <table className="w-full border-collapse text-sm">
                   <tbody>
-                    {issuedThisMonth.map(check => (
+                    {monthlyChecks.map(check => (
                       <tr key={check.id} className="border-b border-input last:border-0">
                         <td className="min-w-0 py-1.5 pe-2">
                           <span className="block truncate">{check.payee || '—'}</span>

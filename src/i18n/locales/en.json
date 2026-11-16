@@ -91,6 +91,7 @@
     "confirmIssue": "Confirm issue",
     "checkDetails": "Cheque details",
     "issuedThisMonth": "Issued this month",
+    "issuedNextMonth": "Issued next month",
     "checkUnit": "cheque(s)"
   },
   "tabs": {
