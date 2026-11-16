@@ -75,6 +75,7 @@
     "confirmStatusDesc": "آیا از تغییر وضعیت چک به «{{status}}» مطمئن هستید؟",
     "changeStatusTitle": "تغییر وضعیت چک {{serial}}",
     "changeStatusAria": "تغییر وضعیت — وضعیت فعلی: {{status}}",
+    "detailsAria": "مشاهده جزئیات چک",
     "pickStatus": "وضعیت جدید را انتخاب کنید",
     "terminalStatus": "این چک بسته شده است و وضعیتش تغییر نمی‌کند.",
     "issueHint": "برای صدور چک، در وجه، مبلغ و بابت الزامی است.",
