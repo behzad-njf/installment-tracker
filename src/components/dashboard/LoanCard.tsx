@@ -46,9 +46,9 @@ export function LoanCard({
   const needsAttention =
     status === 'active' || status === 'partial' || overdueCount > 0 || deadlineOverdue
   const accent = settled
-    ? 'ring-2 ring-green-600 dark:ring-green-500'
+    ? 'ring-1 ring-green-600 dark:ring-green-500'
     : needsAttention
-      ? 'ring-2 ring-red-600 dark:ring-red-500'
+      ? 'ring-1 ring-red-600 dark:ring-red-500'
       : ''
 
   return (
