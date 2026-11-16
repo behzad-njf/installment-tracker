@@ -75,7 +75,6 @@
     "confirmStatusDesc": "Are you sure you want to change this cheque's status to \"{{status}}\"?",
     "changeStatusTitle": "Change status of cheque {{serial}}",
     "changeStatusAria": "Change status — current: {{status}}",
-    "detailsAria": "View cheque details",
     "pickStatus": "Pick the next status",
     "terminalStatus": "This cheque is closed; its status no longer changes.",
     "issueHint": "Issuing requires payee, amount and purpose.",
