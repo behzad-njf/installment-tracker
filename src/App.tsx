@@ -24,6 +24,13 @@ export function App() {
     navigator.serviceWorker.ready.then((registration) => {
       swRegRef.current = registration
 
+      // Check if there's already a waiting worker (update already downloaded)
+      if (registration.waiting) {
+        setUpdateAvailable(true)
+        setUpdateVersion(APP_VERSION)
+        return
+      }
+
       // Check for updates on load
       registration.update()
 
