@@ -144,3 +144,21 @@ export function daysUntilLoanDeadline(loan: Loan, currentMonth: MonthIndex): num
   if (isFullyPaidIn(loan, currentMonth)) return null
   return daysUntilDeadline(loan.deadlineDay)
 }
+
+/** Unpaid loans whose deadline is within 3 days (`upcoming`) or already past (`overdue`). */
+export function deadlineBuckets(
+  loans: Loan[],
+  currentMonth: MonthIndex,
+): { upcoming: Loan[]; overdue: Loan[] } {
+  const upcoming: Loan[] = []
+  const overdue: Loan[] = []
+  for (const loan of loans) {
+    if (remainingInstallments(loan) === 0) continue
+    if (loan.deadlineDay < 1 || loan.deadlineDay > 31) continue
+    const days = daysUntilLoanDeadline(loan, currentMonth)
+    if (days === null) continue
+    if (days < 0) overdue.push(loan)
+    else if (days <= 3) upcoming.push(loan)
+  }
+  return { upcoming, overdue }
+}

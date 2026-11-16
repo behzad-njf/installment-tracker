@@ -1,8 +1,9 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 
 import { monthIndexFrom, yearMonthOf, currentMonthIndex, MONTH_NAMES } from './jalali'
 import {
   activeMonthIndices,
+  deadlineBuckets,
   endIndex,
   isFullyPaidIn,
   isPartiallyPaidIn,
@@ -177,6 +178,27 @@ describe('loan math', () => {
     const totals = monthlyTotals(loans)
     expect(totals.get(APR_1405)).toBe(150)
     expect(totals.get(APR_1405 + 2)).toBe(100)
+  })
+
+  it('splits unpaid loans into upcoming (≤3 days) and overdue', () => {
+    vi.useFakeTimers()
+    vi.setSystemTime(new Date('2026-04-10T12:00:00Z')) // 21 Farvardin 1405
+    const month = currentMonthIndex()
+    const soon = loan({ id: 'soon', startMonth: 1, duration: 12, deadlineDay: 23 })
+    const late = loan({ id: 'late', startMonth: 1, duration: 12, deadlineDay: 20 })
+    const far = loan({ id: 'far', startMonth: 1, duration: 12, deadlineDay: 30 })
+    const paid = loan({
+      id: 'paid',
+      startMonth: 1,
+      duration: 12,
+      deadlineDay: 22,
+      payments: [payment({ monthIndex: month, amount: 1_000_000 })],
+    })
+
+    const { upcoming, overdue } = deadlineBuckets([soon, late, far, paid], month)
+    expect(upcoming.map(l => l.id)).toEqual(['soon'])
+    expect(overdue.map(l => l.id)).toEqual(['late'])
+    vi.useRealTimers()
   })
 })
 

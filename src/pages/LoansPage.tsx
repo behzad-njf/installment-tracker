@@ -6,19 +6,27 @@ import { EmptyState } from '@/components/dashboard/EmptyState'
 import { LoanTable } from '@/components/dashboard/LoanTable'
 import { PayDialog } from '@/components/dashboard/PayDialog'
 import { PaymentHistoryDialog } from '@/components/dashboard/PaymentHistoryDialog'
+import { SummaryCards } from '@/components/dashboard/SummaryCards'
+import { UpcomingDeadlines } from '@/components/dashboard/UpcomingDeadlines'
 import { AddEditLoanDialog } from '@/components/loans/AddEditLoanDialog'
 import { DeleteLoanDialog } from '@/components/loans/DeleteLoanDialog'
 import { Button } from '@/components/ui/button'
 import { useLoans } from '@/hooks/useLoans'
+import { useLocale } from '@/hooks/useLocale'
 import { currentMonthIndex } from '@/lib/jalali'
-import { remainingInstallments } from '@/lib/loans'
+import { deadlineBuckets, remainingInstallments, summaryFor } from '@/lib/loans'
+import { formatNumber } from '@/lib/money'
 import { exportDataFile, importDataFile, loadData } from '@/lib/storage'
 import type { Loan } from '@/lib/types'
 
 export function LoansPage() {
   const { t } = useTranslation()
+  const { lang } = useLocale()
   const { loans, replaceData, clearAll } = useLoans()
   const month = useMemo(() => currentMonthIndex(), [])
+  const summary = useMemo(() => summaryFor(loans, month), [loans, month])
+  const nextSummary = useMemo(() => summaryFor(loans, month + 1), [loans, month])
+  const deadlines = useMemo(() => deadlineBuckets(loans, month), [loans, month])
 
   const [tab, setTab] = useState<'open' | 'finished'>('open')
   const [addEditLoan, setAddEditLoan] = useState<{ loan: Loan | null; open: boolean }>(() => ({
@@ -88,6 +96,26 @@ export function LoansPage() {
       <div className="space-y-0.5">
         <h1 className="text-xl font-semibold tracking-tight">{t('nav.loans')}</h1>
       </div>
+
+      <SummaryCards summary={summary} nextMonthAmount={nextSummary.totalMonthly} />
+
+      {deadlines.upcoming.length > 0 && (
+        <UpcomingDeadlines
+          loans={deadlines.upcoming}
+          month={month}
+          onPay={loanId => setPayDialog({ id: loanId, month })}
+        />
+      )}
+
+      {deadlines.overdue.length > 0 && (
+        <div
+          className="rounded-lg border border-red-600 bg-red-50 p-3 text-red-700 dark:border-red-400 dark:bg-red-900/20 dark:text-red-300 text-sm"
+          role="alert"
+          aria-live="polite"
+        >
+          {t('dashboard.overdueLoans', { count: formatNumber(deadlines.overdue.length, lang) })}
+        </div>
+      )}
 
       <div className="flex flex-wrap items-center gap-2">
         {importError && <span className="text-xs text-destructive">{importError}</span>}

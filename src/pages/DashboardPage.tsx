@@ -13,7 +13,8 @@ import { Card, CardContent } from '@/components/ui/card'
 import { useLocale } from '@/hooks/useLocale'
 import { useLoans } from '@/hooks/useLoans'
 import { currentMonthIndex, todayLabel, yearMonthOf } from '@/lib/jalali'
-import { daysUntilLoanDeadline, remainingInstallments, summaryFor } from '@/lib/loans'
+import { deadlineBuckets, summaryFor } from '@/lib/loans'
+import { formatNumber } from '@/lib/money'
 import type { Loan } from '@/lib/types'
 
 interface PayContext {
@@ -30,27 +31,8 @@ export function DashboardPage() {
   const summary = useMemo(() => summaryFor(loans, month), [loans, month])
   const nextSummary = useMemo(() => summaryFor(loans, month + 1), [loans, month])
 
-  const upcomingDeadlines = useMemo(
-    () =>
-      loans
-        .filter(l => remainingInstallments(l) > 0)
-        .filter(l => l.deadlineDay >= 1 && l.deadlineDay <= 31)
-        .filter(l => {
-          const days = daysUntilLoanDeadline(l, month)
-          return typeof days === 'number' && days >= 0 && days <= 3
-        }),
-    [loans, month]
-  )
-
-  const overdueLoans = useMemo(
-    () =>
-      loans
-        .filter(l => remainingInstallments(l) > 0)
-        .filter(l => l.deadlineDay >= 1 && l.deadlineDay <= 31)
-        .filter(l => {
-          const days = daysUntilLoanDeadline(l, month)
-          return typeof days === 'number' && days < 0
-        }),
+  const { upcoming: upcomingDeadlines, overdue: overdueLoans } = useMemo(
+    () => deadlineBuckets(loans, month),
     [loans, month]
   )
 
@@ -82,7 +64,7 @@ export function DashboardPage() {
           role="alert"
           aria-live="polite"
         >
-          {t('dashboard.overdueLoans', { count: overdueLoans.length })}
+          {t('dashboard.overdueLoans', { count: formatNumber(overdueLoans.length, lang) })}
         </div>
       )}
 
