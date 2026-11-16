@@ -54,31 +54,37 @@ export function ChecksPage() {
           className="block min-w-0 flex-1 rounded-md text-start"
           aria-label={t('checks.issuedThisMonth')}
         >
-          <Card className="p-3 transition-colors hover:bg-accent">
-            <div className="text-sm font-medium">{t('checks.issuedThisMonth')}</div>
-            <div className="mt-1 flex items-baseline gap-3">
-              <span className="text-2xl font-semibold tabular-nums">{formatNumber(issuedCount, lang)}</span>
+          <Card className="flex h-36 flex-col justify-between gap-2 p-3 transition-colors hover:bg-accent">
+            <div className="truncate text-sm font-medium text-muted-foreground">
+              {t('checks.issuedThisMonth')}
+            </div>
+            <div className="flex min-w-0 items-baseline gap-2">
+              <span className="text-3xl font-semibold tabular-nums">{formatNumber(issuedCount, lang)}</span>
               <span className="text-sm text-muted-foreground">{t('checks.checkUnit')}</span>
-              <span className="text-lg font-semibold tabular-nums">{formatMoney(issuedTotal, lang)}</span>
-              <span className="text-sm text-muted-foreground">{t('common.toman')}</span>
+            </div>
+            <div className="flex min-w-0 items-baseline gap-1">
+              <span className="truncate text-lg font-semibold tabular-nums">{formatMoney(issuedTotal, lang)}</span>
+              <span className="shrink-0 text-sm text-muted-foreground">{t('common.toman')}</span>
             </div>
           </Card>
         </button>
         <button
           type="button"
           onClick={() => setMonthlyMonth(nextMonth)}
-          className="block w-32 shrink-0 rounded-md text-start"
+          className="block w-36 shrink-0 rounded-md text-start"
           aria-label={t('checks.issuedNextMonth')}
         >
-          <Card className="flex aspect-square flex-col justify-between p-3 transition-colors hover:bg-accent">
-            <div className="text-xs font-medium leading-tight">{t('checks.issuedNextMonth')}</div>
-            <div className="flex items-baseline gap-1">
-              <span className="text-2xl font-semibold tabular-nums">{formatNumber(nextCount, lang)}</span>
-              <span className="text-xs text-muted-foreground">{t('checks.checkUnit')}</span>
+          <Card className="flex h-36 flex-col justify-between gap-1 p-3 transition-colors hover:bg-accent">
+            <div className="truncate text-xs font-medium text-muted-foreground">
+              {t('checks.issuedNextMonth')}
             </div>
-            <div className="text-sm font-semibold tabular-nums leading-tight">
-              {formatMoney(nextTotal, lang)}{' '}
-              <span className="text-xs font-normal text-muted-foreground">{t('common.toman')}</span>
+            <div className="flex min-w-0 items-baseline gap-1">
+              <span className="text-2xl font-semibold tabular-nums">{formatNumber(nextCount, lang)}</span>
+              <span className="truncate text-xs text-muted-foreground">{t('checks.checkUnit')}</span>
+            </div>
+            <div className="flex min-w-0 items-baseline gap-1">
+              <span className="truncate text-sm font-semibold tabular-nums">{formatMoney(nextTotal, lang)}</span>
+              <span className="shrink-0 text-xs text-muted-foreground">{t('common.toman')}</span>
             </div>
           </Card>
         </button>
