@@ -49,13 +49,15 @@ function Stat({
 export function SummaryCards({
   summary,
   nextMonthAmount,
-  checksThisMonth = 0,
-  checksNextMonth = 0,
+  checksIssuedThisMonth = 0,
+  checksClearedThisMonth = 0,
+  checksIssuedNextMonth = 0,
 }: {
   summary: Summary
   nextMonthAmount: number
-  checksThisMonth?: number
-  checksNextMonth?: number
+  checksIssuedThisMonth?: number
+  checksClearedThisMonth?: number
+  checksIssuedNextMonth?: number
 }) {
   const { t } = useTranslation()
   const { lang } = useLocale()
@@ -67,7 +69,7 @@ export function SummaryCards({
         <Stat
           delay={0}
           label={t('dashboard.totalMonthly')}
-          value={formatMoney(summary.totalMonthly + checksThisMonth, lang)}
+          value={formatMoney(summary.totalMonthly + checksIssuedThisMonth + checksClearedThisMonth, lang)}
           toman={toman}
           icon={<Wallet className="size-4" aria-hidden />}
           tone="bg-chart-1/12 text-chart-1"
@@ -75,7 +77,7 @@ export function SummaryCards({
         <Stat
           delay={0.06}
           label={t('dashboard.paidThisMonth')}
-          value={formatMoney(summary.paidThisMonth, lang)}
+          value={formatMoney(summary.paidThisMonth + checksClearedThisMonth, lang)}
           toman={toman}
           icon={<BadgeCheck className="size-4" aria-hidden />}
           tone="bg-chart-2/12 text-chart-2"
@@ -83,10 +85,10 @@ export function SummaryCards({
         <Stat
           delay={0.12}
           label={t('dashboard.remainingThisMonth')}
-          value={formatMoney(summary.remainingThisMonth, lang)}
+          value={formatMoney(summary.remainingThisMonth + checksIssuedThisMonth, lang)}
           toman={toman}
           icon={
-            summary.remainingThisMonth > 0 ? (
+            summary.remainingThisMonth + checksIssuedThisMonth > 0 ? (
               <CircleDollarSign className="size-4" aria-hidden />
             ) : (
               <ReceiptText className="size-4" aria-hidden />
@@ -97,7 +99,7 @@ export function SummaryCards({
         <Stat
           delay={0.18}
           label={t('dashboard.nextMonth')}
-          value={formatMoney(nextMonthAmount + checksNextMonth, lang)}
+          value={formatMoney(nextMonthAmount + checksIssuedNextMonth, lang)}
           toman={toman}
           icon={<CalendarClock className="size-4" aria-hidden />}
           tone="bg-chart-4/12 text-chart-4"

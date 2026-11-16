@@ -14,7 +14,7 @@ import { useLocale } from '@/hooks/useLocale'
 import { useLoans } from '@/hooks/useLoans'
 import { currentMonthIndex, todayLabel, yearMonthOf } from '@/lib/jalali'
 import { deadlineBuckets, summaryFor } from '@/lib/loans'
-import { checksDueTotal, upcomingChecks } from '@/lib/checks'
+import { checksDueTotal, checksClearedTotal, upcomingChecks } from '@/lib/checks'
 import { formatNumber } from '@/lib/money'
 import type { Loan } from '@/lib/types'
 
@@ -31,8 +31,9 @@ export function DashboardPage() {
   const chartYear = useMemo(() => yearMonthOf(month).year, [month])
   const summary = useMemo(() => summaryFor(loans, month), [loans, month])
   const nextSummary = useMemo(() => summaryFor(loans, month + 1), [loans, month])
-  const checksThisMonth = useMemo(() => checksDueTotal(checks, month), [checks, month])
-  const checksNextMonth = useMemo(() => checksDueTotal(checks, month + 1), [checks, month])
+  const checksIssuedThisMonth = useMemo(() => checksDueTotal(checks, month), [checks, month])
+  const checksClearedThisMonth = useMemo(() => checksClearedTotal(checks, month), [checks, month])
+  const checksIssuedNextMonth = useMemo(() => checksDueTotal(checks, month + 1), [checks, month])
   const nearChecks = useMemo(() => upcomingChecks(checks, 5), [checks])
 
   const { upcoming: upcomingDeadlines, overdue: overdueLoans } = useMemo(
@@ -55,8 +56,9 @@ export function DashboardPage() {
       <SummaryCards
         summary={summary}
         nextMonthAmount={nextSummary.totalMonthly}
-        checksThisMonth={checksThisMonth}
-        checksNextMonth={checksNextMonth}
+        checksIssuedThisMonth={checksIssuedThisMonth}
+        checksClearedThisMonth={checksClearedThisMonth}
+        checksIssuedNextMonth={checksIssuedNextMonth}
       />
 
       {upcomingDeadlines.length > 0 && (

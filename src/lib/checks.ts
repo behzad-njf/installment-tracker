@@ -97,6 +97,13 @@ export function checksDueTotal(checks: Check[], month: MonthIndex): number {
     .reduce((sum, c) => sum + c.amount, 0)
 }
 
+/** Total amount of cleared checks due in `month`. */
+export function checksClearedTotal(checks: Check[], month: MonthIndex): number {
+  return checks
+    .filter(c => c.status === 'cleared' && checkMonthIndex(c) === month)
+    .reduce((sum, c) => sum + c.amount, 0)
+}
+
 export interface CheckSummary {
   count: number
   counts: Record<CheckStatus, number>
