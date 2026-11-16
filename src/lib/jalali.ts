@@ -103,6 +103,18 @@ export function daysUntilDeadline(deadlineDay: number): number {
   return deadlineDay - currentDay()
 }
 
+/** Jalali date of `deadlineDay` within `month`, clamped to a valid day. */
+export function deadlineDateOf(deadlineDay: number, month: MonthIndex): {
+  year: number
+  month: number
+  day: number
+} {
+  const { year, month: m } = yearMonthOf(month)
+  const maxDay = daysInJalaliMonth(year, m)
+  const day = Math.min(Math.max(deadlineDay, 1), maxDay)
+  return { year, month: m, day }
+}
+
 /** Full Jalali parts formatter (year, month, day as Latin digits). */
 export const PERSIAN_FULL_PARTS = new Intl.DateTimeFormat('en-US-u-ca-persian-nu-latn', {
   year: 'numeric',

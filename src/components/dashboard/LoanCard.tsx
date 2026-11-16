@@ -3,8 +3,10 @@ import { useLocale } from '@/hooks/useLocale'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { DollarSign, History, Edit, Trash2 } from 'lucide-react'
-import { formatMoney, formatNumber } from '@/lib/money'
+import { formatMoney, formatNumber, formatYear } from '@/lib/money'
+import { deadlineDateOf, monthIndexFrom, monthName } from '@/lib/jalali'
 import {
+  daysUntilLoanDeadline,
   isFullyPaidIn,
   loanStatus,
   remainingInstallments,
@@ -36,6 +38,8 @@ export function LoanCard({
   const fullyPaid = isFullyPaidIn(loan, month)
   const remainingCount = remainingInstallments(loan)
   const settled = fullyPaid || finished
+  const hasDeadline = daysUntilLoanDeadline(loan, month) !== null
+  const deadline = hasDeadline ? deadlineDateOf(loan.deadlineDay, month) : null
 
   return (
     <Card className="p-3">
@@ -60,6 +64,15 @@ export function LoanCard({
               >
                 {settled ? t('loans.status.paid') : t('loans.status.unpaid')}
               </span>
+              {deadline && (
+                <span className="text-xs text-muted-foreground">
+                  {formatNumber(deadline.day, lang)}{' '}
+                  {monthName(monthIndexFrom(deadline.year, deadline.month), lang)} {formatYear(
+                    deadline.year,
+                    lang,
+                  )}
+                </span>
+              )}
             </div>
           </div>
           <div className="flex flex-col gap-1 shrink-0">
