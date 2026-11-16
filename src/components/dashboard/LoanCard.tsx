@@ -76,25 +76,27 @@ export function LoanCard({
             )}
           </div>
           <div className="flex flex-col gap-1 shrink-0">
-            <Button
-              type="button"
-              size="icon-sm"
-              variant="outline"
-              disabled={fullyPaid || finished}
-              aria-label={t('loans.pay')}
-              onClick={() => onPay(loan.id, month)}
-            >
-              <DollarSign className="size-4" aria-hidden />
-            </Button>
-            <Button
-              type="button"
-              size="icon-sm"
-              variant="outline"
-              aria-label={t('loans.history')}
-              onClick={() => onHistory(loan)}
-            >
-              <History className="size-4" aria-hidden />
-            </Button>
+            <div className="flex gap-1">
+              <Button
+                type="button"
+                size="icon-sm"
+                variant="outline"
+                disabled={fullyPaid || finished}
+                aria-label={t('loans.pay')}
+                onClick={() => onPay(loan.id, month)}
+              >
+                <DollarSign className="size-4" aria-hidden />
+              </Button>
+              <Button
+                type="button"
+                size="icon-sm"
+                variant="outline"
+                aria-label={t('loans.history')}
+                onClick={() => onHistory(loan)}
+              >
+                <History className="size-4" aria-hidden />
+              </Button>
+            </div>
             <div className="flex gap-2">
               <Button
                 type="button"
