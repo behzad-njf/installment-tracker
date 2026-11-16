@@ -46,7 +46,17 @@ function Stat({
   )
 }
 
-export function SummaryCards({ summary, nextMonthAmount }: { summary: Summary; nextMonthAmount: number }) {
+export function SummaryCards({
+  summary,
+  nextMonthAmount,
+  checksThisMonth = 0,
+  checksNextMonth = 0,
+}: {
+  summary: Summary
+  nextMonthAmount: number
+  checksThisMonth?: number
+  checksNextMonth?: number
+}) {
   const { t } = useTranslation()
   const { lang } = useLocale()
   const toman = t('common.toman')
@@ -57,7 +67,7 @@ export function SummaryCards({ summary, nextMonthAmount }: { summary: Summary; n
         <Stat
           delay={0}
           label={t('dashboard.totalMonthly')}
-          value={formatMoney(summary.totalMonthly, lang)}
+          value={formatMoney(summary.totalMonthly + checksThisMonth, lang)}
           toman={toman}
           icon={<Wallet className="size-4" aria-hidden />}
           tone="bg-chart-1/12 text-chart-1"
@@ -87,7 +97,7 @@ export function SummaryCards({ summary, nextMonthAmount }: { summary: Summary; n
         <Stat
           delay={0.18}
           label={t('dashboard.nextMonth')}
-          value={formatMoney(nextMonthAmount, lang)}
+          value={formatMoney(nextMonthAmount + checksNextMonth, lang)}
           toman={toman}
           icon={<CalendarClock className="size-4" aria-hidden />}
           tone="bg-chart-4/12 text-chart-4"

@@ -137,7 +137,8 @@
       "month": "{{month}}: paid {{paid}}, remaining {{remaining}} of total {{total}}"
     },
     "upcomingDeadlines": "{{count}} loans have payment deadline within 3 days",
-    "overdueLoans": "{{count}} loans have overdue payment date"
+    "overdueLoans": "{{count}} loans have overdue payment date",
+    "nearDueChecks": "{{count}} cheques due within 5 days"
   },
   "loans": {
     "name": "Name",

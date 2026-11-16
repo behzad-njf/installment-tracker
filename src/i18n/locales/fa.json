@@ -137,7 +137,8 @@
       "month": "{{month}}: پرداخت {{paid}}، مانده {{remaining}} از کل {{total}}"
     },
     "upcomingDeadlines": "{{count}} وام مهلت پرداخت در ۳ روز آینده دارند",
-    "overdueLoans": "{{count}} وام تاریخ پرداختشان گذشته است"
+    "overdueLoans": "{{count}} وام تاریخ پرداختشان گذشته است",
+    "nearDueChecks": "{{count}} چک سررسیدشان در ۵ روز آینده است"
   },
   "loans": {
     "name": "نام",

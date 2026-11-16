@@ -15,6 +15,7 @@ import { useLoans } from '@/hooks/useLoans'
 import { useLocale } from '@/hooks/useLocale'
 import { currentMonthIndex } from '@/lib/jalali'
 import { deadlineBuckets, remainingInstallments, summaryFor } from '@/lib/loans'
+import { checksDueTotal } from '@/lib/checks'
 import { formatNumber } from '@/lib/money'
 import { exportDataFile, importDataFile, loadData } from '@/lib/storage'
 import type { Loan } from '@/lib/types'
@@ -22,10 +23,12 @@ import type { Loan } from '@/lib/types'
 export function LoansPage() {
   const { t } = useTranslation()
   const { lang } = useLocale()
-  const { loans, replaceData, clearAll } = useLoans()
+  const { loans, replaceData, clearAll, checks } = useLoans()
   const month = useMemo(() => currentMonthIndex(), [])
   const summary = useMemo(() => summaryFor(loans, month), [loans, month])
   const nextSummary = useMemo(() => summaryFor(loans, month + 1), [loans, month])
+  const checksThisMonth = useMemo(() => checksDueTotal(checks, month), [checks, month])
+  const checksNextMonth = useMemo(() => checksDueTotal(checks, month + 1), [checks, month])
   const deadlines = useMemo(() => deadlineBuckets(loans, month), [loans, month])
 
   const [tab, setTab] = useState<'open' | 'finished'>('open')
@@ -97,7 +100,12 @@ export function LoansPage() {
         <h1 className="text-xl font-semibold tracking-tight">{t('nav.loans')}</h1>
       </div>
 
-      <SummaryCards summary={summary} nextMonthAmount={nextSummary.totalMonthly} />
+      <SummaryCards
+        summary={summary}
+        nextMonthAmount={nextSummary.totalMonthly}
+        checksThisMonth={checksThisMonth}
+        checksNextMonth={checksNextMonth}
+      />
 
       {deadlines.upcoming.length > 0 && (
         <UpcomingDeadlines

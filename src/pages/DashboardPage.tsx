@@ -14,6 +14,7 @@ import { useLocale } from '@/hooks/useLocale'
 import { useLoans } from '@/hooks/useLoans'
 import { currentMonthIndex, todayLabel, yearMonthOf } from '@/lib/jalali'
 import { deadlineBuckets, summaryFor } from '@/lib/loans'
+import { checksDueTotal, upcomingChecks } from '@/lib/checks'
 import { formatNumber } from '@/lib/money'
 import type { Loan } from '@/lib/types'
 
@@ -25,11 +26,14 @@ interface PayContext {
 export function DashboardPage() {
   const { t } = useTranslation()
   const { lang } = useLocale()
-  const { loans } = useLoans()
+  const { loans, checks } = useLoans()
   const month = useMemo(() => currentMonthIndex(), [])
   const chartYear = useMemo(() => yearMonthOf(month).year, [month])
   const summary = useMemo(() => summaryFor(loans, month), [loans, month])
   const nextSummary = useMemo(() => summaryFor(loans, month + 1), [loans, month])
+  const checksThisMonth = useMemo(() => checksDueTotal(checks, month), [checks, month])
+  const checksNextMonth = useMemo(() => checksDueTotal(checks, month + 1), [checks, month])
+  const nearChecks = useMemo(() => upcomingChecks(checks, 5), [checks])
 
   const { upcoming: upcomingDeadlines, overdue: overdueLoans } = useMemo(
     () => deadlineBuckets(loans, month),
@@ -48,7 +52,12 @@ export function DashboardPage() {
         <p className="text-muted-foreground text-xs sm:hidden">{todayLabel(lang)}</p>
       </div>
 
-      <SummaryCards summary={summary} nextMonthAmount={nextSummary.totalMonthly} />
+      <SummaryCards
+        summary={summary}
+        nextMonthAmount={nextSummary.totalMonthly}
+        checksThisMonth={checksThisMonth}
+        checksNextMonth={checksNextMonth}
+      />
 
       {upcomingDeadlines.length > 0 && (
         <UpcomingDeadlines
@@ -56,6 +65,18 @@ export function DashboardPage() {
           month={month}
           onPay={loanId => setPayDialog({ id: loanId, month })}
         />
+      )}
+
+      {nearChecks.length > 0 && (
+        <div
+          className="rounded-lg border border-amber-600 bg-amber-50 p-3 text-amber-700 dark:border-amber-400 dark:bg-amber-900/20 dark:text-amber-300 text-sm"
+          role="alert"
+          aria-live="polite"
+        >
+          {t('dashboard.nearDueChecks', {
+            count: formatNumber(nearChecks.length, lang),
+          })}
+        </div>
       )}
 
       {overdueLoans.length > 0 && (
