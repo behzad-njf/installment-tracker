@@ -79,7 +79,7 @@ export function LoanCard({
             <div className="flex gap-1">
               <Button
                 type="button"
-                size="icon-sm"
+                size="icon"
                 variant="outline"
                 disabled={fullyPaid || finished}
                 aria-label={t('loans.pay')}
@@ -89,7 +89,7 @@ export function LoanCard({
               </Button>
               <Button
                 type="button"
-                size="icon-sm"
+                size="icon"
                 variant="outline"
                 aria-label={t('loans.history')}
                 onClick={() => onHistory(loan)}
@@ -100,7 +100,7 @@ export function LoanCard({
             <div className="flex gap-2">
               <Button
                 type="button"
-                size="icon-sm"
+                size="icon"
                 variant="outline"
                 aria-label={t('loans.edit')}
                 onClick={() => onEdit(loan)}
@@ -109,7 +109,7 @@ export function LoanCard({
               </Button>
               <Button
                 type="button"
-                size="icon-sm"
+                size="icon"
                 variant="destructive"
                 aria-label={t('loans.delete')}
                 onClick={() => onDelete(loan)}
