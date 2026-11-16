@@ -12,7 +12,7 @@ import {
 } from '@/components/ui/dialog'
 import { CheckStatusDialog } from '@/components/checks/CheckStatusDialog'
 import { useLocale } from '@/hooks/useLocale'
-import { currentMonthIndex, monthsOfYear, monthName, yearMonthOf, monthIndexFrom } from '@/lib/jalali'
+import { currentMonthIndex, monthsOfYear, monthName, yearMonthOf } from '@/lib/jalali'
 import { isActiveIn, isFullyPaidIn, isPartiallyPaidIn, paidAmountIn } from '@/lib/loans'
 import { checksInMonth, CHECK_STATUS_TRANSITIONS } from '@/lib/checks'
 import { formatMoney, formatNumber, formatYear } from '@/lib/money'
@@ -33,7 +33,6 @@ export function YearCalendar({ loans, checks, year, onYearChange, onPay, onHisto
   const { lang, dir } = useLocale()
   const [selected, setSelected] = useState<MonthIndex | null>(null)
   const [statusCheck, setStatusCheck] = useState<Check | null>(null)
-  const [detailCheck, setDetailCheck] = useState<Check | null>(null)
 
   const months = monthsOfYear(year)
   const now = currentMonthIndex()
@@ -218,8 +217,8 @@ export function YearCalendar({ loans, checks, year, onYearChange, onPay, onHisto
                           type="button"
                           size="icon-xs"
                           variant="outline"
-                          aria-label={t('checks.detailsAria')}
-                          onClick={() => setDetailCheck(check)}
+                          aria-label={t('checks.changeStatusAria', { status: t(`checks.status.${check.status}`) })}
+                          onClick={() => setStatusCheck(check)}
                         >
                           <RefreshCw className="size-3" aria-hidden="true" />
                         </Button>
@@ -242,8 +241,8 @@ export function YearCalendar({ loans, checks, year, onYearChange, onPay, onHisto
                           type="button"
                           size="icon-xs"
                           variant="outline"
-                          aria-label={t('checks.detailsAria')}
-                          onClick={() => setDetailCheck(check)}
+                          aria-label={t('checks.changeStatusAria', { status: t(`checks.status.${check.status}`) })}
+                          onClick={() => setStatusCheck(check)}
                         >
                           <RefreshCw className="size-3" aria-hidden="true" />
                         </Button>
@@ -282,76 +281,6 @@ export function YearCalendar({ loans, checks, year, onYearChange, onPay, onHisto
           onOpenChange={() => setStatusCheck(null)}
           onSubmit={(status, patch) => onCheckStatusChange?.(statusCheck.id, status, patch) ?? false}
         />
-      )}
-      {detailCheck && (
-        <Dialog open onOpenChange={() => setDetailCheck(null)}>
-          <DialogContent className="sm:max-w-md">
-            <DialogHeader>
-              <DialogTitle className="text-center text-base sm:text-sm">
-                {t('checks.checkDetails')}
-                {detailCheck.serial !== undefined ? ` ${detailCheck.serial}` : ''}
-              </DialogTitle>
-            </DialogHeader>
-            <div className="space-y-3 text-sm">
-              <div className="grid gap-2">
-                <div>
-                  <p className="text-muted-foreground text-xs">{t('checks.serial')}</p>
-                  <p className="font-medium">{detailCheck.serial ?? '—'}</p>
-                </div>
-                <div>
-                  <p className="text-muted-foreground text-xs">{t('checks.payee')}</p>
-                  <p className="font-medium">{detailCheck.payee || t('checks.blankBadge')}</p>
-                </div>
-                <div>
-                  <p className="text-muted-foreground text-xs">{t('checks.purpose')}</p>
-                  <p className="font-medium">{detailCheck.purpose || '—'}</p>
-                </div>
-                <div>
-                  <p className="text-muted-foreground text-xs">{t('checks.amount')}</p>
-                  <p className="font-medium tabular-nums">{formatMoney(detailCheck.amount, lang)}</p>
-                </div>
-                <div>
-                  <p className="text-muted-foreground text-xs">{t('checks.dueDate')}</p>
-                  <p className="font-medium">
-                    {detailCheck.dueYear !== undefined && detailCheck.dueMonth !== undefined && detailCheck.dueDay !== undefined
-                      ? `${formatNumber(detailCheck.dueDay, lang)} ${monthName(monthIndexFrom(detailCheck.dueYear, detailCheck.dueMonth), lang)} ${formatYear(detailCheck.dueYear, lang)}`
-                      : '—'}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-muted-foreground text-xs">{t('checks.status')}</p>
-                  <p className="font-medium">{t(`checks.status.${detailCheck.status}`)}</p>
-                </div>
-                {detailCheck.note && (
-                  <div>
-                    <p className="text-muted-foreground text-xs">{t('checks.note')}</p>
-                    <p className="font-medium">{detailCheck.note}</p>
-                  </div>
-                )}
-              </div>
-              <div className="flex gap-2 pt-2 border-t">
-                {CHECK_STATUS_TRANSITIONS[detailCheck.status].length > 0 && (
-                  <Button
-                    type="button"
-                    variant="outline"
-                    className="flex-1"
-                    onClick={() => { setDetailCheck(null); setStatusCheck(detailCheck) }}
-                  >
-                    {t('checks.changeStatus')}
-                  </Button>
-                )}
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="flex-1"
-                  onClick={() => setDetailCheck(null)}
-                >
-                  {t('common.close')}
-                </Button>
-              </div>
-            </div>
-          </DialogContent>
-        </Dialog>
       )}
     </Card>
   )
