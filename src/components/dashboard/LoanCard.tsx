@@ -3,8 +3,7 @@ import { useLocale } from '@/hooks/useLocale'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { DollarSign, History, Edit, Trash2 } from 'lucide-react'
-import { monthIndexFrom, monthLabel } from '@/lib/jalali'
-import { formatMoney, formatNumber, formatYear } from '@/lib/money'
+import { formatMoney, formatNumber } from '@/lib/money'
 import {
   daysUntilLoanDeadline,
   isFullyPaidIn,
@@ -57,15 +56,8 @@ export function LoanCard({
         <div className="flex gap-3 items-start">
           <div className="flex-1 min-w-0">
             <div className="font-medium truncate mb-1">{loan.name}</div>
-            <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground mb-1">
-              <span>{formatMoney(loan.amount, lang)}</span>
-              <span>
-                {monthLabel(
-                  monthIndexFrom(loan.startYear, loan.startMonth),
-                  lang,
-                  (y) => formatYear(y, lang),
-                )}
-              </span>
+            <div className="text-sm text-muted-foreground mb-1">
+              {formatMoney(loan.amount, lang)}
             </div>
             <div className="flex flex-wrap items-center gap-2 text-sm font-medium">
               <span>{t('loans.remainingCount', { count: formatNumber(remainingCount, lang) })}</span>
