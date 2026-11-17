@@ -24,7 +24,7 @@ export function Sidebar({ route }: { route: Route }) {
       <nav aria-label={t('nav.label')} className="flex-1 p-3">
         <ul className="space-y-1">
           {NAV_ITEMS.map(({ route: itemRoute, labelKey, icon: Icon }) => {
-            const active = route === itemRoute
+            const active = (typeof route === 'string' ? route : route.kind.split('.')[0]) === itemRoute
             return (
               <li key={itemRoute}>
                 <a

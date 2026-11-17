@@ -43,6 +43,12 @@ export function sanitizePerson(raw: unknown): Person | null {
     phone: text(raw.phone, 20),
     nationalId: text(raw.nationalId, 10),
     note: text(raw.note, 200),
+    openingBalance:
+      typeof raw.openingBalance === 'number' &&
+      Number.isFinite(raw.openingBalance) &&
+      raw.openingBalance !== 0
+        ? raw.openingBalance
+        : undefined,
     createdAt:
       typeof raw.createdAt === 'string' && !Number.isNaN(Date.parse(raw.createdAt))
         ? raw.createdAt
@@ -122,8 +128,14 @@ export function totalOf(txns: PersonTxn[], kind: PersonTxnKind): number {
   return txns.filter(t => t.kind === kind).reduce((sum, t) => sum + t.amount, 0)
 }
 
-export function personTotals(txns: PersonTxn[]): PersonTotals {
-  const payments = totalOf(txns, 'payment')
-  const receipts = totalOf(txns, 'receipt')
+/** The opening balance counts as a payment when positive, as a receipt when negative. */
+export function openingSplit(opening: number): { payment: number; receipt: number } {
+  return opening > 0 ? { payment: opening, receipt: 0 } : { payment: 0, receipt: -opening }
+}
+
+export function personTotals(txns: PersonTxn[], opening = 0): PersonTotals {
+  const split = openingSplit(opening)
+  const payments = totalOf(txns, 'payment') + split.payment
+  const receipts = totalOf(txns, 'receipt') + split.receipt
   return { payments, receipts, balance: payments - receipts }
 }

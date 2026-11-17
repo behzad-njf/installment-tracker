@@ -73,6 +73,8 @@ export interface Check {
   updatedAt: string
 }
 
+export type PersonRole = 'creditor' | 'debtor'
+
 export interface Person {
   id: string
   name: string
@@ -80,6 +82,8 @@ export interface Person {
   phone?: string
   nationalId?: string
   note?: string
+  /** Signed opening balance: > 0 the person owes the user, < 0 the user owes them. */
+  openingBalance?: number
   /** ISO timestamp, set on creation. */
   createdAt: string
 }
@@ -146,6 +150,10 @@ export type CheckDraft = Omit<Check, 'id' | 'checkbookId' | 'updatedAt' | 'statu
   status?: CheckStatus
 }
 
-export type PersonDraft = Omit<Person, 'id' | 'createdAt'>
+export type PersonDraft = Omit<Person, 'id' | 'createdAt' | 'openingBalance'> & {
+  /** Optional opening side; the UI turns role + amount into a signed `openingBalance`. */
+  role?: PersonRole
+  openingAmount?: number
+}
 export type PersonAccountDraft = Omit<PersonAccount, 'id' | 'personId'>
 export type PersonTxnDraft = Omit<PersonTxn, 'id' | 'personId' | 'createdAt'>

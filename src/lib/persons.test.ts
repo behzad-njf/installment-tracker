@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { personTotals, sanitizePersonTxn, sortPersonTxns } from './persons'
+import { personTotals, sanitizePerson, sanitizePersonTxn, sortPersonTxns } from './persons'
 import type { PersonTxn } from './types'
 
 const base: PersonTxn = {
@@ -21,6 +21,22 @@ describe('personTotals', () => {
       { ...base, id: 't2', kind: 'receipt', amount: 2_000_000 },
     ])
     expect(totals).toEqual({ payments: 5_000_000, receipts: 2_000_000, balance: 3_000_000 })
+  })
+
+  it('folds a positive opening balance into payments and a negative one into receipts', () => {
+    const creditor = personTotals([base], 1_000_000)
+    expect(creditor).toEqual({ payments: 6_000_000, receipts: 0, balance: 6_000_000 })
+
+    const debtor = personTotals([base], -2_000_000)
+    expect(debtor).toEqual({ payments: 5_000_000, receipts: 2_000_000, balance: 3_000_000 })
+  })
+})
+
+describe('sanitizePerson', () => {
+  it('keeps a signed opening balance and drops zero or garbage', () => {
+    expect(sanitizePerson({ id: 'p1', name: 'a', openingBalance: -900, createdAt: 'x' })?.openingBalance).toBe(-900)
+    expect(sanitizePerson({ id: 'p1', name: 'a', openingBalance: 0, createdAt: 'x' })?.openingBalance).toBeUndefined()
+    expect(sanitizePerson({ id: 'p1', name: 'a', openingBalance: 'x', createdAt: 'x' })?.openingBalance).toBeUndefined()
   })
 })
 

@@ -6,9 +6,12 @@ import { Select as SelectPrimitive } from "radix-ui"
 import { ChevronDownIcon, CheckIcon, ChevronUpIcon } from "lucide-react"
 
 function Select({
+  dir,
   ...props
 }: React.ComponentProps<typeof SelectPrimitive.Root>) {
-  return <SelectPrimitive.Root data-slot="select" {...props} />
+  // Radix defaults to ltr, which strands RTL listboxes; follow <html dir> instead.
+  const htmlDir = document.documentElement.dir === 'rtl' ? 'rtl' : 'ltr'
+  return <SelectPrimitive.Root data-slot="select" dir={dir ?? htmlDir} {...props} />
 }
 
 function SelectGroup({

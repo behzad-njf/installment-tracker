@@ -5,13 +5,25 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import {
   Dialog,
   DialogContent,
   DialogFooter,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import type { Person, PersonDraft } from '@/lib/types'
+import { useLocale } from '@/hooks/useLocale'
+import { formatMoney, parseMoney } from '@/lib/money'
+import type { Person, PersonDraft, PersonRole } from '@/lib/types'
+
+const NO_ROLE = 'none'
+type RoleValue = PersonRole | typeof NO_ROLE
 
 export function PersonDialog({
   person,
@@ -25,6 +37,10 @@ export function PersonDialog({
   onSave: (draft: PersonDraft) => void
 }) {
   const { t } = useTranslation()
+  const { lang } = useLocale()
+  const [role, setRole] = useState<RoleValue>((): RoleValue =>
+    person?.openingBalance ? (person.openingBalance > 0 ? 'creditor' : 'debtor') : NO_ROLE,
+  )
   const [error, setError] = useState('')
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
@@ -37,12 +53,18 @@ export function PersonDialog({
       setError(t('persons.nameRequired'))
       return
     }
+    const openingAmount = role === NO_ROLE ? undefined : parseMoney(field('amount'))
+    if (role !== NO_ROLE && (!openingAmount || openingAmount <= 0)) {
+      setError(t('persons.openingAmountInvalid'))
+      return
+    }
     setError('')
     onSave({
       name,
       phone: field('phone') || undefined,
-      nationalId: field('nationalId') || undefined,
       note: field('note') || undefined,
+      role: role === NO_ROLE ? undefined : role,
+      openingAmount,
     })
     onOpenChange(false)
   }
@@ -65,15 +87,33 @@ export function PersonDialog({
             defaultValue={person?.phone ?? ''}
             maxLength={20}
           />
-          <Label htmlFor="person-national">{t('persons.nationalId')}</Label>
-          <Input
-            id="person-national"
-            name="nationalId"
-            inputMode="numeric"
-            dir="ltr"
-            defaultValue={person?.nationalId ?? ''}
-            maxLength={10}
-          />
+          <Label htmlFor="person-role">{t('persons.role')}</Label>
+          <Select value={role} onValueChange={value => setRole(value as RoleValue)}>
+            <SelectTrigger id="person-role" className="w-full" aria-label={t('persons.role')}>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value={NO_ROLE}>{t('persons.roleNone')}</SelectItem>
+              <SelectItem value="creditor">{t('persons.creditor')}</SelectItem>
+              <SelectItem value="debtor">{t('persons.debtor')}</SelectItem>
+            </SelectContent>
+          </Select>
+          {role === NO_ROLE ? null : (
+            <>
+              <Label htmlFor="person-opening">
+                {t('persons.openingAmount')} ({t('common.toman')})
+              </Label>
+              <Input
+                id="person-opening"
+                name="amount"
+                inputMode="numeric"
+                defaultValue={
+                  person?.openingBalance ? formatMoney(Math.abs(person.openingBalance), lang) : ''
+                }
+                placeholder={formatMoney(1_000_000, lang)}
+              />
+            </>
+          )}
           <Label htmlFor="person-note">{t('persons.note')}</Label>
           <Input id="person-note" name="note" defaultValue={person?.note ?? ''} maxLength={200} />
           {error ? <p className="text-sm text-destructive">{error}</p> : null}

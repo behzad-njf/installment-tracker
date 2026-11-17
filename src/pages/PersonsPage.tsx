@@ -78,7 +78,7 @@ export function PersonsPage() {
         <ul className="grid gap-3 sm:grid-cols-2">
           {visible.map(person => {
             const txns = personTxns.filter(txn => txn.personId === person.id)
-            const totals = personTotals(txns)
+            const totals = personTotals(txns, person.openingBalance ?? 0)
             const accountCount = personAccounts.filter(a => a.personId === person.id).length
             return (
               <li key={person.id} className="rounded-xl border p-3">
@@ -142,6 +142,7 @@ export function PersonsPage() {
       )}
 
       <PersonDialog
+        key={editing?.id ?? 'new'}
         person={editing}
         open={dialogOpen}
         onOpenChange={setDialogOpen}

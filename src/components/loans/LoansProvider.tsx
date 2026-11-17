@@ -22,6 +22,22 @@ import type {
   PersonTxnDraft,
 } from '@/lib/types'
 
+/** role + amount → signed opening balance; a half-filled pair means «no opening balance». */
+function openingBalanceOf(draft: PersonDraft): number | undefined {
+  if (!draft.role || !draft.openingAmount || draft.openingAmount <= 0) return undefined
+  return draft.role === 'creditor' ? draft.openingAmount : -draft.openingAmount
+}
+
+function personFieldsOf(draft: PersonDraft): Omit<Person, 'id' | 'createdAt'> {
+  return {
+    name: draft.name,
+    phone: draft.phone,
+    nationalId: draft.nationalId,
+    note: draft.note,
+    openingBalance: openingBalanceOf(draft),
+  }
+}
+
 export interface LoansContextValue {
   loans: Loan[]
   checkbooks: Checkbook[]
@@ -144,12 +160,15 @@ export function LoansProvider({ children }: { children: ReactNode }) {
   }
 
   const addPerson = (draft: PersonDraft) => {
-    const person: Person = { id: newPersonId(), createdAt: new Date().toISOString(), ...draft }
+    const person: Person = { id: newPersonId(), createdAt: new Date().toISOString(), ...personFieldsOf(draft) }
     persist({ ...data, persons: [person, ...data.persons] })
   }
 
   const updatePerson = (id: string, draft: PersonDraft) => {
-    persist({ ...data, persons: data.persons.map(p => (p.id === id ? { ...p, ...draft } : p)) })
+    persist({
+      ...data,
+      persons: data.persons.map(p => (p.id === id ? { ...p, ...personFieldsOf(draft) } : p)),
+    })
   }
 
   /** Cascade delete: accounts and transactions of this person go too, or they'd dangle. */

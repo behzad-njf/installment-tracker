@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button'
 import { useLocale } from '@/hooks/useLocale'
 import { monthIndexFrom, monthName } from '@/lib/jalali'
 import { formatMoney, formatNumber, formatYear } from '@/lib/money'
-import { sortPersonTxns, totalOf } from '@/lib/persons'
+import { openingSplit, sortPersonTxns, totalOf } from '@/lib/persons'
 import type { Lang, PersonAccount, PersonTxn, PersonTxnKind } from '@/lib/types'
 
 function dateLabel(txn: PersonTxn, lang: Lang): string {
@@ -16,19 +16,24 @@ export function PersonTxnsTab({
   kind,
   txns,
   accounts,
+  opening = 0,
   onAdd,
   onRemove,
 }: {
   kind: PersonTxnKind
   txns: PersonTxn[]
   accounts: PersonAccount[]
+  opening?: number
   onAdd: () => void
   onRemove: (txn: PersonTxn) => void
 }) {
   const { t } = useTranslation()
   const { lang } = useLocale()
   const rows = sortPersonTxns(txns)
-  const total = totalOf(txns, kind)
+  const split = openingSplit(opening)
+  /** The opening balance shows up as the first row, on the side it belongs to. */
+  const openingRow = kind === 'payment' ? split.payment : split.receipt
+  const total = totalOf(txns, kind) + openingRow
   const bankOf = (id?: string): string | undefined =>
     id === undefined ? undefined : accounts.find(account => account.id === id)?.bank
 
@@ -44,13 +49,25 @@ export function PersonTxnsTab({
         </Button>
       </div>
 
-      {rows.length === 0 ? (
+      {rows.length === 0 && openingRow === 0 ? (
         <p className="text-muted-foreground text-sm">
           {kind === 'payment' ? t('persons.noPayments') : t('persons.noReceipts')}
         </p>
       ) : (
         <>
           <ul className="divide-y rounded-xl border">
+            {openingRow === 0 ? null : (
+              <li className="flex items-center gap-2 p-3">
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-medium">{t('persons.openingAmount')}</p>
+                  <p className="text-muted-foreground mt-0.5 text-xs">{t('persons.openingHint')}</p>
+                </div>
+                <span className="shrink-0 text-sm font-semibold tabular-nums">
+                  {formatMoney(openingRow, lang)}
+                </span>
+                <span className="size-8 shrink-0" aria-hidden />
+              </li>
+            )}
             {rows.map(txn => (
               <li key={txn.id} className="flex items-center gap-2 p-3">
                 <div className="min-w-0 flex-1">

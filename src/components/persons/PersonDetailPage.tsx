@@ -59,9 +59,12 @@ export function PersonDetailPage({ personId }: { personId: string }) {
 
   const accounts = personAccounts.filter(a => a.personId === person.id)
   const txns = personTxns.filter(x => x.personId === person.id)
-  const totals = personTotals(txns)
+  const opening = person.openingBalance ?? 0
+  const totals = personTotals(txns, opening)
   const balanceLabel =
     totals.balance > 0 ? t('persons.owesMe') : totals.balance < 0 ? t('persons.iOwe') : t('persons.settled')
+  const roleLabel =
+    opening > 0 ? t('persons.creditor') : opening < 0 ? t('persons.debtor') : t('persons.roleNone')
 
   return (
     <div className="space-y-5">
@@ -118,9 +121,15 @@ export function PersonDetailPage({ personId }: { personId: string }) {
             <dd dir="ltr">{person.phone ?? '—'}</dd>
           </div>
           <div className="flex justify-between gap-3 p-3">
-            <dt className="text-muted-foreground">{t('persons.nationalId')}</dt>
-            <dd dir="ltr">{person.nationalId ?? '—'}</dd>
+            <dt className="text-muted-foreground">{t('persons.role')}</dt>
+            <dd>{roleLabel}</dd>
           </div>
+          {opening !== 0 ? (
+            <div className="flex justify-between gap-3 p-3">
+              <dt className="text-muted-foreground">{t('persons.openingAmount')}</dt>
+              <dd className="tabular-nums">{formatMoney(Math.abs(opening), lang)}</dd>
+            </div>
+          ) : null}
           <div className="flex justify-between gap-3 p-3">
             <dt className="text-muted-foreground">{t('persons.note')}</dt>
             <dd className="max-w-[60%] text-end">{person.note ?? '—'}</dd>
@@ -157,6 +166,7 @@ export function PersonDetailPage({ personId }: { personId: string }) {
           kind="payment"
           txns={txns.filter(x => x.kind === 'payment')}
           accounts={accounts}
+          opening={opening}
           onAdd={() => setTxnKind('payment')}
           onRemove={setDeleteTxn}
         />
@@ -167,12 +177,14 @@ export function PersonDetailPage({ personId }: { personId: string }) {
           kind="receipt"
           txns={txns.filter(x => x.kind === 'receipt')}
           accounts={accounts}
+          opening={opening}
           onAdd={() => setTxnKind('receipt')}
           onRemove={setDeleteTxn}
         />
       ) : null}
 
       <PersonDialog
+        key={person.id}
         person={person}
         open={editOpen}
         onOpenChange={setEditOpen}

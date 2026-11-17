@@ -17,7 +17,8 @@ export function BottomNav({ route }: { route: Route }) {
         style={{ gridTemplateColumns: `repeat(${NAV_ITEMS.length}, minmax(0, 1fr))` }}
       >
         {NAV_ITEMS.map(({ route: itemRoute, labelKey, icon: Icon }) => {
-          const active = route === itemRoute
+          // Detail routes ('checks.book', 'persons.person') keep their section highlighted.
+          const active = (typeof route === 'string' ? route : route.kind.split('.')[0]) === itemRoute
           return (
             <li key={itemRoute}>
               <a
