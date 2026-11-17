@@ -3,12 +3,32 @@ import { toast } from 'sonner'
 import { useTranslation } from 'react-i18next'
 import { importDataFile, loadData, newLoanId, saveData, STORAGE_KEY } from '@/lib/storage'
 import { canTransitionCheck, newCheckbook, newCheck, newCheckShell } from '@/lib/checks'
-import type { DataFile, Loan, LoanDraft, PaymentRecord, Check, Checkbook, CheckbookDraft, CheckDraft, CheckStatus } from '@/lib/types'
+import { newPersonAccountId, newPersonId, newPersonTxnId } from '@/lib/persons'
+import type {
+  DataFile,
+  Loan,
+  LoanDraft,
+  PaymentRecord,
+  Check,
+  Checkbook,
+  CheckbookDraft,
+  CheckDraft,
+  CheckStatus,
+  Person,
+  PersonAccount,
+  PersonAccountDraft,
+  PersonDraft,
+  PersonTxn,
+  PersonTxnDraft,
+} from '@/lib/types'
 
 export interface LoansContextValue {
   loans: Loan[]
   checkbooks: Checkbook[]
   checks: Check[]
+  persons: Person[]
+  personAccounts: PersonAccount[]
+  personTxns: PersonTxn[]
   addLoan: (draft: LoanDraft) => void
   updateLoan: (id: string, draft: LoanDraft) => void
   removeLoan: (id: string) => void
@@ -29,6 +49,16 @@ export interface LoansContextValue {
   /** Move a check between lifecycle states; returns false when the move is not allowed. */
   setCheckStatus: (id: string, status: CheckStatus, patch?: Partial<Check>) => boolean
   removeCheck: (id: string) => void
+
+  // Person CRUD
+  addPerson: (draft: PersonDraft) => void
+  updatePerson: (id: string, draft: PersonDraft) => void
+  /** Removes the person together with their accounts and transactions. */
+  removePerson: (id: string) => void
+  addPersonAccount: (personId: string, draft: PersonAccountDraft) => void
+  removePersonAccount: (id: string) => void
+  addPersonTxn: (personId: string, draft: PersonTxnDraft) => void
+  removePersonTxn: (id: string) => void
 }
 
 const LoansContext = createContext<LoansContextValue | null>(null)
@@ -102,7 +132,58 @@ export function LoansProvider({ children }: { children: ReactNode }) {
   }
 
   const clearAll = () => {
-    persist({ ...data, loans: [], checkbooks: [], checks: [] })
+    persist({
+      ...data,
+      loans: [],
+      checkbooks: [],
+      checks: [],
+      persons: [],
+      personAccounts: [],
+      personTxns: [],
+    })
+  }
+
+  const addPerson = (draft: PersonDraft) => {
+    const person: Person = { id: newPersonId(), createdAt: new Date().toISOString(), ...draft }
+    persist({ ...data, persons: [person, ...data.persons] })
+  }
+
+  const updatePerson = (id: string, draft: PersonDraft) => {
+    persist({ ...data, persons: data.persons.map(p => (p.id === id ? { ...p, ...draft } : p)) })
+  }
+
+  /** Cascade delete: accounts and transactions of this person go too, or they'd dangle. */
+  const removePerson = (id: string) => {
+    const accounts = data.personAccounts.filter(a => a.personId === id).map(a => a.id)
+    persist({
+      ...data,
+      persons: data.persons.filter(p => p.id !== id),
+      personAccounts: data.personAccounts.filter(a => a.personId !== id),
+      personTxns: data.personTxns.filter(t => t.personId !== id && !accounts.includes(t.accountId ?? '')),
+    })
+  }
+
+  const addPersonAccount = (personId: string, draft: PersonAccountDraft) => {
+    const account: PersonAccount = { id: newPersonAccountId(), personId, ...draft }
+    persist({ ...data, personAccounts: [...data.personAccounts, account] })
+  }
+
+  const removePersonAccount = (id: string) => {
+    persist({
+      ...data,
+      personAccounts: data.personAccounts.filter(a => a.id !== id),
+      // Transactions survive; they just lose the account reference.
+      personTxns: data.personTxns.map(t => (t.accountId === id ? { ...t, accountId: undefined } : t)),
+    })
+  }
+
+  const addPersonTxn = (personId: string, draft: PersonTxnDraft) => {
+    const txn: PersonTxn = { id: newPersonTxnId(), personId, createdAt: new Date().toISOString(), ...draft }
+    persist({ ...data, personTxns: [...data.personTxns, txn] })
+  }
+
+  const removePersonTxn = (id: string) => {
+    persist({ ...data, personTxns: data.personTxns.filter(t => t.id !== id) })
   }
 
   /** Add a new checkbook */
@@ -201,6 +282,9 @@ export function LoansProvider({ children }: { children: ReactNode }) {
     loans: data.loans,
     checkbooks: data.checkbooks,
     checks: data.checks,
+    persons: data.persons,
+    personAccounts: data.personAccounts,
+    personTxns: data.personTxns,
     addLoan,
     updateLoan,
     removeLoan,
@@ -220,6 +304,15 @@ export function LoansProvider({ children }: { children: ReactNode }) {
     updateCheck,
     setCheckStatus,
     removeCheck,
+
+    // Person CRUD
+    addPerson,
+    updatePerson,
+    removePerson,
+    addPersonAccount,
+    removePersonAccount,
+    addPersonTxn,
+    removePersonTxn,
   }
   return (
     <LoansContext.Provider value={value}>{children}</LoansContext.Provider>

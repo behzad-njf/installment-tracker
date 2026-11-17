@@ -1,12 +1,25 @@
 import { monthIndexFrom } from './jalali'
 import { sanitizeCheck, sanitizeCheckbook } from './checks'
-import type { Check, Checkbook, DataFile, Lang, Loan, PaymentRecord, Settings, Theme } from './types'
+import { sanitizePerson, sanitizePersonAccount, sanitizePersonTxn } from './persons'
+import type {
+  Check,
+  Checkbook,
+  DataFile,
+  Lang,
+  Loan,
+  PaymentRecord,
+  Person,
+  PersonAccount,
+  PersonTxn,
+  Settings,
+  Theme,
+} from './types'
 
-export const STORAGE_KEY = 'finance.data.v5'
-export const BACKUP_KEY = 'finance.backup.v5'
+export const STORAGE_KEY = 'finance.data.v6'
+export const BACKUP_KEY = 'finance.backup.v6'
 
-/** Older schemas, migrated up to v5 on load. */
-const LEGACY_KEYS = ['finance.data.v4', 'finance.data.v3', 'finance.data.v2'] as const
+/** Older schemas, migrated up to v6 on load. */
+const LEGACY_KEYS = ['finance.data.v5', 'finance.data.v4', 'finance.data.v3', 'finance.data.v2'] as const
 
 const DEFAULT_SETTINGS: Settings = { lang: 'fa', theme: 'light', seeded: false }
 
@@ -100,6 +113,54 @@ export const DEMO_CHECKS: Check[] = [
   },
 ]
 
+export const DEMO_PERSONS: Person[] = [
+  { id: 'demo-person-1', name: 'علی رضایی', phone: '09123456789', createdAt: '2026-03-21T00:00:00.000Z' },
+  { id: 'demo-person-2', name: 'مریم احمدی', phone: '09359876543', createdAt: '2026-04-10T00:00:00.000Z' },
+]
+
+export const DEMO_PERSON_ACCOUNTS: PersonAccount[] = [
+  { id: 'demo-account-1', personId: 'demo-person-1', bank: 'بانک ملی', accountNumber: '0123456789012' },
+  { id: 'demo-account-2', personId: 'demo-person-2', bank: 'بانک صادرات', accountNumber: '0203456789012' },
+]
+
+export const DEMO_PERSON_TXNS: PersonTxn[] = [
+  {
+    id: 'demo-txn-1',
+    personId: 'demo-person-1',
+    kind: 'payment',
+    accountId: 'demo-account-1',
+    title: 'بابت قرض',
+    amount: 5_000_000,
+    year: 1405,
+    month: 8,
+    day: 12,
+    createdAt: '2026-11-03T00:00:00.000Z',
+  },
+  {
+    id: 'demo-txn-2',
+    personId: 'demo-person-1',
+    kind: 'payment',
+    title: 'خرید مشترک',
+    amount: 2_500_000,
+    year: 1405,
+    month: 7,
+    day: 3,
+    createdAt: '2026-09-25T00:00:00.000Z',
+  },
+  {
+    id: 'demo-txn-3',
+    personId: 'demo-person-2',
+    kind: 'receipt',
+    accountId: 'demo-account-2',
+    title: 'تسویه',
+    amount: 4_000_000,
+    year: 1405,
+    month: 8,
+    day: 5,
+    createdAt: '2026-10-27T00:00:00.000Z',
+  },
+]
+
 export function newLoanId(): string {
   const uuid = globalThis.crypto?.randomUUID?.()
   return uuid ?? `loan-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`
@@ -177,7 +238,9 @@ function sanitizeSettings(raw: unknown): Settings {
 export function parseDataFile(raw: unknown): DataFile | null {
   if (!isRecord(raw)) return null
   if (!Array.isArray(raw.loans)) return null
-  if (raw.version !== 2 && raw.version !== 3 && raw.version !== 4 && raw.version !== 5) return null
+  if (raw.version !== 2 && raw.version !== 3 && raw.version !== 4 && raw.version !== 5 && raw.version !== 6) {
+    return null
+  }
 
   const settings = sanitizeSettings(raw.settings)
   const loans = raw.loans.map(sanitizeLoan).filter((loan): loan is Loan => loan !== null)
@@ -193,7 +256,26 @@ export function parseDataFile(raw: unknown): DataFile | null {
         .filter((check): check is Check => check !== null)
     : []
 
-  return { version: 5, settings, loans, checkbooks, checks }
+  const persons = Array.isArray(raw.persons)
+    ? raw.persons.map(sanitizePerson).filter((person): person is Person => person !== null)
+    : []
+  const personIds = new Set(persons.map(person => person.id))
+
+  // A person deleted elsewhere must not leave a dangling account/transaction behind.
+  const personAccounts = Array.isArray(raw.personAccounts)
+    ? raw.personAccounts
+        .map(rawAccount => sanitizePersonAccount(rawAccount, personIds))
+        .filter((account): account is PersonAccount => account !== null)
+    : []
+  const accountIds = new Set(personAccounts.map(account => account.id))
+
+  const personTxns = Array.isArray(raw.personTxns)
+    ? raw.personTxns
+        .map(rawTxn => sanitizePersonTxn(rawTxn, personIds, accountIds))
+        .filter((txn): txn is PersonTxn => txn !== null)
+    : []
+
+  return { version: 6, settings, loans, checkbooks, checks, persons, personAccounts, personTxns }
 }
 
 function readRawKey(key: string): unknown {
@@ -229,11 +311,14 @@ export function loadData(): DataFile {
   }
 
   const seeded: DataFile = {
-    version: 5,
+    version: 6,
     settings: { ...DEFAULT_SETTINGS, seeded: true },
     loans: DEMO_LOANS,
     checkbooks: DEMO_CHECKBOOKS,
     checks: DEMO_CHECKS,
+    persons: DEMO_PERSONS,
+    personAccounts: DEMO_PERSON_ACCOUNTS,
+    personTxns: DEMO_PERSON_TXNS,
   }
   saveData(seeded)
   return seeded

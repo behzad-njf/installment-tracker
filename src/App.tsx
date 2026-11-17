@@ -11,6 +11,7 @@ import { LoansPage } from '@/pages/LoansPage'
 import { PersonsPage } from '@/pages/PersonsPage'
 import { CheckbookDetailPage } from '@/components/checks/CheckbookDetailPage'
 import { CheckDetailPage } from '@/components/checks/CheckDetailPage'
+import { PersonDetailPage } from '@/components/persons/PersonDetailPage'
 
 export function App() {
   const route = useRoute()
@@ -72,6 +73,8 @@ export function App() {
     page = <CheckbookDetailPage bookId={route.bookId} />
   } else if (route.kind === 'checks.check') {
     page = <CheckDetailPage bookId={route.bookId} serial={route.serial} />
+  } else if (route.kind === 'persons.person') {
+    page = <PersonDetailPage personId={route.personId} />
   } else {
     page = <DashboardPage />
   }

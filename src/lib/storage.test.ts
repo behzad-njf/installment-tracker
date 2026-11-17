@@ -4,7 +4,7 @@ import { exportDataFile, importDataFile } from './storage'
 import type { DataFile } from './types'
 
 const VALID: DataFile = {
-  version: 5,
+  version: 6,
   settings: { lang: 'fa', theme: 'light', seeded: true },
   loans: [
     {
@@ -63,13 +63,29 @@ const VALID: DataFile = {
       updatedAt: '2026-11-01T00:00:00.000Z',
     },
   ],
+  persons: [{ id: 'p1', name: 'علی رضایی', phone: '09123456789', createdAt: '2026-11-02T00:00:00.000Z' }],
+  personAccounts: [{ id: 'a1', personId: 'p1', bank: 'بانک ملی', accountNumber: '0123456789012' }],
+  personTxns: [
+    {
+      id: 't1',
+      personId: 'p1',
+      kind: 'payment',
+      accountId: 'a1',
+      title: 'بابت قرض',
+      amount: 5_000_000,
+      year: 1405,
+      month: 8,
+      day: 12,
+      createdAt: '2026-11-03T00:00:00.000Z',
+    },
+  ],
 }
 
 describe('importDataFile', () => {
-  it('imports a real v5 payload with loans, checkbooks and checks', () => {
+  it('imports a real v6 payload with loans, checkbooks, checks and persons', () => {
     const result = importDataFile(JSON.stringify(VALID))
     expect(result).not.toBeNull()
-    expect(result?.version).toBe(5)
+    expect(result?.version).toBe(6)
     expect(result?.loans[0].name).toBe('وام ازدواج')
     expect(result?.loans[0].payments).toHaveLength(1)
     expect(result?.loans[0].payments[0].monthIndex).toBe(16865)
@@ -82,16 +98,31 @@ describe('importDataFile', () => {
     expect(result?.checks[0].status).toBe('issued')
     expect(result?.checks[1].status).toBe('blank')
     expect(result?.checks[1].dueYear).toBeUndefined()
+    expect(result?.persons[0].name).toBe('علی رضایی')
+    expect(result?.personAccounts[0].bank).toBe('بانک ملی')
+    expect(result?.personTxns[0].kind).toBe('payment')
+    expect(result?.personTxns[0].accountId).toBe('a1')
   })
 
   it('accepts a pre-checks v2 payload (backwards-compatible import)', () => {
-    const legacy = { ...VALID, version: 2, checkbooks: undefined, checks: undefined }
+    const legacy = {
+      ...VALID,
+      version: 2,
+      checkbooks: undefined,
+      checks: undefined,
+      persons: undefined,
+      personAccounts: undefined,
+      personTxns: undefined,
+    }
     const result = importDataFile(JSON.stringify(legacy as unknown as DataFile))
     expect(result).not.toBeNull()
-    expect(result?.version).toBe(5)
+    expect(result?.version).toBe(6)
     expect(result?.loans[0].name).toBe('وام ازدواج')
     expect(result?.checkbooks).toEqual([])
     expect(result?.checks).toEqual([])
+    expect(result?.persons).toEqual([])
+    expect(result?.personAccounts).toEqual([])
+    expect(result?.personTxns).toEqual([])
   })
 
   it('migrates a v3 payload and keeps serial-only check shells', () => {
@@ -114,7 +145,7 @@ describe('importDataFile', () => {
       ],
     }
     const result = importDataFile(JSON.stringify(legacy))
-    expect(result?.version).toBe(5)
+    expect(result?.version).toBe(6)
     expect(result?.checkbooks[0].accountNumber).toBe('')
     expect(result?.checks).toHaveLength(1)
     expect(result?.checks[0].serial).toBe(101)
