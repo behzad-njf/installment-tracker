@@ -8,7 +8,12 @@
     "label": "Main navigation",
     "dashboard": "Dashboard",
     "loans": "Loans",
-    "checks": "Cheque management"
+    "checks": "Cheque management",
+    "persons": "People"
+  },
+  "persons": {
+    "emptyTitle": "No people yet",
+    "emptyDesc": "Adding and managing people is coming soon"
   },
   "checks": {
     "addCheckbook": "Add chequebook",

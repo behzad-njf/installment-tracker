@@ -8,6 +8,7 @@ import { APP_VERSION } from '@/lib/version'
 import { ChecksPage } from '@/pages/ChecksPage'
 import { DashboardPage } from '@/pages/DashboardPage'
 import { LoansPage } from '@/pages/LoansPage'
+import { PersonsPage } from '@/pages/PersonsPage'
 import { CheckbookDetailPage } from '@/components/checks/CheckbookDetailPage'
 import { CheckDetailPage } from '@/components/checks/CheckDetailPage'
 
@@ -60,7 +61,13 @@ export function App() {
 
   let page: ReactElement | null
   if (typeof route === 'string') {
-    page = route === 'loans' ? <LoansPage /> : route === 'checks' ? <ChecksPage /> : <DashboardPage />
+    page = route === 'loans'
+      ? <LoansPage />
+      : route === 'checks'
+        ? <ChecksPage />
+        : route === 'persons'
+          ? <PersonsPage />
+          : <DashboardPage />
   } else if (route.kind === 'checks.book') {
     page = <CheckbookDetailPage bookId={route.bookId} />
   } else if (route.kind === 'checks.check') {
