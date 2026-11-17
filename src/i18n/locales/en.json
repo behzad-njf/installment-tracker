@@ -73,7 +73,15 @@
     "deleteTxnDesc": "This cannot be undone.",
     "deleteTxnAria": "Delete transaction {{amount}}",
     "paymentsTotal": "Total payments",
-    "receiptsTotal": "Total receipts"
+    "receiptsTotal": "Total receipts",
+    "filterAll": "All",
+    "filterCreditor": "Creditors",
+    "filterDebtor": "Debtors",
+    "totalReceivable": "Total receivable",
+    "totalPayable": "Total payable",
+    "netPosition": "Net position",
+    "creditorsCount": "{{count}} creditors",
+    "debtorsCount": "{{count}} debtors"
   },
   "checks": {
     "addCheckbook": "Add chequebook",

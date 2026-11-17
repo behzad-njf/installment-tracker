@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { Pencil, Plus, Search, Trash2, UsersRound } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
+import { Card, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { ConfirmDialog } from '@/components/common/ConfirmDialog'
 import { PersonDialog } from '@/components/persons/PersonDialog'
@@ -10,7 +11,7 @@ import { useLoans } from '@/hooks/useLoans'
 import { useLocale } from '@/hooks/useLocale'
 import { navigate } from '@/hooks/useRoute'
 import { formatMoney } from '@/lib/money'
-import { personTotals } from '@/lib/persons'
+import { personTotals, personsOverview } from '@/lib/persons'
 import type { Person, PersonDraft } from '@/lib/types'
 
 export function PersonsPage() {
@@ -19,14 +20,25 @@ export function PersonsPage() {
   const { persons, personAccounts, personTxns, addPerson, updatePerson, removePerson } = useLoans()
 
   const [query, setQuery] = useState('')
+  const [filter, setFilter] = useState<'all' | 'creditor' | 'debtor'>('all')
   const [dialogOpen, setDialogOpen] = useState(false)
   const [editing, setEditing] = useState<Person | null>(null)
   const [deleting, setDeleting] = useState<Person | null>(null)
 
   const q = query.trim()
-  const visible = persons.filter(person =>
-    q === '' ? true : person.name.includes(q) || (person.phone ?? '').includes(q),
-  )
+  const overview = personsOverview(persons, personTxns)
+  const visible = persons.filter(person => {
+    if (q) {
+      const match = person.name.includes(q) || (person.phone ?? '').includes(q)
+      if (!match) return false
+    }
+    if (filter === 'all') return true
+    const bal = personTotals(
+      personTxns.filter(txn => txn.personId === person.id),
+      person.openingBalance ?? 0,
+    ).balance
+    return filter === 'creditor' ? bal > 0 : bal < 0
+  })
 
   const openAdd = () => {
     setEditing(null)
@@ -45,6 +57,56 @@ export function PersonsPage() {
         <Button type="button" size="sm" onClick={openAdd}>
           <Plus className="size-4" aria-hidden /> {t('persons.addPerson')}
         </Button>
+      </div>
+
+      <div className="flex gap-2">
+        <Button
+          variant={filter === 'all' ? 'default' : 'outline'}
+          size="sm"
+          onClick={() => setFilter('all')}
+        >
+          {t('persons.filterAll')}
+        </Button>
+        <Button
+          variant={filter === 'creditor' ? 'default' : 'outline'}
+          size="sm"
+          onClick={() => setFilter('creditor')}
+        >
+          {t('persons.filterCreditor')}
+        </Button>
+        <Button
+          variant={filter === 'debtor' ? 'default' : 'outline'}
+          size="sm"
+          onClick={() => setFilter('debtor')}
+        >
+          {t('persons.filterDebtor')}
+        </Button>
+      </div>
+
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+        <Card>
+          <CardContent className="p-3">
+            <div className="text-xs text-muted-foreground">{t('persons.netPosition')}</div>
+            <div className="text-lg font-bold tabular-nums">{formatMoney(overview.net, lang)}</div>
+            <div className="text-xs text-muted-foreground">
+              {overview.net >= 0
+                ? `${t('persons.creditorsCount', { count: overview.creditors })} ${t('persons.debtorsCount', { count: overview.debtors })}`
+                : `${t('persons.debtorsCount', { count: overview.debtors })} ${t('persons.creditorsCount', { count: overview.creditors })}`}
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-3">
+            <div className="text-xs text-muted-foreground">{t('persons.totalReceivable')}</div>
+            <div className="text-lg font-bold tabular-nums">{formatMoney(overview.receivable, lang)}</div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-3">
+            <div className="text-xs text-muted-foreground">{t('persons.totalPayable')}</div>
+            <div className="text-lg font-bold tabular-nums">{formatMoney(overview.payable, lang)}</div>
+          </CardContent>
+        </Card>
       </div>
 
       {persons.length > 0 ? (

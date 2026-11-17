@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { personTotals, sanitizePerson, sanitizePersonTxn, sortPersonTxns } from './persons'
+import { personTotals, personsOverview, sanitizePerson, sanitizePersonTxn, sortPersonTxns } from './persons'
 import type { PersonTxn } from './types'
 
 const base: PersonTxn = {
@@ -29,6 +29,39 @@ describe('personTotals', () => {
 
     const debtor = personTotals([base], -2_000_000)
     expect(debtor).toEqual({ payments: 5_000_000, receipts: 2_000_000, balance: 3_000_000 })
+  })
+})
+
+describe('personsOverview', () => {
+  it('aggregates receivable, payable and net across persons', () => {
+    const persons = [
+      { id: 'p1', openingBalance: 1_000_000 },
+      { id: 'p2', openingBalance: -500_000 },
+      { id: 'p3' },
+    ]
+    const txns: PersonTxn[] = [
+      { ...base, id: 't1', personId: 'p1', kind: 'payment', amount: 2_000_000 },
+      { ...base, id: 't2', personId: 'p2', kind: 'receipt', amount: 500_000 },
+      { ...base, id: 't3', personId: 'p3', kind: 'payment', amount: 1_000_000 },
+    ]
+    const overview = personsOverview(persons, txns)
+    expect(overview).toEqual({
+      receivable: 4_000_000, // p1: 1M opening + 2M payments = 3M; p3: 1M
+      payable: 1_000_000, // p2: -500k opening + -500k receipt = -1M
+      net: 3_000_000,
+      creditors: 2, // p1, p3
+      debtors: 1, // p2
+    })
+  })
+
+  it('counts a zero-balance person as settled', () => {
+    const persons = [{ id: 'p1' }, { id: 'p2' }]
+    const txns: PersonTxn[] = [
+      { ...base, id: 't1', personId: 'p1', kind: 'payment', amount: 5_000_000 },
+      { ...base, id: 't2', personId: 'p1', kind: 'receipt', amount: 5_000_000 },
+    ]
+    const overview = personsOverview(persons, txns)
+    expect(overview).toEqual({ receivable: 0, payable: 0, net: 0, creditors: 0, debtors: 0 })
   })
 })
 

@@ -139,3 +139,46 @@ export function personTotals(txns: PersonTxn[], opening = 0): PersonTotals {
   const receipts = totalOf(txns, 'receipt') + split.receipt
   return { payments, receipts, balance: payments - receipts }
 }
+
+export interface PersonsOverview {
+  /** Sum of positive balances: people who owe the user. */
+  receivable: number
+  /** Sum of absolute negative balances: user owes these people. */
+  payable: number
+  /** receivable - payable: positive means net owed to user. */
+  net: number
+  /** Number of persons with positive balance. */
+  creditors: number
+  /** Number of persons with negative balance. */
+  debtors: number
+}
+
+export function personsOverview(
+  persons: { id: string; openingBalance?: number }[],
+  txns: PersonTxn[],
+): PersonsOverview {
+  const txnsByPerson = new Map<string, number>()
+  for (const t of txns) {
+    const delta = t.kind === 'payment' ? t.amount : -t.amount
+    txnsByPerson.set(t.personId, (txnsByPerson.get(t.personId) ?? 0) + delta)
+  }
+  let receivable = 0
+  let payable = 0
+  let creditors = 0
+  let debtors = 0
+  for (const p of persons) {
+    const netTxns = txnsByPerson.get(p.id) ?? 0
+    const bal = personTotals([], p.openingBalance ?? 0).balance
+    // personTotals with empty txns gives just opening split; but we need combined.
+    // Easier: combine opening + netTxns
+    const combined = bal + netTxns
+    if (combined > 0) {
+      receivable += combined
+      creditors++
+    } else if (combined < 0) {
+      payable += -combined
+      debtors++
+    }
+  }
+  return { receivable, payable, net: receivable - payable, creditors, debtors }
+}
