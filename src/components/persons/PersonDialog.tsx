@@ -1,16 +1,10 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { TrendingDown, TrendingUp, CircleSlash } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
 import {
   Dialog,
   DialogContent,
@@ -88,21 +82,38 @@ export function PersonDialog({
             maxLength={20}
           />
           <Label htmlFor="person-role">{t('persons.role')}</Label>
-          <Select value={role} onValueChange={value => setRole(value as RoleValue)}>
-            <SelectTrigger id="person-role" className="w-full" aria-label={t('persons.role')}>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value={NO_ROLE}>{t('persons.roleNone')}</SelectItem>
-              <SelectItem value="creditor">{t('persons.creditor')}</SelectItem>
-              <SelectItem value="debtor">{t('persons.debtor')}</SelectItem>
-            </SelectContent>
-          </Select>
+          <div className="flex gap-2" role="group" aria-label={t('persons.role')}>
+            <Button
+              type="button"
+              variant={role === NO_ROLE ? 'default' : 'outline'}
+              className="flex-1"
+              aria-label={t('persons.roleNone')}
+              onClick={() => setRole(NO_ROLE)}
+            >
+              <CircleSlash className="size-4" aria-hidden /> {t('persons.roleNone')}
+            </Button>
+            <Button
+              type="button"
+              variant={role === 'creditor' ? 'default' : 'outline'}
+              className="flex-1"
+              aria-label={t('persons.creditor')}
+              onClick={() => setRole('creditor')}
+            >
+              <TrendingUp className="size-4" aria-hidden /> {t('persons.creditor')}
+            </Button>
+            <Button
+              type="button"
+              variant={role === 'debtor' ? 'default' : 'outline'}
+              className="flex-1"
+              aria-label={t('persons.debtor')}
+              onClick={() => setRole('debtor')}
+            >
+              <TrendingDown className="size-4" aria-hidden /> {t('persons.debtor')}
+            </Button>
+          </div>
           {role === NO_ROLE ? null : (
             <>
-              <Label htmlFor="person-opening">
-                {t('persons.openingAmount')} ({t('common.toman')})
-              </Label>
+              <Label htmlFor="person-opening">{t('persons.openingAmount')} ({t('common.toman')})</Label>
               <Input
                 id="person-opening"
                 name="amount"
