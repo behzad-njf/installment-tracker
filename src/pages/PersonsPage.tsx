@@ -59,12 +59,12 @@ export function PersonsPage() {
         </Button>
       </div>
 
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+      <div className="grid grid-cols-3 gap-2 sm:gap-3">
         <Card>
-          <CardContent className="p-3">
-            <div className="text-xs text-muted-foreground">{t('persons.netPosition')}</div>
-            <div className="text-lg font-bold tabular-nums">{formatMoney(overview.net, lang)}</div>
-            <div className="text-xs text-muted-foreground">
+          <CardContent className="p-2 sm:p-3">
+            <div className="text-muted-foreground truncate text-[11px] sm:text-xs">{t('persons.netPosition')}</div>
+            <div className="text-sm font-bold tabular-nums sm:text-lg">{formatMoney(overview.net, lang)}</div>
+            <div className="text-muted-foreground text-[10px] sm:text-xs">
               {overview.net >= 0
                 ? `${t('persons.creditorsCount', { count: overview.creditors })} ${t('persons.debtorsCount', { count: overview.debtors })}`
                 : `${t('persons.debtorsCount', { count: overview.debtors })} ${t('persons.creditorsCount', { count: overview.creditors })}`}
@@ -72,15 +72,15 @@ export function PersonsPage() {
           </CardContent>
         </Card>
         <Card>
-          <CardContent className="p-3">
-            <div className="text-xs text-muted-foreground">{t('persons.totalReceivable')}</div>
-            <div className="text-lg font-bold tabular-nums">{formatMoney(overview.receivable, lang)}</div>
+          <CardContent className="p-2 sm:p-3">
+            <div className="text-muted-foreground truncate text-[11px] sm:text-xs">{t('persons.totalReceivable')}</div>
+            <div className="text-sm font-bold tabular-nums sm:text-lg">{formatMoney(overview.receivable, lang)}</div>
           </CardContent>
         </Card>
         <Card>
-          <CardContent className="p-3">
-            <div className="text-xs text-muted-foreground">{t('persons.totalPayable')}</div>
-            <div className="text-lg font-bold tabular-nums">{formatMoney(overview.payable, lang)}</div>
+          <CardContent className="p-2 sm:p-3">
+            <div className="text-muted-foreground truncate text-[11px] sm:text-xs">{t('persons.totalPayable')}</div>
+            <div className="text-sm font-bold tabular-nums sm:text-lg">{formatMoney(overview.payable, lang)}</div>
           </CardContent>
         </Card>
       </div>
