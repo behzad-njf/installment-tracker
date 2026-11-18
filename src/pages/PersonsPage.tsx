@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Pencil, Plus, Search, Trash2, UsersRound } from 'lucide-react'
+import { CircleSlash, Pencil, Plus, Search, Trash2, TrendingDown, TrendingUp, UsersRound } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
@@ -59,30 +59,6 @@ export function PersonsPage() {
         </Button>
       </div>
 
-      <div className="flex gap-2">
-        <Button
-          variant={filter === 'all' ? 'default' : 'outline'}
-          size="sm"
-          onClick={() => setFilter('all')}
-        >
-          {t('persons.filterAll')}
-        </Button>
-        <Button
-          variant={filter === 'creditor' ? 'default' : 'outline'}
-          size="sm"
-          onClick={() => setFilter('creditor')}
-        >
-          {t('persons.filterCreditor')}
-        </Button>
-        <Button
-          variant={filter === 'debtor' ? 'default' : 'outline'}
-          size="sm"
-          onClick={() => setFilter('debtor')}
-        >
-          {t('persons.filterDebtor')}
-        </Button>
-      </div>
-
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
         <Card>
           <CardContent className="p-3">
@@ -110,18 +86,55 @@ export function PersonsPage() {
       </div>
 
       {persons.length > 0 ? (
-        <div className="relative">
-          <Search
-            className="text-muted-foreground pointer-events-none absolute start-3 top-1/2 size-4 -translate-y-1/2"
-            aria-hidden
-          />
-          <Input
-            value={query}
-            onChange={e => setQuery(e.target.value)}
-            placeholder={t('persons.search')}
-            aria-label={t('persons.search')}
-            className="ps-9"
-          />
+        <div className="flex items-center gap-2">
+          <div className="relative flex-1">
+            <Search
+              className="text-muted-foreground pointer-events-none absolute start-3 top-1/2 size-4 -translate-y-1/2"
+              aria-hidden
+            />
+            <Input
+              value={query}
+              onChange={e => setQuery(e.target.value)}
+              placeholder={t('persons.search')}
+              aria-label={t('persons.search')}
+              className="ps-9"
+            />
+          </div>
+          <div className="flex shrink-0 gap-1">
+            <Button
+              type="button"
+              variant={filter === 'all' ? 'default' : 'outline'}
+              size="sm"
+              aria-label={t('persons.filterAll')}
+              title={t('persons.filterAll')}
+              onClick={() => setFilter('all')}
+            >
+              <CircleSlash className="size-4" aria-hidden />
+              <span className="hidden sm:inline">{t('persons.filterAll')}</span>
+            </Button>
+            <Button
+              type="button"
+              variant={filter === 'creditor' ? 'default' : 'outline'}
+              size="sm"
+              aria-label={t('persons.filterCreditor')}
+              title={t('persons.filterCreditor')}
+              onClick={() => setFilter('creditor')}
+            >
+              <TrendingUp className="size-4" aria-hidden />
+              <span className="hidden sm:inline">{t('persons.filterCreditor')}</span>
+            </Button>
+            <Button
+              type="button"
+              variant={filter === 'debtor' ? 'default' : 'outline'}
+              size="sm"
+              aria-label={t('persons.filterDebtor')}
+              title={t('persons.filterDebtor')}
+              onClick={() => setFilter('debtor')}
+            >
+              <TrendingDown className="size-4" aria-hidden />
+              <span className="hidden sm:inline">{t('persons.filterDebtor')}</span>
+            </Button>
+          </div>
         </div>
       ) : null}
 
