@@ -1,6 +1,6 @@
 // Service Worker — Aghsat PWA
 // Cache-first for app shell, cache-only for runtime data (localStorage lives in browser).
-const CACHE_NAME = 'aghsat-05fea6e2';
+const CACHE_NAME = 'aghsat-74fac978';
 const ASSETS = [
   '/',
   '/index.html',
@@ -11,8 +11,8 @@ const ASSETS = [
   '/assets/geist-latin-ext-wght-normal-DC-KSUi6.woff2',
   '/assets/geist-latin-wght-normal-BgDaEnEv.woff2',
   '/assets/geist-vietnamese-wght-normal-6IgcOCM7.woff2',
+  '/assets/index--DldE2G5.js',
   '/assets/index-CC_QPLNS.css',
-  '/assets/index-d0FGzBA6.js',
   '/assets/vazirmatn-arabic-wght-normal-Cafbb7Zc.woff2',
   '/assets/vazirmatn-latin-ext-wght-normal-tDTa1Fj6.woff2',
   '/assets/vazirmatn-latin-wght-normal-BFexNX-K.woff2'
