@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { personTotals, personsFlowByMonth, personsOverview, sanitizePerson, sanitizePersonTxn, sortPersonTxns } from './persons'
+import { personTotals, personsOverview, personsStandingByMonth, sanitizePerson, sanitizePersonTxn, sortPersonTxns } from './persons'
 import { monthIndexFrom } from './jalali'
 import type { PersonTxn } from './types'
 
@@ -82,20 +82,29 @@ describe('sortPersonTxns', () => {
   })
 })
 
-describe('personsFlowByMonth', () => {
-  it('buckets payments and receipts into the trailing months', () => {
-    const end = monthIndexFrom(1405, 8)
-    const txns: PersonTxn[] = [
-      { ...base, id: 'a', kind: 'payment', amount: 3_000_000, year: 1405, month: 8 },
-      { ...base, id: 'b', kind: 'receipt', amount: 1_000_000, year: 1405, month: 8 },
-      { ...base, id: 'c', kind: 'payment', amount: 2_000_000, year: 1405, month: 6 },
-      { ...base, id: 'd', kind: 'payment', amount: 9_000_000, year: 1404, month: 1 }, // out of range
+describe('personsStandingByMonth', () => {
+  it('carries an unsettled debt into later months and folds older txns in first', () => {
+    const start = monthIndexFrom(1405, 8)
+    const persons = [
+      { id: 'p1', openingBalance: 1_000_000 },
+      { id: 'p2', openingBalance: -500_000 },
     ]
-    const series = personsFlowByMonth(txns, end, 3)
-    expect(series.map(s => s.monthIdx)).toEqual([end - 2, end - 1, end])
-    expect(series[2]).toEqual({ monthIdx: end, receivable: 3_000_000, payable: 1_000_000, net: 2_000_000 })
-    expect(series[0]).toEqual({ monthIdx: end - 2, receivable: 2_000_000, payable: 0, net: 2_000_000 })
-    expect(series[1].receivable).toBe(0)
+    const txns: PersonTxn[] = [
+      // before the window: p1 gave 500k → its balance drops to 500k at the window start
+      { ...base, id: 'old', personId: 'p1', kind: 'receipt', amount: 500_000, year: 1405, month: 7 },
+      { ...base, id: 'a', personId: 'p1', kind: 'payment', amount: 2_000_000, year: 1405, month: 8 },
+      { ...base, id: 'b', personId: 'p2', kind: 'payment', amount: 1_000_000, year: 1405, month: 9 },
+    ]
+    const rows = personsStandingByMonth(persons, txns, start, 3)
+    expect(rows.map(r => r.monthIdx)).toEqual([start, start + 1, start + 2])
+    // month 1: p1 = 1M - 0.5M + 2M = 2.5M; p2 = -0.5M
+    expect(rows[0]).toEqual({ monthIdx: start, receivable: 2_500_000, payable: 500_000, net: 2_000_000 })
+    // month 2: p2 pays 1M and turns creditor (0.5M); debt is gone, nothing carries
+    expect(rows[1]).toEqual({ monthIdx: start + 1, receivable: 3_000_000, payable: 0, net: 3_000_000 })
+    // month 3: no txns, the standing repeats
+    const { monthIdx: _ignored, ...last } = rows[2]
+    const { monthIdx: _ignored2, ...prev } = rows[1]
+    expect(last).toEqual(prev)
   })
 })
 

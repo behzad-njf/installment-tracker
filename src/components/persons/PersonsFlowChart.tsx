@@ -5,6 +5,7 @@ import {
   Legend,
   Line,
   LineChart,
+  ReferenceLine,
   ResponsiveContainer,
   Tooltip,
   XAxis,
@@ -13,27 +14,31 @@ import {
 
 import { currentMonthIndex, monthName } from '@/lib/jalali'
 import { formatMoney, formatNumber } from '@/lib/money'
-import { personsFlowByMonth } from '@/lib/persons'
+import { personsStandingByMonth } from '@/lib/persons'
 import { useLocale } from '@/hooks/useLocale'
 import { Card, CardContent } from '@/components/ui/card'
-import type { PersonTxn } from '@/lib/types'
+import type { Person, PersonTxn } from '@/lib/types'
 
 interface Props {
+  persons: Person[]
   txns: PersonTxn[]
-  months?: number
+  /** Months shown before the current one / after it. */
+  past?: number
+  future?: number
 }
 
-export function PersonsFlowChart({ txns, months = 6 }: Props) {
+export function PersonsFlowChart({ persons, txns, past = 6, future = 6 }: Props) {
   const { t } = useTranslation()
   const { lang, dir } = useLocale()
+  const today = currentMonthIndex()
 
   const data = useMemo(
     () =>
-      personsFlowByMonth(txns, currentMonthIndex(), months).map(bucket => ({
-        ...bucket,
-        label: monthName(bucket.monthIdx, lang),
+      personsStandingByMonth(persons, txns, today - (past - 1), past + future).map(row => ({
+        ...row,
+        label: monthName(row.monthIdx, lang),
       })),
-    [txns, months, lang],
+    [persons, txns, past, future, today, lang],
   )
 
   const series = [
@@ -51,7 +56,7 @@ export function PersonsFlowChart({ txns, months = 6 }: Props) {
     <Card>
       <CardContent className="p-3">
         <p className="text-sm font-semibold">{t('persons.flowTitle')}</p>
-        <p className="text-muted-foreground text-xs">{t('persons.flowHint', { count: months })}</p>
+        <p className="text-muted-foreground text-xs">{t('persons.flowHint')}</p>
         <div className="mt-2 w-full min-w-0" dir="ltr">
           <ResponsiveContainer width="100%" height={224} minWidth={0}>
             <LineChart data={data} margin={{ top: 8, right: 4, left: 0, bottom: 0 }}>
@@ -64,6 +69,7 @@ export function PersonsFlowChart({ txns, months = 6 }: Props) {
                 axisLine={false}
                 tickMargin={6}
                 tick={{ fontSize: 10 }}
+                padding={{ left: 14, right: 14 }}
               />
               <YAxis tick={{ fontSize: 10 }} width={52} tickFormatter={axisFormatter} />
               <Tooltip
@@ -92,6 +98,12 @@ export function PersonsFlowChart({ txns, months = 6 }: Props) {
                 }}
               />
               <Legend formatter={(value: string) => <span className="text-xs">{value}</span>} />
+              <ReferenceLine
+                x={monthName(today, lang)}
+                stroke="var(--muted-foreground)"
+                strokeDasharray="4 4"
+                label={{ value: t('persons.flowToday'), position: 'insideTopRight', fontSize: 10, fill: 'var(--foreground)' }}
+              />
               {series.map(s => (
                 <Line
                   key={s.key}
@@ -100,7 +112,8 @@ export function PersonsFlowChart({ txns, months = 6 }: Props) {
                   name={s.name}
                   stroke={s.color}
                   strokeWidth={2}
-                  dot={{ r: 2 }}
+                  dot={false}
+                  activeDot={{ r: 3 }}
                 />
               ))}
             </LineChart>

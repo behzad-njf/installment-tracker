@@ -60,7 +60,7 @@ export function PersonsPage() {
         </Button>
       </div>
 
-      {personTxns.length > 0 ? <PersonsFlowChart txns={personTxns} /> : null}
+      {personTxns.length > 0 ? <PersonsFlowChart persons={persons} txns={personTxns} /> : null}
 
       <div className="grid grid-cols-3 gap-2 sm:gap-3">
         <Card>

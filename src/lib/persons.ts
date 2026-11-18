@@ -183,36 +183,59 @@ export function personsOverview(
   return { receivable, payable, net: receivable - payable, creditors, debtors }
 }
 
-export interface PersonMonthFlow {
+export interface PersonMonthStanding {
   monthIdx: MonthIndex
-  /** Money given to people (payments) that month. */
+  /** Sum of positive balances at the end of this month: money people still owe the user. */
   receivable: number
-  /** Money taken from people (receipts) that month. */
+  /** Sum of |negative| balances at the end of this month: money the user still owes. */
   payable: number
   /** receivable - payable. */
   net: number
 }
 
-/**
- * Last `count` months ending at `endIdx`, oldest first. Opening balances carry no
- * date, so they only show up in personsOverview totals — not in this series.
- */
-export function personsFlowByMonth(
-  txns: PersonTxn[],
-  endIdx: MonthIndex,
-  count = 6,
-): PersonMonthFlow[] {
-  const buckets = new Map<MonthIndex, PersonMonthFlow>()
-  for (let i = count - 1; i >= 0; i--) {
-    const monthIdx = endIdx - i
-    buckets.set(monthIdx, { monthIdx, receivable: 0, payable: 0, net: 0 })
-  }
+function applyDeltas(balances: Map<string, number>, txns: PersonTxn[]): void {
   for (const txn of txns) {
-    const bucket = buckets.get(personTxnMonthIndex(txn))
-    if (!bucket) continue
-    if (txn.kind === 'payment') bucket.receivable += txn.amount
-    else bucket.payable += txn.amount
-    bucket.net = bucket.receivable - bucket.payable
+    const delta = txn.kind === 'payment' ? txn.amount : -txn.amount
+    balances.set(txn.personId, (balances.get(txn.personId) ?? 0) + delta)
   }
-  return [...buckets.values()]
+}
+
+/**
+ * Standing balances per month: an unsettled debt keeps counting in every later
+ * month until a payment/receipt clears it, so future months repeat today's
+ * balance. Opening balances are seeded before the first month.
+ */
+export function personsStandingByMonth(
+  persons: { id: string; openingBalance?: number }[],
+  txns: PersonTxn[],
+  startIdx: MonthIndex,
+  count = 12,
+): PersonMonthStanding[] {
+  const balances = new Map<string, number>()
+  for (const person of persons) balances.set(person.id, person.openingBalance ?? 0)
+
+  const byMonth = new Map<MonthIndex, PersonTxn[]>()
+  for (const txn of txns) {
+    const idx = personTxnMonthIndex(txn)
+    const list = byMonth.get(idx)
+    if (list) list.push(txn)
+    else byMonth.set(idx, [txn])
+  }
+  for (const [idx, list] of byMonth) {
+    if (idx < startIdx) applyDeltas(balances, list)
+  }
+
+  const rows: PersonMonthStanding[] = []
+  for (let i = 0; i < count; i++) {
+    const monthIdx = startIdx + i
+    applyDeltas(balances, byMonth.get(monthIdx) ?? [])
+    let receivable = 0
+    let payable = 0
+    for (const balance of balances.values()) {
+      if (balance > 0) receivable += balance
+      else if (balance < 0) payable += -balance
+    }
+    rows.push({ monthIdx, receivable, payable, net: receivable - payable })
+  }
+  return rows
 }
