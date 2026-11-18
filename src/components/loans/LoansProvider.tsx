@@ -72,6 +72,7 @@ export interface LoansContextValue {
   /** Removes the person together with their accounts and transactions. */
   removePerson: (id: string) => void
   addPersonAccount: (personId: string, draft: PersonAccountDraft) => void
+  updatePersonAccount: (id: string, draft: PersonAccountDraft) => void
   removePersonAccount: (id: string) => void
   addPersonTxn: (personId: string, draft: PersonTxnDraft) => void
   removePersonTxn: (id: string) => void
@@ -185,6 +186,13 @@ export function LoansProvider({ children }: { children: ReactNode }) {
   const addPersonAccount = (personId: string, draft: PersonAccountDraft) => {
     const account: PersonAccount = { id: newPersonAccountId(), personId, ...draft }
     persist({ ...data, personAccounts: [...data.personAccounts, account] })
+  }
+
+  const updatePersonAccount = (id: string, draft: PersonAccountDraft) => {
+    persist({
+      ...data,
+      personAccounts: data.personAccounts.map(a => (a.id === id ? { ...a, ...draft } : a)),
+    })
   }
 
   const removePersonAccount = (id: string) => {
@@ -329,6 +337,7 @@ export function LoansProvider({ children }: { children: ReactNode }) {
     updatePerson,
     removePerson,
     addPersonAccount,
+    updatePersonAccount,
     removePersonAccount,
     addPersonTxn,
     removePersonTxn,

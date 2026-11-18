@@ -65,6 +65,7 @@ export function sanitizePersonAccount(raw: unknown, personIds: Set<string>): Per
     id: typeof raw.id === 'string' && raw.id ? raw.id : newPersonAccountId(),
     personId: raw.personId,
     bank,
+    holderName: text(raw.holderName, 60),
     accountNumber: text(raw.accountNumber, 40),
     iban: text(raw.iban, 40),
     cardNumber: text(raw.cardNumber, 30),

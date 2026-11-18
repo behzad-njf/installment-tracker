@@ -34,6 +34,7 @@ export function PersonAccountDialog({
       (form.elements.namedItem(name) as HTMLInputElement | null)?.value.trim() ?? ''
     onSave({
       bank: field('bank'),
+      holderName: field('holderName') || undefined,
       accountNumber: field('accountNumber') || undefined,
       iban: field('iban') || undefined,
       cardNumber: field('cardNumber') || undefined,
@@ -41,12 +42,16 @@ export function PersonAccountDialog({
     onOpenChange(false)
   }
 
+  const dialogTitle = account
+    ? t('persons.editAccount')
+    : t('persons.addAccount')
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <form onSubmit={handleSubmit} className="space-y-3">
           <DialogHeader>
-            <DialogTitle>{t('persons.addAccount')}</DialogTitle>
+            <DialogTitle>{dialogTitle}</DialogTitle>
           </DialogHeader>
           <p className="text-muted-foreground text-sm">{personName}</p>
           <Label htmlFor="account-bank">{t('persons.bank')}</Label>
@@ -57,6 +62,13 @@ export function PersonAccountDialog({
             maxLength={40}
             required
             autoFocus
+          />
+          <Label htmlFor="account-holder">{t('persons.holderName')}</Label>
+          <Input
+            id="account-holder"
+            name="holderName"
+            defaultValue={account?.holderName ?? personName}
+            maxLength={60}
           />
           <Label htmlFor="account-number">{t('persons.accountNumber')}</Label>
           <Input

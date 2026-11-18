@@ -50,6 +50,9 @@
       "receipts": "Receipts"
     },
     "addAccount": "Add account",
+    "editAccount": "Edit account",
+    "editAccountAria": "Edit {{bank}} account",
+    "holderName": "Account holder full name",
     "noAccounts": "No accounts yet",
     "bank": "Bank",
     "accountNumber": "Account number",

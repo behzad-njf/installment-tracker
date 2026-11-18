@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next'
-import { Plus, Trash2 } from 'lucide-react'
+import { Pencil, Plus, Trash2 } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import type { PersonAccount } from '@/lib/types'
@@ -7,10 +7,12 @@ import type { PersonAccount } from '@/lib/types'
 export function PersonAccountsTab({
   accounts,
   onAdd,
+  onEdit,
   onRemove,
 }: {
   accounts: PersonAccount[]
   onAdd: () => void
+  onEdit: (account: PersonAccount) => void
   onRemove: (account: PersonAccount) => void
 }) {
   const { t } = useTranslation()
@@ -32,16 +34,30 @@ export function PersonAccountsTab({
             <li key={account.id} className="rounded-xl border p-3">
               <div className="flex items-center justify-between gap-2">
                 <span className="truncate text-sm font-semibold">{account.bank}</span>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon-sm"
-                  aria-label={t('persons.deleteAccountAria', { bank: account.bank })}
-                  onClick={() => onRemove(account)}
-                >
-                  <Trash2 className="size-4" aria-hidden />
-                </Button>
+                <div className="flex shrink-0 items-center gap-1">
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon-sm"
+                    aria-label={t('persons.editAccountAria', { bank: account.bank })}
+                    onClick={() => onEdit(account)}
+                  >
+                    <Pencil className="size-4" aria-hidden />
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon-sm"
+                    aria-label={t('persons.deleteAccountAria', { bank: account.bank })}
+                    onClick={() => onRemove(account)}
+                  >
+                    <Trash2 className="size-4" aria-hidden />
+                  </Button>
+                </div>
               </div>
+              {account.holderName ? (
+                <p className="text-muted-foreground mt-1 truncate text-xs">{account.holderName}</p>
+              ) : null}
               {account.accountNumber ? (
                 <p className="text-muted-foreground mt-1 text-xs tabular-nums" dir="ltr">
                   {account.accountNumber}

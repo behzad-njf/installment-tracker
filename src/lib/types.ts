@@ -93,6 +93,8 @@ export interface PersonAccount {
   personId: string
   /** Bank name, e.g. «بانک ملی». */
   bank: string
+  /** Account holder's full name; defaults to the person's name, editable. */
+  holderName?: string
   accountNumber?: string
   iban?: string
   cardNumber?: string

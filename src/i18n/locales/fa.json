@@ -50,6 +50,9 @@
       "receipts": "دریافت‌ها"
     },
     "addAccount": "افزودن حساب",
+    "editAccount": "ویرایش حساب",
+    "editAccountAria": "ویرایش حساب {{bank}}",
+    "holderName": "نام و نام خانوادگی صاحب حساب",
     "noAccounts": "حسابی ثبت نشده",
     "bank": "بانک",
     "accountNumber": "شماره حساب",

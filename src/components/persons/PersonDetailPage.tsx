@@ -33,6 +33,7 @@ export function PersonDetailPage({ personId }: { personId: string }) {
     personTxns,
     updatePerson,
     addPersonAccount,
+    updatePersonAccount,
     removePersonAccount,
     addPersonTxn,
     removePersonTxn,
@@ -41,6 +42,7 @@ export function PersonDetailPage({ personId }: { personId: string }) {
   const [tab, setTab] = useState<Tab>('info')
   const [editOpen, setEditOpen] = useState(false)
   const [accountOpen, setAccountOpen] = useState(false)
+  const [editingAccount, setEditingAccount] = useState<PersonAccount | null>(null)
   const [txnKind, setTxnKind] = useState<PersonTxnKind | null>(null)
   const [deleteAccount, setDeleteAccount] = useState<PersonAccount | null>(null)
   const [deleteTxn, setDeleteTxn] = useState<PersonTxn | null>(null)
@@ -156,7 +158,14 @@ export function PersonDetailPage({ personId }: { personId: string }) {
       {tab === 'accounts' ? (
         <PersonAccountsTab
           accounts={accounts}
-          onAdd={() => setAccountOpen(true)}
+          onAdd={() => {
+            setEditingAccount(null)
+            setAccountOpen(true)
+          }}
+          onEdit={account => {
+            setEditingAccount(account)
+            setAccountOpen(true)
+          }}
           onRemove={setDeleteAccount}
         />
       ) : null}
@@ -191,11 +200,19 @@ export function PersonDetailPage({ personId }: { personId: string }) {
         onSave={(draft: PersonDraft) => updatePerson(person.id, draft)}
       />
       <PersonAccountDialog
-        account={null}
+        key={editingAccount?.id ?? 'new-account'}
+        account={editingAccount}
         personName={person.name}
         open={accountOpen}
-        onOpenChange={setAccountOpen}
-        onSave={draft => addPersonAccount(person.id, draft)}
+        onOpenChange={open => {
+          setAccountOpen(open)
+          if (!open) setEditingAccount(null)
+        }}
+        onSave={draft =>
+          editingAccount
+            ? updatePersonAccount(editingAccount.id, draft)
+            : addPersonAccount(person.id, draft)
+        }
       />
       {txnKind ? (
         <PersonTxnDialog
