@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
-import { personTotals, personsOverview, sanitizePerson, sanitizePersonTxn, sortPersonTxns } from './persons'
+import { personTotals, personsFlowByMonth, personsOverview, sanitizePerson, sanitizePersonTxn, sortPersonTxns } from './persons'
+import { monthIndexFrom } from './jalali'
 import type { PersonTxn } from './types'
 
 const base: PersonTxn = {
@@ -78,6 +79,23 @@ describe('sortPersonTxns', () => {
     const older = { ...base, id: 'old', year: 1405, month: 6 }
     const sorted = sortPersonTxns([older, base])
     expect(sorted.map(t => t.id)).toEqual(['t1', 'old'])
+  })
+})
+
+describe('personsFlowByMonth', () => {
+  it('buckets payments and receipts into the trailing months', () => {
+    const end = monthIndexFrom(1405, 8)
+    const txns: PersonTxn[] = [
+      { ...base, id: 'a', kind: 'payment', amount: 3_000_000, year: 1405, month: 8 },
+      { ...base, id: 'b', kind: 'receipt', amount: 1_000_000, year: 1405, month: 8 },
+      { ...base, id: 'c', kind: 'payment', amount: 2_000_000, year: 1405, month: 6 },
+      { ...base, id: 'd', kind: 'payment', amount: 9_000_000, year: 1404, month: 1 }, // out of range
+    ]
+    const series = personsFlowByMonth(txns, end, 3)
+    expect(series.map(s => s.monthIdx)).toEqual([end - 2, end - 1, end])
+    expect(series[2]).toEqual({ monthIdx: end, receivable: 3_000_000, payable: 1_000_000, net: 2_000_000 })
+    expect(series[0]).toEqual({ monthIdx: end - 2, receivable: 2_000_000, payable: 0, net: 2_000_000 })
+    expect(series[1].receivable).toBe(0)
   })
 })
 

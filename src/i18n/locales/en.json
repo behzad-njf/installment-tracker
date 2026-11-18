@@ -79,6 +79,11 @@
     "filterDebtor": "Debtors",
     "totalReceivable": "Total receivable",
     "totalPayable": "Total payable",
+    "flowTitle": "Monthly balance trend",
+    "flowHint": "Last {{count}} months",
+    "flowReceivable": "Receivable (paid out)",
+    "flowPayable": "Payable (received)",
+    "flowNet": "Net",
     "netPosition": "Net position",
     "creditorsCount": "{{count}} creditors",
     "debtorsCount": "{{count}} debtors"

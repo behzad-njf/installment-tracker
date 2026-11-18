@@ -7,6 +7,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { ConfirmDialog } from '@/components/common/ConfirmDialog'
 import { PersonDialog } from '@/components/persons/PersonDialog'
+import { PersonsFlowChart } from '@/components/persons/PersonsFlowChart'
 import { useLoans } from '@/hooks/useLoans'
 import { useLocale } from '@/hooks/useLocale'
 import { navigate } from '@/hooks/useRoute'
@@ -58,6 +59,8 @@ export function PersonsPage() {
           <Plus className="size-4" aria-hidden /> {t('persons.addPerson')}
         </Button>
       </div>
+
+      {personTxns.length > 0 ? <PersonsFlowChart txns={personTxns} /> : null}
 
       <div className="grid grid-cols-3 gap-2 sm:gap-3">
         <Card>

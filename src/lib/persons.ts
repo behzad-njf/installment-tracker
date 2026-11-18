@@ -182,3 +182,37 @@ export function personsOverview(
   }
   return { receivable, payable, net: receivable - payable, creditors, debtors }
 }
+
+export interface PersonMonthFlow {
+  monthIdx: MonthIndex
+  /** Money given to people (payments) that month. */
+  receivable: number
+  /** Money taken from people (receipts) that month. */
+  payable: number
+  /** receivable - payable. */
+  net: number
+}
+
+/**
+ * Last `count` months ending at `endIdx`, oldest first. Opening balances carry no
+ * date, so they only show up in personsOverview totals — not in this series.
+ */
+export function personsFlowByMonth(
+  txns: PersonTxn[],
+  endIdx: MonthIndex,
+  count = 6,
+): PersonMonthFlow[] {
+  const buckets = new Map<MonthIndex, PersonMonthFlow>()
+  for (let i = count - 1; i >= 0; i--) {
+    const monthIdx = endIdx - i
+    buckets.set(monthIdx, { monthIdx, receivable: 0, payable: 0, net: 0 })
+  }
+  for (const txn of txns) {
+    const bucket = buckets.get(personTxnMonthIndex(txn))
+    if (!bucket) continue
+    if (txn.kind === 'payment') bucket.receivable += txn.amount
+    else bucket.payable += txn.amount
+    bucket.net = bucket.receivable - bucket.payable
+  }
+  return [...buckets.values()]
+}

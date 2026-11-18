@@ -79,6 +79,11 @@
     "filterDebtor": "بدهکاران",
     "totalReceivable": "مجموع طلب",
     "totalPayable": "مجموع بدهی",
+    "flowTitle": "روند ماهانه وضعیت",
+    "flowHint": "{{count}} ماه اخیر",
+    "flowReceivable": "طلب (پرداخت)",
+    "flowPayable": "بدهی (دریافت)",
+    "flowNet": "خالص",
     "netPosition": "خالص وضعیت",
     "creditorsCount": "{{count}} طلبکار",
     "debtorsCount": "{{count}} بدهکار"
