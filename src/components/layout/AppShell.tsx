@@ -1,7 +1,8 @@
-import { WalletMinimal } from 'lucide-react'
-import type { ReactNode } from 'react'
+import { Menu, WalletMinimal } from 'lucide-react'
+import { useEffect, useState, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 
+import { Button } from '@/components/ui/button'
 import { TooltipProvider } from '@/components/ui/tooltip'
 import type { Route } from '@/hooks/useRoute'
 
@@ -13,16 +14,37 @@ import { ThemeToggle } from './ThemeToggle'
 
 export function AppShell({ route, children }: { route: Route; children: ReactNode }) {
   const { t } = useTranslation()
+  const [sidebarOpen, setSidebarOpen] = useState(false)
+
+  useEffect(() => {
+    if (!sidebarOpen) return
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setSidebarOpen(false)
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [sidebarOpen])
 
   return (
     <TooltipProvider delayDuration={200}>
       <div className="min-h-dvh bg-background">
-        <Sidebar route={route} />
+        <Sidebar route={route} open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
         <div className="md:ps-60">
           <header className="bg-background/80 sticky top-0 z-30 border-b backdrop-blur-md">
             <div className="mx-auto flex h-16 w-full max-w-6xl items-center gap-3 px-4">
               <div className="flex items-center gap-2.5 md:hidden">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  aria-label={t('nav.openMenu')}
+                  aria-expanded={sidebarOpen}
+                  aria-controls="app-sidebar"
+                  onClick={() => setSidebarOpen(true)}
+                >
+                  <Menu className="size-5" aria-hidden />
+                </Button>
                 <div className="bg-primary text-primary-foreground grid size-9 place-items-center rounded-xl shadow-sm">
                   <WalletMinimal className="size-5" aria-hidden />
                 </div>

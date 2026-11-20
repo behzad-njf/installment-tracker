@@ -6,9 +6,10 @@
   },
   "nav": {
     "label": "Main navigation",
+    "openMenu": "Open menu",
     "dashboard": "Dashboard",
     "loans": "Loans",
-    "checks": "Cheque management",
+    "checks": "Cheques",
     "persons": "People"
   },
   "persons": {

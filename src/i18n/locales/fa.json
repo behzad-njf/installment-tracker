@@ -6,9 +6,10 @@
   },
   "nav": {
     "label": "ناوبری اصلی",
+    "openMenu": "باز کردن منو",
     "dashboard": "داشبورد",
     "loans": "وام ها",
-    "checks": "مدیریت چک ها",
+    "checks": "چک ها",
     "persons": "اشخاص"
   },
   "persons": {
