@@ -32,8 +32,8 @@ export function Sidebar({
         id="app-sidebar"
         aria-label={t('nav.label')}
         className={cn(
-          'bg-background fixed inset-y-0 start-0 z-50 flex w-60 flex-col border-e transition-transform duration-200 md:z-40 md:translate-x-0',
-          open ? 'translate-x-0' : '-translate-x-full rtl:translate-x-full',
+          'bg-background fixed inset-y-0 start-0 z-50 flex w-60 flex-col border-e transition-transform duration-200 md:z-40',
+          open ? 'translate-x-0' : 'max-md:-translate-x-full max-md:rtl:translate-x-full',
         )}
       >
         <div className="flex h-16 items-center gap-2.5 border-b px-4">
