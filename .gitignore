@@ -26,3 +26,5 @@ keys/
 app-dist/
 landing/dist/
 landing/.astro/
+.env
+.env.local

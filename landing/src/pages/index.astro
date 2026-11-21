@@ -1,5 +1,7 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+
+const APP_URL = import.meta.env.VITE_APP_URL || 'https://app.pizomoney.behzaaad.ir';
 ---
 
 <style>
@@ -203,11 +205,11 @@ import BaseLayout from '../layouts/BaseLayout.astro';
         <span>Pizomoney</span>
       </div>
       <nav>
-        <a href="https://app.pizomoney.behzaaad.ir">داشبورد</a>
+        <a href={APP_URL}>داشبورد</a>
         <a href="#features">ویژگی‌ها</a>
         <a href="#how-it-works">نحوه کار</a>
       </nav>
-      <a href="https://app.pizomoney.behzaaad.ir" class="nav-cta">شروع کنید</a>
+      <a href={APP_URL} class="nav-cta">شروع کنید</a>
     </div>
   </header>
 
@@ -217,7 +219,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       <h1>مدیریت قرض‌ها و اقساط <span class="accent">با اطمینان</span></h1>
       <p>پلتفرم رایگان و متمرکز بر کاربر برای ثبت وام‌ها، پیگیری اقساط ماهانه، بکاپ گوگل درایو و داشبورد مالی شخصی. کلاً در مرورگر شما اجرا می‌شود — هیچ داده‌ای خارج از دستگاه شما نمی‌رود.</p>
       <div class="hero-actions">
-        <a href="https://app.pizomoney.behzaaad.ir" class="btn btn-primary">رفتن به برنامه <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg></a>
+        <a href={APP_URL} class="btn btn-primary">رفتن به برنامه <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg></a>
         <a href="#features" class="btn btn-outline">معرفی ویژگی‌ها</a>
       </div>
     </section>
@@ -306,7 +308,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       <h2>آماده‌ای برای شروع؟</h2>
       <p>داشبورد Pizomoney را باز کنید و اولین وام خود را ثبت کنید.</p>
       <div class="hero-actions" style="justify-content:center;">
-        <a href="https://app.pizomoney.behzaaad.ir" class="btn btn-primary">ورود به داشبورد <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg></a>
+        <a href={APP_URL} class="btn btn-primary">ورود به داشبورد <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg></a>
       </div>
     </section>
   </main>
@@ -315,7 +317,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     <div class="footer-wrap">
       <div class="footer-brand"><div class="logo-mark">P</div><span>Pizomoney</span></div>
       <div class="footer-links">
-        <a href="https://app.pizomoney.behzaaad.ir">داشبورد</a>
+        <a href={APP_URL}>داشبورد</a>
         <a href="#features">ویژگی‌ها</a>
         <a href="#how-it-works">نحوه کار</a>
       </div>
