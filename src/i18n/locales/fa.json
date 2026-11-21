@@ -77,6 +77,8 @@
     "deleteTxnTitle": "حذف این تراکنش؟",
     "deleteTxnDesc": "این عملیات برگشت‌ناپذیر است.",
     "deleteTxnAria": "حذف تراکنش {{amount}}",
+    "editTxn": "ویرایش تراکنش",
+    "editTxnAria": "ویرایش تراکنش {{amount}}",
     "paymentsTotal": "جمع پرداخت‌ها",
     "receiptsTotal": "جمع دریافت‌ها",
     "filterAll": "همه",

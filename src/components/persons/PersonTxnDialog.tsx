@@ -20,7 +20,7 @@ import {
 } from '@/components/ui/dialog'
 import { currentMonthIndex, daysInJalaliMonth, jalaliPartsFromDate, yearMonthOf } from '@/lib/jalali'
 import { parseMoney } from '@/lib/money'
-import type { PersonAccount, PersonTxnDraft, PersonTxnKind } from '@/lib/types'
+import type { PersonAccount, PersonTxn, PersonTxnDraft, PersonTxnKind } from '@/lib/types'
 
 const NO_ACCOUNT = 'none'
 
@@ -30,18 +30,28 @@ export function PersonTxnDialog({
   onOpenChange,
   accounts,
   onSave,
+  txn,
 }: {
   kind: PersonTxnKind
   open: boolean
   onOpenChange: (open: boolean) => void
   accounts: PersonAccount[]
   onSave: (draft: PersonTxnDraft) => void
+  txn?: PersonTxn
 }) {
   const { t } = useTranslation()
   const cur = yearMonthOf(currentMonthIndex())
   const today = jalaliPartsFromDate(new Date())
   const [error, setError] = useState('')
-  const [accountId, setAccountId] = useState(NO_ACCOUNT)
+  const [accountId, setAccountId] = useState(txn?.accountId ?? NO_ACCOUNT)
+  const editing = !!txn
+
+  const defaultTitle = txn?.title ?? ''
+  const defaultAmount = txn?.amount ? String(txn.amount) : ''
+  const defaultYear = txn ? String(txn.year) : String(cur.year)
+  const defaultMonth = txn ? String(txn.month) : String(cur.month)
+  const defaultDay = txn ? String(txn.day) : String(today.day)
+  const defaultNote = txn?.note ?? ''
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -82,7 +92,7 @@ export function PersonTxnDialog({
       title: field('title') || undefined,
       note: field('note') || undefined,
     })
-    setAccountId(NO_ACCOUNT)
+    setAccountId(txn?.accountId ?? NO_ACCOUNT)
     onOpenChange(false)
   }
 
@@ -91,26 +101,28 @@ export function PersonTxnDialog({
       <DialogContent>
         <form onSubmit={handleSubmit} className="space-y-3">
           <DialogHeader>
-            <DialogTitle>{kind === 'payment' ? t('persons.addPayment') : t('persons.addReceipt')}</DialogTitle>
+            <DialogTitle>
+              {editing ? t('persons.editTxn') : kind === 'payment' ? t('persons.addPayment') : t('persons.addReceipt')}
+            </DialogTitle>
           </DialogHeader>
           <Label htmlFor="txn-title">{t('persons.title')}</Label>
-          <Input id="txn-title" name="title" maxLength={80} autoFocus />
+          <Input id="txn-title" name="title" defaultValue={defaultTitle} maxLength={80} autoFocus />
           <Label htmlFor="txn-amount">
             {t('persons.amount')} ({t('common.toman')})
           </Label>
-          <Input id="txn-amount" name="amount" inputMode="numeric" required />
+          <Input id="txn-amount" name="amount" defaultValue={defaultAmount} inputMode="numeric" required />
           <div className="flex gap-2">
             <div className="flex-1">
               <Label htmlFor="txn-year">{t('loans.year')}</Label>
-              <Input id="txn-year" name="year" type="number" defaultValue={String(cur.year)} min={1300} max={1500} />
+              <Input id="txn-year" name="year" type="number" defaultValue={defaultYear} min={1300} max={1500} />
             </div>
             <div className="flex-1">
               <Label htmlFor="txn-month">{t('loans.month')}</Label>
-              <Input id="txn-month" name="month" type="number" defaultValue={String(cur.month)} min={1} max={12} />
+              <Input id="txn-month" name="month" type="number" defaultValue={defaultMonth} min={1} max={12} />
             </div>
             <div className="flex-1">
               <Label htmlFor="txn-day">{t('common.day')}</Label>
-              <Input id="txn-day" name="day" type="number" defaultValue={String(today.day)} min={1} max={31} />
+              <Input id="txn-day" name="day" type="number" defaultValue={defaultDay} min={1} max={31} />
             </div>
           </div>
           {accounts.length > 0 ? (
@@ -124,7 +136,7 @@ export function PersonTxnDialog({
                   <SelectItem value={NO_ACCOUNT}>{t('persons.noAccount')}</SelectItem>
                   {accounts.map(account => (
                     <SelectItem key={account.id} value={account.id}>
-                      {account.bank}
+                      {account.holderName ? `${account.bank} (${account.holderName})` : account.bank}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -132,13 +144,13 @@ export function PersonTxnDialog({
             </>
           ) : null}
           <Label htmlFor="txn-note">{t('persons.note')}</Label>
-          <Input id="txn-note" name="note" maxLength={200} />
+          <Input id="txn-note" name="note" defaultValue={defaultNote} maxLength={200} />
           {error ? <p className="text-sm text-destructive">{error}</p> : null}
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               {t('common.cancel')}
             </Button>
-            <Button type="submit">{t('common.save')}</Button>
+            <Button type="submit">{editing ? t('common.save') : t('common.save')}</Button>
           </DialogFooter>
         </form>
       </DialogContent>

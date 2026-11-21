@@ -36,6 +36,7 @@ export function PersonDetailPage({ personId }: { personId: string }) {
     updatePersonAccount,
     removePersonAccount,
     addPersonTxn,
+    updatePersonTxn,
     removePersonTxn,
   } = useLoans()
 
@@ -44,6 +45,7 @@ export function PersonDetailPage({ personId }: { personId: string }) {
   const [accountOpen, setAccountOpen] = useState(false)
   const [editingAccount, setEditingAccount] = useState<PersonAccount | null>(null)
   const [txnKind, setTxnKind] = useState<PersonTxnKind | null>(null)
+  const [editingTxn, setEditingTxn] = useState<PersonTxn | undefined>(undefined)
   const [deleteAccount, setDeleteAccount] = useState<PersonAccount | null>(null)
   const [deleteTxn, setDeleteTxn] = useState<PersonTxn | null>(null)
 
@@ -178,6 +180,7 @@ export function PersonDetailPage({ personId }: { personId: string }) {
           opening={opening}
           onAdd={() => setTxnKind('payment')}
           onRemove={setDeleteTxn}
+          onEdit={setEditingTxn}
         />
       ) : null}
 
@@ -189,6 +192,7 @@ export function PersonDetailPage({ personId }: { personId: string }) {
           opening={opening}
           onAdd={() => setTxnKind('receipt')}
           onRemove={setDeleteTxn}
+          onEdit={setEditingTxn}
         />
       ) : null}
 
@@ -214,16 +218,27 @@ export function PersonDetailPage({ personId }: { personId: string }) {
             : addPersonAccount(person.id, draft)
         }
       />
-      {txnKind ? (
+      {txnKind || editingTxn ? (
         <PersonTxnDialog
-          key={txnKind}
-          kind={txnKind}
+          key={editingTxn?.id ?? txnKind ?? 'new'}
+          kind={editingTxn?.kind ?? txnKind!}
           open
           onOpenChange={open => {
-            if (!open) setTxnKind(null)
+            if (!open) {
+              setTxnKind(null)
+              setEditingTxn(undefined)
+            }
           }}
           accounts={accounts}
-          onSave={(draft: PersonTxnDraft) => addPersonTxn(person.id, draft)}
+          txn={editingTxn}
+          onSave={(draft: PersonTxnDraft) => {
+            if (editingTxn) {
+              updatePersonTxn(editingTxn.id, draft)
+              setEditingTxn(undefined)
+            } else {
+              addPersonTxn(person.id, draft)
+            }
+          }}
         />
       ) : null}
       <ConfirmDialog

@@ -75,6 +75,7 @@ export interface LoansContextValue {
   updatePersonAccount: (id: string, draft: PersonAccountDraft) => void
   removePersonAccount: (id: string) => void
   addPersonTxn: (personId: string, draft: PersonTxnDraft) => void
+  updatePersonTxn: (id: string, draft: Partial<PersonTxn>) => void
   removePersonTxn: (id: string) => void
 }
 
@@ -213,6 +214,13 @@ export function LoansProvider({ children }: { children: ReactNode }) {
     persist({ ...data, personTxns: data.personTxns.filter(t => t.id !== id) })
   }
 
+  const updatePersonTxn = (id: string, draft: Partial<PersonTxn>) => {
+    persist({
+      ...data,
+      personTxns: data.personTxns.map(t => (t.id === id ? { ...t, ...draft } : t)),
+    })
+  }
+
   /** Add a new checkbook */
   const addCheckbook = (draft: CheckbookDraft) => {
     const book = newCheckbook(draft)
@@ -340,6 +348,7 @@ export function LoansProvider({ children }: { children: ReactNode }) {
     updatePersonAccount,
     removePersonAccount,
     addPersonTxn,
+    updatePersonTxn,
     removePersonTxn,
   }
   return (

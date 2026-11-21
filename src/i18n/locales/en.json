@@ -77,6 +77,8 @@
     "deleteTxnTitle": "Delete this transaction?",
     "deleteTxnDesc": "This cannot be undone.",
     "deleteTxnAria": "Delete transaction {{amount}}",
+    "editTxn": "Edit transaction",
+    "editTxnAria": "Edit transaction {{amount}}",
     "paymentsTotal": "Total payments",
     "receiptsTotal": "Total receipts",
     "filterAll": "All",

@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next'
-import { Plus, Trash2 } from 'lucide-react'
+import { Plus, Pencil, Trash2 } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import { useLocale } from '@/hooks/useLocale'
@@ -19,6 +19,7 @@ export function PersonTxnsTab({
   opening = 0,
   onAdd,
   onRemove,
+  onEdit,
 }: {
   kind: PersonTxnKind
   txns: PersonTxn[]
@@ -26,6 +27,7 @@ export function PersonTxnsTab({
   opening?: number
   onAdd: () => void
   onRemove: (txn: PersonTxn) => void
+  onEdit?: (txn: PersonTxn) => void
 }) {
   const { t } = useTranslation()
   const { lang } = useLocale()
@@ -34,8 +36,13 @@ export function PersonTxnsTab({
   /** The opening balance shows up as the first row, on the side it belongs to. */
   const openingRow = kind === 'payment' ? split.payment : split.receipt
   const total = totalOf(txns, kind) + openingRow
-  const bankOf = (id?: string): string | undefined =>
-    id === undefined ? undefined : accounts.find(account => account.id === id)?.bank
+  const accountOf = (id?: string): PersonAccount | undefined =>
+    id === undefined ? undefined : accounts.find(account => account.id === id)
+  const accountLabel = (id?: string): string => {
+    const acc = accountOf(id)
+    if (!acc) return ''
+    return acc.holderName ? `${acc.bank} (${acc.holderName})` : acc.bank
+  }
 
   return (
     <div className="space-y-3">
@@ -68,29 +75,44 @@ export function PersonTxnsTab({
                 <span className="size-8 shrink-0" aria-hidden />
               </li>
             )}
-            {rows.map(txn => (
-              <li key={txn.id} className="flex items-center gap-2 p-3">
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-medium">{txn.title || t('persons.untitled')}</p>
-                  <p className="text-muted-foreground mt-0.5 truncate text-xs">
-                    {dateLabel(txn, lang)}
-                    {bankOf(txn.accountId) ? ` · ${bankOf(txn.accountId)}` : ''}
-                  </p>
-                </div>
-                <span className="shrink-0 text-sm font-semibold tabular-nums">
-                  {formatMoney(txn.amount, lang)}
-                </span>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon-sm"
-                  aria-label={t('persons.deleteTxnAria', { amount: formatMoney(txn.amount, lang) })}
-                  onClick={() => onRemove(txn)}
-                >
-                  <Trash2 className="size-4" aria-hidden />
-                </Button>
-              </li>
-            ))}
+            {rows.map(txn => {
+              const label = accountLabel(txn.accountId)
+              return (
+                <li key={txn.id} className="flex items-center gap-2 p-3">
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-medium">{txn.title || t('persons.untitled')}</p>
+                    <p className="text-muted-foreground mt-0.5 truncate text-xs">
+                      {dateLabel(txn, lang)}{label ? ` · ${label}` : ''}
+                    </p>
+                  </div>
+                  <span className="shrink-0 text-sm font-semibold tabular-nums">
+                    {formatMoney(txn.amount, lang)}
+                  </span>
+                  <div className="flex shrink-0 gap-1">
+                    {onEdit ? (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon-sm"
+                        aria-label={t('persons.editTxnAria', { amount: formatMoney(txn.amount, lang) })}
+                        onClick={() => onEdit(txn)}
+                      >
+                        <Pencil className="size-4" aria-hidden />
+                      </Button>
+                    ) : null}
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon-sm"
+                      aria-label={t('persons.deleteTxnAria', { amount: formatMoney(txn.amount, lang) })}
+                      onClick={() => onRemove(txn)}
+                    >
+                      <Trash2 className="size-4" aria-hidden />
+                    </Button>
+                  </div>
+                </li>
+              )
+            })}
           </ul>
           <p className="flex items-center justify-between text-sm font-semibold">
             <span>
