@@ -338,7 +338,9 @@
     "driveProgressPercent": "{{percent}}%",
     "driveMissingClient": "Google client ID is not configured (VITE_GOOGLE_CLIENT_ID)",
     "driveAuthError": "Google access expired — press “Connect to Google” again",
-    "driveError": "Could not reach Google Drive — check network and access"
+    "driveError": "Could not reach Google Drive — check network and access",
+    "clearAllTitle": "Clear all data",
+    "clearAllConfirmYes": "Yes, delete everything"
   },
   "storage": {
     "saveFailed": "Save failed. Is storage full?"

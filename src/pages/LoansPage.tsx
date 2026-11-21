@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Plus, Trash2 } from 'lucide-react'
+import { Plus } from 'lucide-react'
 
 import { EmptyState } from '@/components/dashboard/EmptyState'
 import { LoanTable } from '@/components/dashboard/LoanTable'
@@ -21,7 +21,7 @@ import type { Loan } from '@/lib/types'
 export function LoansPage() {
   const { t } = useTranslation()
   const { lang } = useLocale()
-  const { loans, clearAll } = useLoans()
+  const { loans } = useLoans()
   const month = useMemo(() => currentMonthIndex(), [])
   const summary = useMemo(() => summaryFor(loans, month), [loans, month])
   const nextSummary = useMemo(() => summaryFor(loans, month + 1), [loans, month])
@@ -105,21 +105,6 @@ export function LoansPage() {
           <span className="md:hidden">{t('tabs.finishedShort')}</span>
           <span className="hidden md:inline">{t('tabs.finished')}</span>
         </Button>
-        {loans.length > 0 && (
-          <Button
-            type="button"
-            size="sm"
-            variant="outline"
-            className="text-destructive"
-            onClick={() => {
-              if (window.confirm(t('loans.clearAllConfirm'))) clearAll()
-            }}
-            aria-label={t('loans.clearAll')}
-          >
-            <Trash2 className="size-4" aria-hidden />
-            <span className="hidden md:inline">{t('loans.clearAll')}</span>
-          </Button>
-        )}
         <Button
           type="button"
           size="sm"

@@ -338,7 +338,9 @@
     "driveProgressPercent": "{{percent}}%",
     "driveMissingClient": "شناسه کلاینت گوگل تنظیم نشده است (VITE_GOOGLE_CLIENT_ID)",
     "driveAuthError": "دسترسی گوگل منقضی شد؛ دوباره «اتصال به گوگل» را بزن",
-    "driveError": "ارتباط با Google Drive برقرار نشد؛ اینترنت و دسترسی را بررسی کن"
+    "driveError": "ارتباط با Google Drive برقرار نشد؛ اینترنت و دسترسی را بررسی کن",
+    "clearAllTitle": "پاک‌سازی همه داده‌ها",
+    "clearAllConfirmYes": "بله، همه چیز پاک شود"
   },
   "storage": {
     "saveFailed": "ذخیره ناموفق بود. فضای ذخیره‌سازی پر است؟"

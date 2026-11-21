@@ -1,9 +1,17 @@
 import { useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Download, Moon, Sun, Upload } from 'lucide-react'
+import { Download, Moon, Sun, Trash2, Upload } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
 import { GoogleDriveCard } from '@/components/settings/GoogleDriveCard'
 import { useLoans } from '@/hooks/useLoans'
 import { useLocale } from '@/hooks/useLocale'
@@ -36,9 +44,10 @@ export function SettingsPage() {
   const { t } = useTranslation()
   const { lang, setLang } = useLocale()
   const { theme, setTheme } = useTheme()
-  const { replaceData } = useLoans()
+  const { replaceData, clearAll } = useLoans()
   const [importError, setImportError] = useState<string | null>(null)
   const [restored, setRestored] = useState(false)
+  const [clearAllConfirm, setClearAllConfirm] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const themes: { value: Theme; labelKey: string; icon: typeof Sun }[] = [
@@ -140,6 +149,14 @@ export function SettingsPage() {
             onChange={handleImportFile}
             aria-label={t('backup.importLabel')}
           />
+          <Button
+            type="button"
+            variant="destructive"
+            onClick={() => setClearAllConfirm(true)}
+          >
+            <Trash2 className="size-4 me-1.5" aria-hidden />
+            {t('loans.clearAll')}
+          </Button>
         </div>
         {importError ? (
           <p className="text-destructive text-xs" role="alert">
@@ -160,6 +177,38 @@ export function SettingsPage() {
           {t('app.version', { version: APP_VERSION })}
         </p>
       </Section>
+
+      {clearAllConfirm && (
+        <Dialog open={true}>
+          <DialogContent className="p-4">
+            <DialogHeader>
+              <DialogTitle>{t('settings.clearAllTitle')}</DialogTitle>
+            </DialogHeader>
+            <DialogDescription className="mt-2 text-sm">
+              {t('loans.clearAllConfirm')}
+            </DialogDescription>
+            <DialogFooter>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setClearAllConfirm(false)}
+              >
+                {t('common.cancel')}
+              </Button>
+              <Button
+                type="button"
+                variant="destructive"
+                onClick={() => {
+                  clearAll()
+                  setClearAllConfirm(false)
+                }}
+              >
+                {t('settings.clearAllConfirmYes')}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      )}
     </div>
   )
 }
