@@ -1,4 +1,4 @@
-import { Menu, WalletMinimal } from 'lucide-react'
+import { Menu } from 'lucide-react'
 import { useEffect, useState, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 
@@ -45,9 +45,7 @@ export function AppShell({ route, children }: { route: Route; children: ReactNod
                 >
                   <Menu className="size-5" aria-hidden />
                 </Button>
-                <div className="bg-primary text-primary-foreground grid size-9 place-items-center rounded-xl shadow-sm">
-                  <WalletMinimal className="size-5" aria-hidden />
-                </div>
+                <img src="/logo.png" alt="" className="size-9 rounded-xl" aria-hidden="true" />
                 <div className="leading-tight">
                   <p className="text-sm font-semibold">{t('app.name')}</p>
                   <p className="text-muted-foreground text-xs">{t('app.tagline')}</p>

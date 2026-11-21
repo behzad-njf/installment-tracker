@@ -47,8 +47,7 @@ const APP_URL = import.meta.env.VITE_APP_URL || 'https://app.pizomoney.behzaaad.
     display: flex; align-items: center; gap: 0.5rem;
   }
   .logo-mark {
-    width: 32px; height: 32px; border-radius: 8px; background: var(--accent);
-    color: #fff; display: grid; place-items: center; font-weight: 900; font-size: 1.1rem;
+    width: 32px; height: 32px; border-radius: 8px; background: transparent;
   }
   nav { display: flex; align-items: center; gap: 1.25rem; }
   nav a { font-size: 0.9rem; font-weight: 600; color: var(--muted); padding: 0.4rem 0.6rem; border-radius: 0.5rem; }
@@ -201,7 +200,7 @@ const APP_URL = import.meta.env.VITE_APP_URL || 'https://app.pizomoney.behzaaad.
   <header>
     <div class="nav-wrap">
       <div class="logo">
-        <div class="logo-mark">P</div>
+        <img src="/logo.png" alt="" class="logo-mark" aria-hidden="true">
         <span>Pizomoney</span>
       </div>
       <nav>
@@ -315,7 +314,7 @@ const APP_URL = import.meta.env.VITE_APP_URL || 'https://app.pizomoney.behzaaad.
 
   <footer>
     <div class="footer-wrap">
-      <div class="footer-brand"><div class="logo-mark">P</div><span>Pizomoney</span></div>
+      <div class="footer-brand"><img src="/logo.png" alt="" class="logo-mark" aria-hidden="true"><span>Pizomoney</span></div>
       <div class="footer-links">
         <a href={APP_URL}>داشبورد</a>
         <a href="#features">ویژگی‌ها</a>
