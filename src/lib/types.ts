@@ -102,6 +102,19 @@ export interface PersonAccount {
 
 export type PersonTxnKind = 'payment' | 'receipt'
 
+/** An image/screenshot attached to a transaction. The blob lives in IndexedDB under `id`. */
+export interface Attachment {
+  id: string
+  /** Original file name, shown as a chip label. */
+  name: string
+  /** MIME type, e.g. image/png. */
+  type: string
+  /** Size in bytes. */
+  size: number
+  /** Google Drive file id once uploaded by backup. */
+  driveFileId?: string
+}
+
 /** Money between the user and a person: `payment` = given to them, `receipt` = taken from them. */
 export interface PersonTxn {
   id: string
@@ -117,6 +130,7 @@ export interface PersonTxn {
   month: number
   day: number
   note?: string
+  attachments?: Attachment[]
   createdAt: string
 }
 

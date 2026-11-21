@@ -2,6 +2,7 @@ import { createContext, useEffect, useState, type ReactNode } from 'react'
 import { toast } from 'sonner'
 import { useTranslation } from 'react-i18next'
 import { importDataFile, loadData, newLoanId, saveData, STORAGE_KEY } from '@/lib/storage'
+import { deleteAttachments, clearAttachments } from '@/lib/attachments'
 import { canTransitionCheck, newCheckbook, newCheck, newCheckShell } from '@/lib/checks'
 import { newPersonAccountId, newPersonId, newPersonTxnId } from '@/lib/persons'
 import type {
@@ -150,6 +151,7 @@ export function LoansProvider({ children }: { children: ReactNode }) {
   }
 
   const clearAll = () => {
+    void clearAttachments()
     persist({
       ...data,
       loans: [],
@@ -176,6 +178,9 @@ export function LoansProvider({ children }: { children: ReactNode }) {
   /** Cascade delete: accounts and transactions of this person go too, or they'd dangle. */
   const removePerson = (id: string) => {
     const accounts = data.personAccounts.filter(a => a.personId === id).map(a => a.id)
+    const removedTxns = data.personTxns.filter(t => t.personId === id || accounts.includes(t.accountId ?? ''))
+    const attIds = removedTxns.flatMap(t => (t.attachments ?? []).map(a => a.id))
+    if (attIds.length > 0) void deleteAttachments(attIds)
     persist({
       ...data,
       persons: data.persons.filter(p => p.id !== id),
@@ -211,6 +216,8 @@ export function LoansProvider({ children }: { children: ReactNode }) {
   }
 
   const removePersonTxn = (id: string) => {
+    const txn = data.personTxns.find(t => t.id === id)
+    if (txn?.attachments?.length) void deleteAttachments(txn.attachments.map(a => a.id))
     persist({ ...data, personTxns: data.personTxns.filter(t => t.id !== id) })
   }
 

@@ -17,8 +17,10 @@ import {
   getUser,
   isConnected,
   restore,
+  restoreAttachments,
+  stageAttachments,
 } from '@/lib/googleDrive'
-import { exportDataFile, importDataFile, loadData } from '@/lib/storage'
+import { exportDataFile, importDataFile, loadData, saveData } from '@/lib/storage'
 
 type Busy = '' | 'connect' | 'backup' | 'restore'
 type ConfirmAction = 'disconnect' | 'backup' | 'restore' | null
@@ -81,7 +83,11 @@ export function GoogleDriveCard() {
     })
 
   const handleBackup = () => run('backup', async () => {
-    const saved = await backup(exportDataFile(loadData()))
+    const data = loadData()
+    const stagedTxns = await stageAttachments(data.personTxns)
+    const staged = { ...data, personTxns: stagedTxns }
+    saveData(staged)
+    const saved = await backup(exportDataFile(staged))
     setLastBackup(saved.modifiedTime)
     return t('settings.driveSaved')
   })
@@ -93,6 +99,7 @@ export function GoogleDriveCard() {
       const imported = importDataFile(text)
       if (!imported) throw new Error('invalid')
       replaceData(imported)
+      await restoreAttachments(imported.personTxns)
       return t('settings.driveRestored')
     })
 

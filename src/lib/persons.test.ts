@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { personTotals, personsOverview, personsStandingByMonth, sanitizePerson, sanitizePersonTxn, sortPersonTxns } from './persons'
+import { MAX_ATTACHMENTS, personTotals, personsOverview, personsStandingByMonth, sanitizePerson, sanitizePersonTxn, sortPersonTxns } from './persons'
 import { monthIndexFrom } from './jalali'
 import type { PersonTxn } from './types'
 
@@ -122,5 +122,27 @@ describe('sanitizePersonTxn', () => {
     const kept = sanitizePersonTxn({ ...base, accountId: 'ghost' }, persons, accounts)
     expect(kept?.accountId).toBeUndefined()
     expect(sanitizePersonTxn({ ...base, accountId: 'a1' }, persons, accounts)?.accountId).toBe('a1')
+  })
+
+  it('keeps valid attachments and drops ones without a name', () => {
+    const kept = sanitizePersonTxn(
+      {
+        ...base,
+        attachments: [
+          { id: 'a', name: 'receipt.jpg', type: 'image/jpeg', size: 1024 },
+          { id: 'b', name: '', type: 'image/png', size: 10 },
+        ],
+      },
+      persons,
+      accounts,
+    )
+    expect(kept?.attachments).toHaveLength(1)
+    expect(kept?.attachments?.[0]).toMatchObject({ id: 'a', name: 'receipt.jpg', type: 'image/jpeg', size: 1024 })
+  })
+
+  it('caps attachments at MAX_ATTACHMENTS and omits the field when empty', () => {
+    const many = Array.from({ length: 8 }, (_, i) => ({ name: `f${i}.png`, type: 'image/png', size: 1 }))
+    expect(sanitizePersonTxn({ ...base, attachments: many }, persons, accounts)?.attachments).toHaveLength(MAX_ATTACHMENTS)
+    expect(sanitizePersonTxn({ ...base, attachments: [] }, persons, accounts)?.attachments).toBeUndefined()
   })
 })

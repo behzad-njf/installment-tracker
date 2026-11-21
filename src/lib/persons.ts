@@ -1,5 +1,5 @@
 import { daysInJalaliMonth, monthIndexFrom } from './jalali'
-import type { MonthIndex, Person, PersonAccount, PersonTxn, PersonTxnKind } from './types'
+import type { Attachment, MonthIndex, Person, PersonAccount, PersonTxn, PersonTxnKind } from './types'
 
 function newId(prefix: string): string {
   const uuid = globalThis.crypto?.randomUUID?.()
@@ -18,6 +18,13 @@ export function newPersonTxnId(): string {
   return newId('txn')
 }
 
+export function newAttachmentId(): string {
+  return newId('att')
+}
+
+/** Max images per transaction — keeps IndexedDB and the dialog scroll sane. */
+export const MAX_ATTACHMENTS = 5
+
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value)
 }
@@ -30,6 +37,23 @@ function text(value: unknown, max: number): string | undefined {
   if (typeof value !== 'string') return undefined
   const trimmed = value.trim().slice(0, max)
   return trimmed === '' ? undefined : trimmed
+}
+
+/** Trust boundary: an attachment's metadata from storage/import. The blob itself is not here. */
+export function sanitizeAttachment(raw: unknown): Attachment | null {
+  if (!isRecord(raw)) return null
+  const name = text(raw.name, 120)
+  if (!name) return null
+  const type = text(raw.type, 100) ?? 'application/octet-stream'
+  const size =
+    typeof raw.size === 'number' && Number.isFinite(raw.size) && raw.size >= 0 ? raw.size : 0
+  return {
+    id: typeof raw.id === 'string' && raw.id ? raw.id : newAttachmentId(),
+    name,
+    type,
+    size,
+    driveFileId: text(raw.driveFileId, 100),
+  }
 }
 
 /** Trust boundary: any stored/imported person passes through here. */
@@ -86,6 +110,12 @@ export function sanitizePersonTxn(
   if (!isInt(raw.month, 1, 12)) return null
   if (!isInt(raw.day, 1, daysInJalaliMonth(raw.year, raw.month))) return null
   const accountId = typeof raw.accountId === 'string' && accountIds.has(raw.accountId) ? raw.accountId : undefined
+  const attachments = Array.isArray(raw.attachments)
+    ? raw.attachments
+        .map(sanitizeAttachment)
+        .filter((att): att is Attachment => att !== null)
+        .slice(0, MAX_ATTACHMENTS)
+    : []
   return {
     id: typeof raw.id === 'string' && raw.id ? raw.id : newPersonTxnId(),
     personId: raw.personId,
@@ -97,6 +127,7 @@ export function sanitizePersonTxn(
     month: raw.month,
     day: raw.day,
     note: text(raw.note, 200),
+    attachments: attachments.length > 0 ? attachments : undefined,
     createdAt:
       typeof raw.createdAt === 'string' && !Number.isNaN(Date.parse(raw.createdAt))
         ? raw.createdAt

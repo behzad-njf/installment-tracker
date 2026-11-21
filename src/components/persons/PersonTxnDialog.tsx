@@ -1,5 +1,6 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { ImagePlus, X } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -18,11 +19,20 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
+import { deleteAttachment, getAttachment, putAttachment } from '@/lib/attachments'
 import { currentMonthIndex, daysInJalaliMonth, jalaliPartsFromDate, yearMonthOf } from '@/lib/jalali'
 import { parseMoney } from '@/lib/money'
-import type { PersonAccount, PersonTxn, PersonTxnDraft, PersonTxnKind } from '@/lib/types'
+import { MAX_ATTACHMENTS, newAttachmentId } from '@/lib/persons'
+import type { Attachment, PersonAccount, PersonTxn, PersonTxnDraft, PersonTxnKind } from '@/lib/types'
 
 const NO_ACCOUNT = 'none'
+
+interface Item {
+  att: Attachment
+  /** Present for files picked in this dialog; written to IndexedDB only on save. */
+  file?: File
+  url: string
+}
 
 export function PersonTxnDialog({
   kind,
@@ -44,6 +54,9 @@ export function PersonTxnDialog({
   const today = jalaliPartsFromDate(new Date())
   const [error, setError] = useState('')
   const [accountId, setAccountId] = useState(txn?.accountId ?? NO_ACCOUNT)
+  const [items, setItems] = useState<Item[]>([])
+  const fileInput = useRef<HTMLInputElement>(null)
+  const urls = useRef<string[]>([])
   const editing = !!txn
 
   const defaultTitle = txn?.title ?? ''
@@ -53,7 +66,57 @@ export function PersonTxnDialog({
   const defaultDay = txn ? String(txn.day) : String(today.day)
   const defaultNote = txn?.note ?? ''
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  // Load existing attachment blobs for preview when editing.
+  useEffect(() => {
+    if (!open) return
+    let cancelled = false
+    void (async () => {
+      const loaded: Item[] = []
+      for (const att of txn?.attachments ?? []) {
+        const blob = await getAttachment(att.id)
+        if (cancelled) return
+        const url = blob ? URL.createObjectURL(blob) : ''
+        if (url) urls.current.push(url)
+        loaded.push({ att, url })
+      }
+      if (!cancelled) setItems(loaded)
+    })()
+    return () => {
+      cancelled = true
+    }
+  }, [open, txn])
+
+  // Revoke every object URL when the dialog unmounts.
+  useEffect(() => () => urls.current.forEach(url => URL.revokeObjectURL(url)), [])
+
+  const addFiles = (files: FileList | null) => {
+    if (!files) return
+    const room = MAX_ATTACHMENTS - items.length
+    const picked = Array.from(files)
+      .filter(file => file.type.startsWith('image/'))
+      .slice(0, Math.max(room, 0))
+    if (picked.length === 0) return
+    const next = picked.map<Item>(file => {
+      const url = URL.createObjectURL(file)
+      urls.current.push(url)
+      return {
+        att: { id: newAttachmentId(), name: file.name || 'image', type: file.type, size: file.size },
+        file,
+        url,
+      }
+    })
+    setItems(prev => [...prev, ...next])
+  }
+
+  const removeAt = (index: number) => {
+    setItems(prev => {
+      const target = prev[index]
+      if (target?.url) URL.revokeObjectURL(target.url)
+      return prev.filter((_, i) => i !== index)
+    })
+  }
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     const form = e.currentTarget as HTMLFormElement
     const field = (name: string): string =>
@@ -82,6 +145,16 @@ export function PersonTxnDialog({
       return
     }
     setError('')
+
+    // Write newly picked blobs, then drop blobs of attachments removed from this txn.
+    for (const item of items) {
+      if (item.file) await putAttachment(item.att.id, item.file)
+    }
+    const kept = new Set(items.map(item => item.att.id))
+    for (const att of txn?.attachments ?? []) {
+      if (!kept.has(att.id)) await deleteAttachment(att.id)
+    }
+
     onSave({
       kind,
       amount,
@@ -91,6 +164,7 @@ export function PersonTxnDialog({
       accountId: accountId === NO_ACCOUNT ? undefined : accountId,
       title: field('title') || undefined,
       note: field('note') || undefined,
+      attachments: items.length > 0 ? items.map(item => item.att) : undefined,
     })
     setAccountId(txn?.accountId ?? NO_ACCOUNT)
     onOpenChange(false)
@@ -98,7 +172,7 @@ export function PersonTxnDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
+      <DialogContent className="max-h-[90dvh] overflow-y-auto">
         <form onSubmit={handleSubmit} className="space-y-3">
           <DialogHeader>
             <DialogTitle>
@@ -145,12 +219,63 @@ export function PersonTxnDialog({
           ) : null}
           <Label htmlFor="txn-note">{t('persons.note')}</Label>
           <Input id="txn-note" name="note" defaultValue={defaultNote} maxLength={200} />
-          {error ? <p className="text-sm text-destructive">{error}</p> : null}
+
+          <div className="space-y-2 border-t border-dashed pt-3">
+            <Label>{t('persons.attachments')}</Label>
+            {items.length > 0 ? (
+              <div className="flex flex-wrap gap-2">
+                {items.map((item, index) => (
+                  <div
+                    key={item.att.id}
+                    className="bg-muted relative size-20 overflow-hidden rounded-lg border"
+                  >
+                    {item.url ? (
+                      <img src={item.url} alt={item.att.name} className="size-full object-cover" />
+                    ) : null}
+                    <button
+                      type="button"
+                      onClick={() => removeAt(index)}
+                      aria-label={t('persons.removeAttachmentAria', { name: item.att.name })}
+                      className="absolute top-1 end-1 flex size-5 items-center justify-center rounded-full bg-black/60 text-white"
+                    >
+                      <X className="size-3" aria-hidden />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            ) : null}
+            {items.length < MAX_ATTACHMENTS ? (
+              <>
+                <input
+                  ref={fileInput}
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  className="hidden"
+                  onChange={e => {
+                    addFiles(e.target.files)
+                    e.target.value = ''
+                  }}
+                />
+                <button
+                  type="button"
+                  onClick={() => fileInput.current?.click()}
+                  className="text-muted-foreground bg-muted hover:bg-muted/70 flex w-full flex-col items-center gap-1 rounded-lg border border-dashed px-3 py-4 text-xs"
+                >
+                  <ImagePlus className="text-primary size-5" aria-hidden />
+                  <span>{t('persons.addAttachment')}</span>
+                  <span className="opacity-70">{t('persons.attachmentHint')}</span>
+                </button>
+              </>
+            ) : null}
+          </div>
+
+          {error ? <p className="text-destructive text-sm">{error}</p> : null}
           <DialogFooter>
+            <Button type="submit">{t('common.save')}</Button>
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               {t('common.cancel')}
             </Button>
-            <Button type="submit">{editing ? t('common.save') : t('common.save')}</Button>
           </DialogFooter>
         </form>
       </DialogContent>

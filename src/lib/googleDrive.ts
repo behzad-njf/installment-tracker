@@ -7,10 +7,14 @@
  */
 const SCOPE = 'https://www.googleapis.com/auth/drive.file'
 const FILE_NAME = 'finance-backup.json'
+const ATTACHMENT_FOLDER_NAME = 'finance-attachments/'
 const DRIVE = 'https://www.googleapis.com/drive/v3'
 const UPLOAD = 'https://www.googleapis.com/upload/drive/v3'
 const GIS_SRC = 'https://accounts.google.com/gsi/client'
 const TOKEN_KEY = 'finance.drive.token'
+
+import type { Attachment, PersonTxn } from './types'
+import { clearAttachments, getAttachment, putAttachment } from './attachments'
 
 export const GOOGLE_CLIENT_ID: string = import.meta.env.VITE_GOOGLE_CLIENT_ID ?? ''
 
@@ -208,4 +212,112 @@ export async function getUser(): Promise<DriveUser | null> {
   const response = await authorized(`${DRIVE}/about?fields=user`)
   const payload = (await response.json()) as { user?: DriveUser }
   return payload.user ?? null
+}
+
+/** Finds the `finance-attachments/` folder, without creating it. */
+export async function findAttachmentFolder(): Promise<string | null> {
+  const query = encodeURIComponent(
+    `mimeType='application/vnd.google-apps.folder' and name='${ATTACHMENT_FOLDER_NAME}' and trashed=false`
+  )
+  const response = await authorized(
+    `${DRIVE}/files?spaces=drive&q=${query}&fields=files(id)&pageSize=1`
+  )
+  const payload = (await response.json()) as { files?: { id: string }[] }
+  return payload.files?.[0]?.id ?? null
+}
+
+/** Ensures the `finance-attachments/` folder exists and returns its id. */
+export async function ensureAttachmentFolder(): Promise<string> {
+  const existing = await findAttachmentFolder()
+  if (existing) return existing
+  const response = await authorized(`${DRIVE}/files?fields=id`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json; charset=UTF-8' },
+    body: JSON.stringify({ name: ATTACHMENT_FOLDER_NAME, mimeType: 'application/vnd.google-apps.folder' }),
+  })
+  const created = (await response.json()) as { id: string }
+  return created.id
+}
+
+/** Uploads one attachment blob to Drive and returns its file id. */
+export async function uploadAttachmentBlob(attachmentId: string, name: string, blob: Blob): Promise<string> {
+  const folderId = await ensureAttachmentFolder()
+  const boundary = `finance${Date.now().toString(36)}${Math.random().toString(36).slice(2)}`
+  const metadata = JSON.stringify({
+    name: `${attachmentId}-${name}`,
+    parents: [folderId],
+    mimeType: blob.type ?? 'application/octet-stream',
+  })
+  const encoder = new TextEncoder()
+  const parts: Uint8Array[] = [
+    encoder.encode(`--${boundary}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n${metadata}\r\n`),
+    encoder.encode(`--${boundary}\r\nContent-Type: ${blob.type ?? 'application/octet-stream'}\r\n\r\n`),
+    new Uint8Array(await blob.arrayBuffer()),
+    encoder.encode(`\r\n--${boundary}--\r\n`),
+  ]
+  const body = new Blob(parts as unknown as BlobPart[], { type: `multipart/related; boundary=${boundary}` })
+  const response = await authorized(`${UPLOAD}/files?uploadType=multipart&fields=id`, {
+    method: 'POST',
+    headers: { 'Content-Type': body.type },
+    body,
+  })
+  const uploaded = (await response.json()) as { id: string }
+  return uploaded.id
+}
+
+/** Downloads one attachment blob from Drive. */
+export async function downloadAttachmentBlob(driveFileId: string): Promise<Blob> {
+  const response = await authorized(`${DRIVE}/files/${driveFileId}?alt=media`)
+  return response.blob()
+}
+
+/** Deletes one attachment file from Drive. */
+export async function deleteAttachmentBlob(driveFileId: string): Promise<void> {
+  await authorized(`${DRIVE}/files/${driveFileId}`, { method: 'DELETE' })
+}
+
+/**
+ * Uploads every attachment blob missing a `driveFileId`, returning txns with `driveFileId` filled in.
+ * Blobs already backed up (driveFileId present) are left untouched.
+ */
+export async function stageAttachments(txns: PersonTxn[]): Promise<PersonTxn[]> {
+  const result: PersonTxn[] = []
+  for (const txn of txns) {
+    if (!txn.attachments?.length) {
+      result.push(txn)
+      continue
+    }
+    const updated: Attachment[] = []
+    for (const att of txn.attachments) {
+      if (att.driveFileId) {
+        updated.push(att)
+        continue
+      }
+      const blob = await getAttachment(att.id)
+      if (!blob) {
+        updated.push(att)
+        continue
+      }
+      const driveFileId = await uploadAttachmentBlob(att.id, att.name, blob)
+      updated.push({ ...att, driveFileId })
+    }
+    result.push({ ...txn, attachments: updated })
+  }
+  return result
+}
+
+/**
+ * Clears the local attachment store, then downloads every attachment blob that has a `driveFileId`
+ * back into IndexedDB. Mirrors "restore replaces everything".
+ */
+export async function restoreAttachments(txns: PersonTxn[]): Promise<void> {
+  await clearAttachments()
+  for (const txn of txns) {
+    if (!txn.attachments?.length) continue
+    for (const att of txn.attachments) {
+      if (!att.driveFileId) continue
+      const blob = await downloadAttachmentBlob(att.driveFileId)
+      await putAttachment(att.id, blob)
+    }
+  }
 }

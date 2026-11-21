@@ -1,6 +1,181 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest'
 
-import { buildMultipart, pickLatest } from './googleDrive'
+import {
+  buildMultipart,
+  pickLatest,
+  restoreAttachments,
+  stageAttachments,
+} from './googleDrive'
+
+const mocks = vi.hoisted(() => ({
+  getAttachment: vi.fn(),
+  putAttachment: vi.fn(),
+  clearAttachments: vi.fn(),
+}))
+
+vi.mock('./attachments', () => mocks)
+
+const { getAttachment, putAttachment, clearAttachments } = mocks
+
+const mockFetch = vi.fn()
+Object.defineProperty(globalThis, 'fetch', {
+  configurable: true,
+  writable: true,
+  value: mockFetch,
+})
+
+const fakeBlob = () => new Blob(['fake-bytes'], { type: 'image/png' })
+
+const localStorageStore: Record<string, string> = {}
+const sessionStorageStore: Record<string, string> = {}
+
+let storedCallback: ((resp: any) => void) | null = null
+
+Object.defineProperty(globalThis, 'sessionStorage', {
+  configurable: true,
+  value: {
+    getItem: (k: string) => sessionStorageStore[k] ?? null,
+    setItem: (k: string, v: string) => { sessionStorageStore[k] = v },
+    removeItem: (k: string) => { delete sessionStorageStore[k] },
+  },
+})
+
+// توکن همیشه منقضی شده است تا ensureAccess همیشه requestToken فراخوانی کند
+const realDateNow = Date.now
+vi.spyOn(Date, 'now').mockReturnValue(realDateNow() + 7200 * 1000)
+
+// GSI + localStorage Made-up برای محیط Nodeodeon
+Object.defineProperty(globalThis, 'window', {
+  configurable: true,
+  value: {
+    localStorage: {
+      getItem: (k: string) => localStorageStore[k] ?? null,
+      setItem: (k: string, v: string) => { localStorageStore[k] = v },
+      removeItem: (k: string) => { delete localStorageStore[k] },
+    },
+    sessionStorage: {
+      getItem: (k: string) => sessionStorageStore[k] ?? null,
+      setItem: (k: string, v: string) => { sessionStorageStore[k] = v },
+      removeItem: (k: string) => { delete sessionStorageStore[k] },
+    },
+    google: {
+      accounts: {
+        oauth2: {
+          initTokenClient: vi.fn((config: any) => {
+            storedCallback = config.callback
+            return {
+              requestAccessToken: vi.fn(() => {
+                if (storedCallback) storedCallback({ access_token: 'fake-token', expires_in: 3600 })
+              }),
+            }
+          }),
+        },
+      },
+    },
+  },
+})
+
+beforeEach(() => {
+  getAttachment.mockClear()
+  putAttachment.mockClear()
+  clearAttachments.mockClear()
+  mockFetch.mockClear()
+  storedCallback = null
+  Object.keys(localStorageStore).forEach((k) => delete localStorageStore[k])
+  Object.keys(sessionStorageStore).forEach((k) => delete sessionStorageStore[k])
+
+  mockFetch.mockImplementation((input: RequestInfo | URL) => {
+    const u = String(input)
+    if (u.includes('/files?q=')) {
+      return Promise.resolve(new Response(JSON.stringify({ files: [] }), { status: 200 }))
+    }
+    if (u.includes('/files?fields=id')) {
+      return Promise.resolve(new Response(JSON.stringify({ id: 'folder-id' }), { status: 200 }))
+    }
+    if (u.includes('/files?uploadType=multipart')) {
+      return Promise.resolve(new Response(JSON.stringify({ id: 'drive-file-1' }), { status: 200 }))
+    }
+    if (u.includes('?alt=media')) {
+      return Promise.resolve(new Response(new Uint8Array([1, 2, 3]), { status: 200 }))
+    }
+    return Promise.resolve(new Response(JSON.stringify({}), { status: 200 }))
+  })
+})
+
+afterEach(() => {
+  vi.restoreAllMocks()
+})
+
+describe('stageAttachments', () => {
+  it('uploads blobs missing driveFileId and fills them in', async () => {
+    ;(getAttachment as unknown as ReturnType<typeof vi.fn>).mockResolvedValue(fakeBlob())
+
+    const txns = [
+      { id: 'txn-1', attachments: [{ id: 'att-1', name: 'a.png', type: 'image/png', size: 100 }] },
+    ]
+
+    const result = await stageAttachments(txns as any[])
+
+    expect(result[0].attachments![0].driveFileId).toBe('drive-file-1')
+    expect(getAttachment).toHaveBeenCalledWith('att-1')
+    expect(mockFetch).toHaveBeenCalled()
+  })
+
+  it('skips attachments that already have driveFileId', async () => {
+    const txns = [
+      {
+        id: 'txn-1',
+        attachments: [{ id: 'att-1', name: 'a.png', type: 'image/png', size: 100, driveFileId: 'existing' }],
+      },
+    ]
+
+    const result = await stageAttachments(txns as any[])
+
+    expect(result[0].attachments![0].driveFileId).toBe('existing')
+    expect(mockFetch).not.toHaveBeenCalled()
+  })
+
+  it('skips attachments whose blob is not in IndexedDB', async () => {
+    ;(getAttachment as unknown as ReturnType<typeof vi.fn>).mockResolvedValue(undefined)
+
+    const txns = [
+      { id: 'txn-1', attachments: [{ id: 'att-1', name: 'a.png', type: 'image/png', size: 100 }] },
+    ]
+
+    const result = await stageAttachments(txns as any[])
+
+    expect(result[0].attachments![0].driveFileId).toBeUndefined()
+    expect(mockFetch).not.toHaveBeenCalled()
+  })
+})
+
+describe('restoreAttachments', () => {
+  it('clears store then downloads and puts blobs with driveFileId', async () => {
+    const txns = [
+      {
+        id: 'txn-1',
+        attachments: [{ id: 'att-1', name: 'a.png', type: 'image/png', size: 100, driveFileId: 'drive-1' }],
+      },
+    ]
+
+    await restoreAttachments(txns as any[])
+
+    expect(clearAttachments).toHaveBeenCalled()
+    expect(mockFetch).toHaveBeenCalled()
+    expect(putAttachment).toHaveBeenCalledWith('att-1', expect.any(Blob))
+  })
+
+  it('skips attachments without driveFileId', async () => {
+    const txns = [
+      { id: 'txn-1', attachments: [{ id: 'att-1', name: 'a.png', type: 'image/png', size: 100 }] },
+    ]
+
+    await restoreAttachments(txns as any[])
+
+    expect(mockFetch).not.toHaveBeenCalled()
+    expect(putAttachment).not.toHaveBeenCalled()
+  })
+})
 
 describe('pickLatest', () => {
   it('returns the newest file regardless of order', () => {

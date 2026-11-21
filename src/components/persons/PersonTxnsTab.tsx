@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Plus, Pencil, Trash2 } from 'lucide-react'
 
@@ -6,7 +7,8 @@ import { useLocale } from '@/hooks/useLocale'
 import { monthIndexFrom, monthName } from '@/lib/jalali'
 import { formatMoney, formatNumber, formatYear } from '@/lib/money'
 import { openingSplit, sortPersonTxns, totalOf } from '@/lib/persons'
-import type { Lang, PersonAccount, PersonTxn, PersonTxnKind } from '@/lib/types'
+import type { Attachment, Lang, PersonAccount, PersonTxn, PersonTxnKind } from '@/lib/types'
+import { AttachmentThumb, AttachmentViewer } from './AttachmentThumb'
 
 function dateLabel(txn: PersonTxn, lang: Lang): string {
   return `${formatNumber(txn.day, lang)} ${monthName(monthIndexFrom(txn.year, txn.month), lang)} ${formatYear(txn.year, lang)}`
@@ -43,6 +45,7 @@ export function PersonTxnsTab({
     if (!acc) return ''
     return acc.holderName ? `${acc.bank} (${acc.holderName})` : acc.bank
   }
+  const [viewing, setViewing] = useState<Attachment[] | null>(null)
 
   return (
     <div className="space-y-3">
@@ -79,6 +82,13 @@ export function PersonTxnsTab({
               const label = accountLabel(txn.accountId)
               return (
                 <li key={txn.id} className="flex items-center gap-2 p-3">
+                  {txn.attachments?.length ? (
+                    <AttachmentThumb
+                      attachment={txn.attachments[0]}
+                      count={txn.attachments.length}
+                      onClick={() => setViewing(txn.attachments ?? null)}
+                    />
+                  ) : null}
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-sm font-medium">{txn.title || t('persons.untitled')}</p>
                     <p className="text-muted-foreground mt-0.5 truncate text-xs">
@@ -124,6 +134,11 @@ export function PersonTxnsTab({
           </p>
         </>
       )}
+      <AttachmentViewer
+        attachments={viewing ?? []}
+        open={viewing !== null}
+        onOpenChange={open => setViewing(open ? viewing : null)}
+      />
     </div>
   )
 }
