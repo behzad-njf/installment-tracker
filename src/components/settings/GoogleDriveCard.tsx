@@ -108,6 +108,29 @@ export function GoogleDriveCard() {
 
   const idle = busy !== ''
 
+  // Re-fetch user email + last backup on mount so they show after reconnect/reload
+  useEffect(() => {
+    if (!connected) return
+    let cancelled = false
+    ;(async () => {
+      try {
+        const [user, existing] = await Promise.all([
+          getUser(),
+          findBackup(),
+        ])
+        if (cancelled) return
+        setEmail(user?.emailAddress ?? null)
+        setLastBackup(existing?.modifiedTime ?? null)
+      } catch {
+        if (cancelled) return
+        setEmail(null)
+      }
+    })()
+    return () => {
+      cancelled = true
+    }
+  }, [connected])
+
   // Simulated progress while waiting on network
   useEffect(() => {
     if (progressOp === null) return
