@@ -9,6 +9,7 @@ import { ChecksPage } from '@/pages/ChecksPage'
 import { DashboardPage } from '@/pages/DashboardPage'
 import { LoansPage } from '@/pages/LoansPage'
 import { PersonsPage } from '@/pages/PersonsPage'
+import { SettingsPage } from '@/pages/SettingsPage'
 import { CheckbookDetailPage } from '@/components/checks/CheckbookDetailPage'
 import { CheckDetailPage } from '@/components/checks/CheckDetailPage'
 import { PersonDetailPage } from '@/components/persons/PersonDetailPage'
@@ -68,7 +69,9 @@ export function App() {
         ? <ChecksPage />
         : route === 'persons'
           ? <PersonsPage />
-          : <DashboardPage />
+          : route === 'settings'
+            ? <SettingsPage />
+            : <DashboardPage />
   } else if (route.kind === 'checks.book') {
     page = <CheckbookDetailPage bookId={route.bookId} />
   } else if (route.kind === 'checks.check') {

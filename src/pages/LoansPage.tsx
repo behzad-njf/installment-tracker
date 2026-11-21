@@ -1,6 +1,6 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Download, Plus, Trash2, Upload } from 'lucide-react'
+import { Plus, Trash2 } from 'lucide-react'
 
 import { EmptyState } from '@/components/dashboard/EmptyState'
 import { LoanTable } from '@/components/dashboard/LoanTable'
@@ -16,13 +16,12 @@ import { useLocale } from '@/hooks/useLocale'
 import { currentMonthIndex } from '@/lib/jalali'
 import { deadlineBuckets, remainingInstallments, summaryFor } from '@/lib/loans'
 import { formatNumber } from '@/lib/money'
-import { exportDataFile, importDataFile, loadData } from '@/lib/storage'
 import type { Loan } from '@/lib/types'
 
 export function LoansPage() {
   const { t } = useTranslation()
   const { lang } = useLocale()
-  const { loans, replaceData, clearAll } = useLoans()
+  const { loans, clearAll } = useLoans()
   const month = useMemo(() => currentMonthIndex(), [])
   const summary = useMemo(() => summaryFor(loans, month), [loans, month])
   const nextSummary = useMemo(() => summaryFor(loans, month + 1), [loans, month])
@@ -39,8 +38,6 @@ export function LoansPage() {
   })
   const [payDialog, setPayDialog] = useState<{ id: string; month: number } | null>(null)
   const [historyLoan, setHistoryLoan] = useState<Loan | null>(null)
-  const [importError, setImportError] = useState<string | null>(null)
-  const fileInputRef = useRef<HTMLInputElement>(null)
 
   // PWA shortcut (?add=1) is consumed by the initial state above; clean the URL.
   useEffect(() => {
@@ -59,37 +56,6 @@ export function LoansPage() {
     if (tab === 'finished') return loans.filter(l => remainingInstallments(l) === 0)
     return loans.filter(l => remainingInstallments(l) > 0)
   }, [loans, tab])
-
-  const handleExport = () => {
-    const data = loadData()
-    const json = exportDataFile(data)
-    const blob = new Blob([json], { type: 'application/json' })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = `finance-backup-${new Date().toISOString().slice(0, 10)}.json`
-    document.body.appendChild(a)
-    a.click()
-    document.body.removeChild(a)
-    URL.revokeObjectURL(url)
-  }
-
-  const handleImportFile = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0]
-    if (!file) return
-    const reader = new FileReader()
-    reader.onload = () => {
-      const imported = importDataFile(reader.result as string)
-      if (!imported) {
-        setImportError(t('backup.invalidFile'))
-        return
-      }
-      setImportError(null)
-      replaceData(imported)
-    }
-    reader.readAsText(file)
-    event.target.value = ''
-  }
 
   return (
     <div className="space-y-5">
@@ -121,33 +87,6 @@ export function LoansPage() {
       )}
 
       <div className="flex flex-wrap items-center gap-2">
-        {importError && <span className="text-xs text-destructive">{importError}</span>}
-        <Button
-          type="button"
-          size="sm"
-          variant="outline"
-          onClick={handleExport}
-          aria-label={t('backup.export')}
-        >
-          <Download className="size-4" aria-hidden />
-        </Button>
-        <Button
-          type="button"
-          size="sm"
-          variant="outline"
-          onClick={() => fileInputRef.current?.click()}
-          aria-label={t('backup.import')}
-        >
-          <Upload className="size-4" aria-hidden />
-        </Button>
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept=".json"
-          hidden
-          onChange={handleImportFile}
-          aria-label={t('backup.importLabel')}
-        />
         <Button
           type="button"
           size="sm"

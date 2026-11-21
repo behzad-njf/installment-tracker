@@ -10,7 +10,8 @@
     "dashboard": "Dashboard",
     "loans": "Loans",
     "checks": "Cheques",
-    "persons": "People"
+    "persons": "People",
+    "settings": "Settings"
   },
   "persons": {
     "emptyTitle": "No people yet",
@@ -302,6 +303,17 @@
     "restored": "Data restored from backup",
     "invalidFile": "Invalid file",
     "autoRestored": "Main data not found; restored from backup"
+  },
+  "settings": {
+    "appearance": "Appearance & language",
+    "appearanceHint": "Display mode and app language",
+    "theme": "Theme",
+    "light": "Light",
+    "dark": "Dark",
+    "language": "Language",
+    "data": "Backup",
+    "dataHint": "Download a JSON file of everything, or restore from a previous file",
+    "about": "About"
   },
   "storage": {
     "saveFailed": "Save failed. Is storage full?"

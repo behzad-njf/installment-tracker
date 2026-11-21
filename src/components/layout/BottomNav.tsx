@@ -2,7 +2,7 @@ import { useTranslation } from 'react-i18next'
 
 import type { Route } from '@/hooks/useRoute'
 
-import { NAV_ITEMS } from './navItems'
+import { BOTTOM_NAV_ITEMS } from './navItems'
 
 export function BottomNav({ route }: { route: Route }) {
   const { t } = useTranslation()
@@ -14,9 +14,9 @@ export function BottomNav({ route }: { route: Route }) {
     >
       <ul
         className="grid"
-        style={{ gridTemplateColumns: `repeat(${NAV_ITEMS.length}, minmax(0, 1fr))` }}
+        style={{ gridTemplateColumns: `repeat(${BOTTOM_NAV_ITEMS.length}, minmax(0, 1fr))` }}
       >
-        {NAV_ITEMS.map(({ route: itemRoute, labelKey, icon: Icon }) => {
+        {BOTTOM_NAV_ITEMS.map(({ route: itemRoute, labelKey, icon: Icon }) => {
           // Detail routes ('checks.book', 'persons.person') keep their section highlighted.
           const active = (typeof route === 'string' ? route : route.kind.split('.')[0]) === itemRoute
           return (

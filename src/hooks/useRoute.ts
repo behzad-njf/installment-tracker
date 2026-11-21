@@ -5,11 +5,12 @@ export type Route =
   | 'loans'
   | 'checks'
   | 'persons'
+  | 'settings'
   | { kind: 'checks.book'; bookId: string }
   | { kind: 'checks.check'; bookId: string; serial: number }
   | { kind: 'persons.person'; personId: string }
 
-const ROUTES: string[] = ['dashboard', 'loans', 'checks', 'persons']
+const ROUTES: string[] = ['dashboard', 'loans', 'checks', 'persons', 'settings']
 
 function parseHash(): Route {
   const raw = window.location.hash.replace(/^#\/?/, '')
