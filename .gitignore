@@ -23,3 +23,6 @@ dist-ssr
 *.sln
 *.sw?
 keys/
+app-dist/
+landing/dist/
+landing/.astro/
