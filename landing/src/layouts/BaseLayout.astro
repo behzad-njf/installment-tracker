@@ -1,0 +1,148 @@
+---
+const siteName = 'Pizomoney';
+const siteUrl = 'https://pizomoney.behzaaad.ir';
+const description = 'مدیریت بده‌ها و قرض‌های شخصی با دقت و شفافیت کامل. پلتفرم کلاینت‌ساید، رایگان، بدون بک‌اند و بدون سرور.';
+const image = `${siteUrl}/og-image.png`;
+---
+
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+  <head>
+    <meta charset="utf-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content={description} />
+    <meta name="author" content={siteName} />
+    <meta name="language" content="fa" />
+
+    <!-- Open Graph -->
+    <meta property="og:title" content={siteName} />
+    <meta property="og:description" content={description} />
+    <meta property="og:image" content={image} />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content={siteUrl} />
+    <meta property="og:site_name" content={siteName} />
+    <meta property="og:locale" content="fa_IR" />
+
+    <!-- Twitter Cards -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={siteName} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={image} />
+
+    <!-- Canonical -->
+    <link rel="canonical" href={siteUrl} />
+
+    <!-- JSON-LD: Organization -->
+    <script type="application/ld+json" set:html={JSON.stringify({
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      "name": siteName,
+      "url": siteUrl,
+      "logo": image,
+      "description": description,
+      "address": {
+        "@type": "PostalAddress",
+        "addressCountry": "IR"
+      }
+    }, null, 2)} />
+
+    <!-- JSON-LD: WebSite -->
+    <script type="application/ld+json" set:html={JSON.stringify({
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      "name": siteName,
+      "url": siteUrl,
+      "potentialAction": {
+        "@type": "SearchAction",
+        "target": siteUrl + "/app",
+        "query-input": "required"
+      },
+      "inLanguage": "fa"
+    }, null, 2)} />
+
+    <!-- JSON-LD: SoftwareApplication -->
+    <script type="application/ld+json" set:html={JSON.stringify({
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": siteName,
+      "applicationCategory": "FinanceApplication",
+      "operatingSystem": "Web Browser",
+      "url": siteUrl + "/app",
+      "description": description,
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "IRR",
+        "availability": "https://schema.org/InStock"
+      }
+    }, null, 2)} />
+
+    <!-- Preload critical font -->
+    <link rel="preload" href="/fonts/vazirmatn-arabic-wght-normal.woff2" as="font" type="font/woff2" crossorigin="anonymous" />
+
+    <title>{siteName}</title>
+    <style>
+      @font-face {
+        font-family: 'Vazirmatn';
+        font-style: normal;
+        font-weight: 400;
+        src: url('/fonts/vazirmatn-arabic-wght-normal.woff2') format('woff2');
+        font-display: swap;
+      }
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+      html { scroll-behavior: smooth; }
+      body {
+        font-family: 'Vazirmatn', system-ui, sans-serif;
+        background: #f8fafc;
+        color: #0f172a;
+        line-height: 1.6;
+        direction: rtl;
+      }
+      a { color: inherit; text-decoration: none; }
+      h1, h2, h3, h4 { font-weight: 700; line-height: 1.2; }
+      .container { max-width: 800px; margin: 0 auto; padding: 0 1.5rem; }
+      header { background: #fff; border-bottom: 1px solid #e2e8f0; position: sticky; top: 0; z-index: 50; }
+      header .container { display: flex; justify-content: space-between; align-items: center; height: 4rem; }
+      .logo { font-size: 1.5rem; font-weight: 800; color: #d97706; }
+      nav a { margin-left: 1.25rem; color: #475569; font-size: 0.875rem; font-weight: 500; }
+      nav a:hover { color: #d97706; }
+      main { padding: 3rem 0; }
+      .hero { text-align: center; padding: 4rem 1rem; max-width: 700px; margin: 0 auto 3rem; }
+      .hero h1 { font-size: 2.25rem; color: #111827; margin-bottom: 1rem; }
+      .hero p { font-size: 1.125rem; color: #475569; margin-bottom: 1.5rem; }
+      .btn { display: inline-flex; align-items: center; justify-content: center; padding: 0.75rem 1.5rem; background: #d97706; color: #fff; border-radius: 0.5rem; font-weight: 600; font-size: 1rem; transition: background 0.2s; }
+      .btn:hover { background: #b45309; }
+      .btn:focus-visible { outline: 2px solid #d97706; outline-offset: 2px; }
+      .features { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; margin-top: 3rem; }
+      .card { background: #fff; padding: 1.5rem; border-radius: 0.75rem; border: 1px solid #e2e8f0; }
+      .card h3 { font-size: 1.125rem; color: #111827; margin-bottom: 0.5rem; }
+      .card p { font-size: 0.875rem; color: #6b7280; }
+      footer { background: #fff; border-top: 1px solid #e2e8f0; padding: 2rem 0; margin-top: 4rem; text-align: center; color: #6b7280; font-size: 0.875rem; }
+      footer a { margin: 0 0.5rem; }
+      @media (max-width: 640px) {
+        .hero h1 { font-size: 1.75rem; }
+        header .container { flex-direction: column; gap: 0.75rem; height: auto; padding: 1rem 0; }
+        nav a { margin-left: 0; margin-right: 1rem; }
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div class="container">
+        <div class="logo">{siteName}</div>
+        <nav>
+          <a href="/app">خانه</a>
+          <a href="/app/loans">قرض‌ها</a>
+          <a href="/app/settings">تنظیمات</a>
+        </nav>
+      </div>
+    </header>
+    <main class="container">
+      <slot />
+    </main>
+    <footer>
+      <p>&copy; 2026 Pizomoney. همه حقوق محفوظ.</p>
+    </footer>
+  </body>
+</html>

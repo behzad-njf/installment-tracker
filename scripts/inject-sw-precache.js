@@ -2,7 +2,7 @@ import crypto from 'node:crypto'
 import fs from 'fs'
 import path from 'path'
 
-const distDir = path.resolve('dist')
+const distDir = path.resolve('landing/dist/app')
 const swPath = path.resolve('public/sw.js')
 const distSwPath = path.join(distDir, 'sw.js')
 
@@ -13,17 +13,17 @@ if (!fs.existsSync(assetsDir)) {
   process.exit(0)
 }
 
-const assetFiles = fs.readdirSync(assetsDir).map(f => `/assets/${f}`)
+const assetFiles = fs.readdirSync(assetsDir).map(f => `/app/assets/${f}`)
 
 // Read the SW template
 let swContent = fs.readFileSync(swPath, 'utf-8')
 
 // Build the ASSETS array
 const staticAssets = [
-  '/',
-  '/index.html',
-  '/favicon.png',
-  '/manifest.json',
+  '/app/',
+  '/app/index.html',
+  '/app/favicon.png',
+  '/app/manifest.json',
 ]
 
 const allAssets = [...staticAssets, ...assetFiles]

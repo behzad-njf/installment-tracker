@@ -8,7 +8,8 @@ import { App } from './App'
 import { LoansProvider } from '@/components/loans/LoansProvider'
 
 if (import.meta.env.PROD && 'serviceWorker' in navigator) {
-  navigator.serviceWorker.register('/sw.js').then(
+  const base = import.meta.env.BASE_URL || '/'
+  navigator.serviceWorker.register(base + 'sw.js').then(
     (reg) => console.log('SW registered', reg.scope),
     (err) => console.error('SW registration failed', err)
   )
