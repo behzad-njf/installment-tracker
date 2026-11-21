@@ -197,3 +197,15 @@ export async function restore(): Promise<string | null> {
   const response = await authorized(`${DRIVE}/files/${existing.id}?alt=media`)
   return response.text()
 }
+
+/** Authenticated user profile (email, name) — same drive.file token. */
+export interface DriveUser {
+  emailAddress?: string
+  displayName?: string
+}
+
+export async function getUser(): Promise<DriveUser | null> {
+  const response = await authorized(`${DRIVE}/about?fields=user`)
+  const payload = (await response.json()) as { user?: DriveUser }
+  return payload.user ?? null
+}

@@ -325,6 +325,10 @@
     "driveSaved": "Backup saved to Drive",
     "driveRestored": "Data restored from Google Drive",
     "driveLastBackup": "Last backup: {{when}}",
+    "driveEmail": "Email: {{email}}",
+    "driveProgressBackup": "Backing up to Drive...",
+    "driveProgressRestore": "Restoring from Drive...",
+    "driveProgressPercent": "{{percent}}%",
     "driveMissingClient": "Google client ID is not configured (VITE_GOOGLE_CLIENT_ID)",
     "driveAuthError": "Google access expired — press “Connect to Google” again",
     "driveError": "Could not reach Google Drive — check network and access"

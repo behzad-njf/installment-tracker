@@ -325,6 +325,10 @@
     "driveSaved": "نسخه پشتیبان در Drive ذخیره شد",
     "driveRestored": "داده‌ها از Google Drive بازگردانی شدند",
     "driveLastBackup": "آخرین بکاپ: {{when}}",
+    "driveEmail": "ایمیل: {{email}}",
+    "driveProgressBackup": "در حال بکاپ در Drive...",
+    "driveProgressRestore": "در حال بازگردانی از Drive...",
+    "driveProgressPercent": "{{percent}}%",
     "driveMissingClient": "شناسه کلاینت گوگل تنظیم نشده است (VITE_GOOGLE_CLIENT_ID)",
     "driveAuthError": "دسترسی گوگل منقضی شد؛ دوباره «اتصال به گوگل» را بزن",
     "driveError": "ارتباط با Google Drive برقرار نشد؛ اینترنت و دسترسی را بررسی کن"
