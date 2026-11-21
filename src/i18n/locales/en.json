@@ -313,7 +313,21 @@
     "language": "Language",
     "data": "Backup",
     "dataHint": "Download a JSON file of everything, or restore from a previous file",
-    "about": "About"
+    "about": "About",
+    "drive": "Google Drive backup",
+    "driveHint": "The backup is stored in your own Google account and can be restored on any device",
+    "driveConnect": "Connect to Google",
+    "driveDisconnect": "Disconnect",
+    "driveBackup": "Back up now",
+    "driveRestore": "Restore from Drive",
+    "driveRestoreConfirm": "Replace local data?",
+    "driveConnected": "Connected to Google",
+    "driveSaved": "Backup saved to Drive",
+    "driveRestored": "Data restored from Google Drive",
+    "driveLastBackup": "Last backup: {{when}}",
+    "driveMissingClient": "Google client ID is not configured (VITE_GOOGLE_CLIENT_ID)",
+    "driveAuthError": "Google access expired — press “Connect to Google” again",
+    "driveError": "Could not reach Google Drive — check network and access"
   },
   "storage": {
     "saveFailed": "Save failed. Is storage full?"

@@ -100,3 +100,7 @@ what passed, what is deferred.
 
 Backend, database, auth, cloud sync, bank integrations, multi-user, PWA/offline
 service worker, test frameworks beyond vitest for `src/lib`.
+
+Exception: Google Drive backup (`src/lib/googleDrive.ts`) is the only
+user-owned OAuth client allowed — free Google Cloud project, scope
+`drive.file`, client ID from `VITE_GOOGLE_CLIENT_ID`. No secret, no backend.

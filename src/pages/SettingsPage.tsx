@@ -4,6 +4,7 @@ import { Download, Moon, Sun, Upload } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { GoogleDriveCard } from '@/components/settings/GoogleDriveCard'
 import { useLoans } from '@/hooks/useLoans'
 import { useLocale } from '@/hooks/useLocale'
 import { useTheme } from '@/hooks/useTheme'
@@ -151,6 +152,8 @@ export function SettingsPage() {
           </p>
         ) : null}
       </Section>
+
+      <GoogleDriveCard />
 
       <Section title={t('settings.about')}>
         <p className="text-muted-foreground text-sm">

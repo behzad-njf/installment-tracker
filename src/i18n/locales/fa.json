@@ -198,7 +198,7 @@
     "total": "مجموع",
     "loans": "وام",
     "switchTo": "تغییر به {{lang}}",
-    "cancel": "لغو",
+    "cancel": "انصراف",
     "save": "ذخیره",
     "delete": "حذف",
     "day": "روز",
@@ -313,7 +313,21 @@
     "language": "زبان",
     "data": "پشتیبان‌گیری",
     "dataHint": "یک فایل JSON از همه داده‌ها بگیرید یا از فایل قبلی بازگردانی کنید",
-    "about": "درباره"
+    "about": "درباره",
+    "drive": "پشتیبان‌گیری در Google Drive",
+    "driveHint": "نسخه پشتیبان در حساب گوگل خودت ذخیره می‌شود و روی هر دستگاهی قابل بازگردانی است",
+    "driveConnect": "اتصال به گوگل",
+    "driveDisconnect": "قطع اتصال",
+    "driveBackup": "بکاپ الان",
+    "driveRestore": "بازگردانی از Drive",
+    "driveRestoreConfirm": "مطمئنی؟ جایگزین شود",
+    "driveConnected": "به گوگل متصل شد",
+    "driveSaved": "نسخه پشتیبان در Drive ذخیره شد",
+    "driveRestored": "داده‌ها از Google Drive بازگردانی شدند",
+    "driveLastBackup": "آخرین بکاپ: {{when}}",
+    "driveMissingClient": "شناسه کلاینت گوگل تنظیم نشده است (VITE_GOOGLE_CLIENT_ID)",
+    "driveAuthError": "دسترسی گوگل منقضی شد؛ دوباره «اتصال به گوگل» را بزن",
+    "driveError": "ارتباط با Google Drive برقرار نشد؛ اینترنت و دسترسی را بررسی کن"
   },
   "storage": {
     "saveFailed": "ذخیره ناموفق بود. فضای ذخیره‌سازی پر است؟"

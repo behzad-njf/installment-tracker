@@ -98,6 +98,12 @@ export function todayLabel(lang: Lang): string {
   return `${weekday} ${formatNumber(day, lang)} ${monthName(monthIndexFrom(year, month), lang)} ${formatYear(year, lang)}`
 }
 
+/** Jalali date + time for an ISO timestamp, e.g. «۱۴۰۵/۸/۲۱، ۱۴:۳۰». */
+export function dateTimeLabel(iso: string, lang: Lang): string {
+  const locale = lang === 'fa' ? 'fa-IR-u-ca-persian' : 'en-GB'
+  return new Intl.DateTimeFormat(locale, { dateStyle: 'short', timeStyle: 'short' }).format(new Date(iso))
+}
+
 /** Days until the deadline day (within current month). Negative means overdue. */
 export function daysUntilDeadline(deadlineDay: number): number {
   return deadlineDay - currentDay()
