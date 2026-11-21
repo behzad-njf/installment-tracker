@@ -1,0 +1,69 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+
+const pageTitle = 'سیاست حفظ حریم خصوصی';
+---
+
+<style>
+  .policy { max-width: 860px; margin: 3rem auto 0; padding: 0 1.25rem; line-height: 1.8; text-align: right; }
+  .policy h1 { font-size: clamp(1.75rem, 4vw, 2.25rem); margin-bottom: 1.5rem; }
+  .policy h2 { font-size: 1.25rem; margin-top: 2rem; margin-bottom: 0.75rem; }
+  .policy p { color: var(--muted); margin-bottom: 1rem; }
+  .policy ul { color: var(--muted); padding-right: 1.2rem; margin-bottom: 1rem; }
+  .policy li { margin-bottom: 0.4rem; }
+  .policy .intro { background: #fef3c7; padding: 1rem 1.25rem; border-radius: 0.7rem; margin-bottom: 2rem; font-size: 0.95rem; }
+  .policy .note { border-left: 3px solid var(--accent); padding-right: 1rem; margin: 1.5rem 0; font-size: 0.9rem; color: #475569; }
+</style>
+
+<BaseLayout>
+  <main class="container">
+    <div class="policy">
+      <h1>{pageTitle}</h1>
+
+      <div class="intro">
+        Pizomoney یک برنامه مدیریت بده‌ها و اقساط شخصی است که کاملاً کلاینت‌ساید اجرا می‌شود. هیچ بک‌اند، دیتابیس یا سرور ندارد و هرگز داده‌ای از دستگاه شما خارج نمی‌رود.
+      </div>
+
+      <p><strong>آخرین به‌روزرسانی:</strong> ۱۴۰۵/۰۸/۳۰</p>
+
+      <h2>۱. معرفی</h2>
+      <p>
+        Pizomoney (در ادامه «ما») یک پلتفرم رایگان، منبع باز و کلاینت‌ساید برای مدیریت اقساط و بده‌های ماهانه است. همه داده‌ها در حافظه محلی مرورگر شما (
+        <code>localStorage</code>) ذخیره می‌شوند و هیچ چیز به سرور ما منتقل نمی‌شود — چون سرور وجود ندارد.
+      </p>
+
+      <h2>۲. اطلاعاتی که جمع‌آوری می‌کنیم</h2>
+      <p>ما هیچ اطلاعات شخصی (نام، ایمیل، شماره تماس، آدرس) را جمع‌آوری نمی‌کنیم. تنها داده‌هایی که در برنامه ثبت می‌کنید (نام وام، مبلغ، تعداد اقساط، تاریخ‌ها و وضعیت پرداخت) در دستگاه شما ذخیره می‌شوند.</p>
+
+      <h2>۳. بکاپ گوگل درایو</h2>
+      <p>
+        اگر از ویژگی بکاپ گوگل درایو استفاده کنید، فایل <code>finance-backup.json</code> مستقیماً به درایوی شخصی شما بارگذاری و از آن بازیابی می‌شود. این فایل شامل داده‌های مالی شما است و ما به آن دسترسی نداریم. مجوز درخواست‌شده فقط <code>drive.file</code> است (دسترسی به فایل‌هایی که خود شما ایجاد می‌کنید).
+      </p>
+
+      <h2>۴. استفاده از اطلاعات</h2>
+      <p>
+        اطلاعات شما فقط در مرورگر شما باقی می‌مانند و برای نمایش داشبورد، محاسبه اقساط و نمایش نمودار پیشرفت استفاده می‌شود. ما داده‌های شما را فروش نمی‌کنیم، به اشتراک نمی‌گذاریم و برای تبلیغات استفاده نمی‌کنیم.
+      </p>
+
+      <h2>۵. امنیت</h2>
+      <p>چون داده‌ها تنها در دستگاه شما هستند، امنیت آن‌ها بستگی به ایمنی دستگاه و مرورگر شما دارد. پیشنهاد می‌کنیم فایل بکاپ را به صورت منظم دانلود و در جای امن نگه دارید.</p>
+
+      <h2>۶. حقوق شما</h2>
+      <ul>
+        <li>مشاهده، ویرایش یا حذف هر داده‌ای که در برنامه ثبت کرده‌اید.</li>
+        <li>دانلود فایل بکاپ (<code>finance-backup.json</code>) و ذخیره در جای امن.</li>
+        <li>پاکسازی کامل داده‌ها از طریق تنظیمات برنامه.</li>
+      </ul>
+
+      <h2>۷. تغییرات در سیاست</h2>
+      <p>ما ممکن است این سیاست را به‌روز کنیم. تغییرات مهم در این صفحه اعلام می‌شود.</p>
+
+      <h2>۸. تماس با ما</h2>
+      <p>برای سوالات درباره حفظ حریم خصوصی، می‌توانید با ما از طریق <a href="mailto:support@pizomoney.behzaaad.ir">support@pizomoney.behzaaad.ir</a> تماس بگیرید.</p>
+
+      <div class="note">
+        <strong>توجه:</strong> Pizomoney یک پروژه منبع باز و رایگان است. استفاده از آن بر عهده شما است و ما مسئولیت پذیریافته نیست.
+      </div>
+    </div>
+  </main>
+</BaseLayout>
