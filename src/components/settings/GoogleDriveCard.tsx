@@ -4,7 +4,7 @@ import { CloudDownload, CloudUpload, Link2, Unlink } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { useLoans } from '@/hooks/useLoans'
 import { useLocale } from '@/hooks/useLocale'
 import { dateTimeLabel } from '@/lib/jalali'
@@ -21,6 +21,7 @@ import {
 import { exportDataFile, importDataFile, loadData } from '@/lib/storage'
 
 type Busy = '' | 'connect' | 'backup' | 'restore'
+type ConfirmAction = 'disconnect' | 'backup' | 'restore' | null
 
 export function GoogleDriveCard() {
   const { t } = useTranslation()
@@ -31,10 +32,10 @@ export function GoogleDriveCard() {
   const [lastBackup, setLastBackup] = useState<string | null>(null)
   const [status, setStatus] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
-  const [confirmRestore, setConfirmRestore] = useState(false)
   const [email, setEmail] = useState<string | null>(null)
   const [progress, setProgress] = useState(0)
   const [progressOp, setProgressOp] = useState<'backup' | 'restore' | null>(null)
+  const [confirmAction, setConfirmAction] = useState<ConfirmAction>(null)
 
   const fail = (cause: unknown) => {
     const code = cause instanceof Error ? cause.message : ''
@@ -79,16 +80,14 @@ export function GoogleDriveCard() {
       return t('settings.driveConnected')
     })
 
-  const handleBackup = () =>
-    run('backup', async () => {
-      const saved = await backup(exportDataFile(loadData()))
-      setLastBackup(saved.modifiedTime)
-      return t('settings.driveSaved')
-    })
+  const handleBackup = () => run('backup', async () => {
+    const saved = await backup(exportDataFile(loadData()))
+    setLastBackup(saved.modifiedTime)
+    return t('settings.driveSaved')
+  })
 
   const handleRestore = () =>
     run('restore', async () => {
-      setConfirmRestore(false)
       const text = await restore()
       if (!text) throw new Error('empty')
       const imported = importDataFile(text)
@@ -104,6 +103,17 @@ export function GoogleDriveCard() {
     setStatus(null)
     setError(null)
     setEmail(null)
+  }
+
+  const doConfirm = () => {
+    if (confirmAction === 'disconnect') {
+      handleDisconnect()
+    } else if (confirmAction === 'backup') {
+      handleBackup()
+    } else if (confirmAction === 'restore') {
+      handleRestore()
+    }
+    setConfirmAction(null)
   }
 
   const idle = busy !== ''
@@ -149,6 +159,12 @@ export function GoogleDriveCard() {
     return () => clearTimeout(id)
   }, [progressOp, progress])
 
+  const confirmLabels: Record<Exclude<ConfirmAction, null>, string> = {
+    disconnect: t('settings.driveConfirmDisconnect'),
+    backup: t('settings.driveConfirmBackup'),
+    restore: t('settings.driveConfirmRestore'),
+  }
+
   return (
     <Card>
       <CardHeader>
@@ -160,36 +176,37 @@ export function GoogleDriveCard() {
           <p className="text-muted-foreground text-sm">{t('settings.driveMissingClient')}</p>
         )}
 
-        <div className="flex flex-wrap gap-2">
-          {connected ? (
-            <Button type="button" variant="outline" onClick={handleDisconnect} disabled={idle}>
-              <Unlink className="size-4 me-1.5" aria-hidden />
-              {t('settings.driveDisconnect')}
+        <div className="flex items-center justify-between flex-wrap gap-2">
+          <div className="flex items-center gap-2">
+            {connected ? (
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-50/60 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 text-xs font-medium border border-emerald-100/60 dark:border-emerald-800/30">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 dark:bg-emerald-400" />
+                {t('settings.driveConnectedLabel')}
+              </span>
+            ) : (
+              <Button type="button" variant="outline" onClick={handleConnect} disabled={idle || !GOOGLE_CLIENT_ID}>
+                <Link2 className="size-4 me-1.5" aria-hidden />
+                {t('settings.driveConnect')}
+              </Button>
+            )}
+          </div>
+
+          <div className="flex items-center gap-2">
+            {connected ? (
+              <Button type="button" variant="outline" onClick={() => setConfirmAction('disconnect')} disabled={idle}>
+                <Unlink className="size-4 me-1.5" aria-hidden />
+                {t('settings.driveDisconnect')}
+              </Button>
+            ) : null}
+            <Button type="button" variant="outline" onClick={() => setConfirmAction('backup')} disabled={idle || !GOOGLE_CLIENT_ID}>
+              <CloudUpload className="size-4 me-1.5" aria-hidden />
+              {t('settings.driveBackup')}
             </Button>
-          ) : (
-            <Button type="button" variant="outline" onClick={handleConnect} disabled={idle || !GOOGLE_CLIENT_ID}>
-              <Link2 className="size-4 me-1.5" aria-hidden />
-              {t('settings.driveConnect')}
+            <Button type="button" variant="outline" onClick={() => setConfirmAction('restore')} disabled={idle || !GOOGLE_CLIENT_ID}>
+              <CloudDownload className="size-4 me-1.5" aria-hidden />
+              {t('settings.driveRestore')}
             </Button>
-          )}
-          <Button type="button" variant="outline" onClick={handleBackup} disabled={idle || !GOOGLE_CLIENT_ID}>
-            <CloudUpload className="size-4 me-1.5" aria-hidden />
-            {t('settings.driveBackup')}
-          </Button>
-          <Button
-            type="button"
-            variant={confirmRestore ? 'default' : 'outline'}
-            onClick={confirmRestore ? handleRestore : () => setConfirmRestore(true)}
-            disabled={idle || !GOOGLE_CLIENT_ID}
-          >
-            <CloudDownload className="size-4 me-1.5" aria-hidden />
-            {confirmRestore ? t('settings.driveRestoreConfirm') : t('settings.driveRestore')}
-          </Button>
-          {confirmRestore ? (
-            <Button type="button" variant="ghost" onClick={() => setConfirmRestore(false)} disabled={idle}>
-              {t('common.cancel')}
-            </Button>
-          ) : null}
+          </div>
         </div>
 
         {connected && email ? (
@@ -237,6 +254,27 @@ export function GoogleDriveCard() {
                   {t('settings.driveProgressPercent', { percent: progress })}
                 </p>
               </DialogDescription>
+            </DialogContent>
+          </Dialog>
+        )}
+
+        {confirmAction !== null && (
+          <Dialog open={true}>
+            <DialogContent className="p-4">
+              <DialogHeader>
+                <DialogTitle>{t('settings.driveConfirmTitle')}</DialogTitle>
+              </DialogHeader>
+              <DialogDescription className="mt-2 text-sm">
+                {confirmLabels[confirmAction]}
+              </DialogDescription>
+              <DialogFooter>
+                <Button type="button" variant="outline" onClick={() => setConfirmAction(null)}>
+                  {t('settings.driveConfirmNo')}
+                </Button>
+                <Button type="button" variant="destructive" onClick={doConfirm} disabled={idle}>
+                  {t('settings.driveConfirmYes')}
+                </Button>
+              </DialogFooter>
             </DialogContent>
           </Dialog>
         )}
