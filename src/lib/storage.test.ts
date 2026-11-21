@@ -235,4 +235,103 @@ describe('export/import round-trip', () => {
     const minimal = { ...VALID, checkbooks: [], checks: [] }
     expect(importDataFile(exportDataFile(minimal))).toEqual(minimal)
   })
+
+  it('preserves every optional field of every entity', () => {
+    const full: DataFile = {
+      version: 6,
+      settings: { lang: 'en', theme: 'dark', seeded: true },
+      loans: [
+        {
+          id: 'l1',
+          name: 'وام مسکن',
+          amount: 9_000_000,
+          startYear: 1404,
+          startMonth: 12,
+          duration: 60,
+          payments: [
+            { id: 'p1', monthIndex: 16860, amount: 4_500_000, paidAt: '2026-10-01T00:00:00.000Z' },
+            { id: 'p2', monthIndex: 16861, amount: 9_000_000, paidAt: '2026-11-01T00:00:00.000Z' },
+          ],
+          createdAt: '2026-09-01T00:00:00.000Z',
+          deadlineDay: 25,
+        },
+      ],
+      checkbooks: [
+        {
+          id: 'cb1',
+          bank: 'بانک ملت',
+          accountNumber: '9876543210',
+          serialFrom: 500,
+          serialTo: 525,
+          createdAt: '2026-10-05T00:00:00.000Z',
+        },
+      ],
+      checks: [
+        {
+          id: 'c1',
+          checkbookId: 'cb1',
+          serial: 500,
+          payee: 'فروشنده',
+          amount: 1_500_000,
+          purpose: 'خرید لوازم',
+          dueYear: 1405,
+          dueMonth: 9,
+          dueDay: 3,
+          note: 'یادداشت چک',
+          status: 'cleared',
+          updatedAt: '2026-11-10T00:00:00.000Z',
+        },
+        {
+          id: 'c2',
+          checkbookId: 'cb1',
+          serial: 501,
+          payee: '',
+          amount: 0,
+          purpose: '',
+          note: '',
+          status: 'blank',
+          updatedAt: '2026-11-10T00:00:00.000Z',
+        },
+      ],
+      persons: [
+        {
+          id: 'p1',
+          name: 'مریم احمدی',
+          phone: '09120000000',
+          nationalId: '0012345678',
+          note: 'همکار',
+          openingBalance: -2_500_000,
+          createdAt: '2026-09-02T00:00:00.000Z',
+        },
+      ],
+      personAccounts: [
+        {
+          id: 'a1',
+          personId: 'p1',
+          bank: 'بانک صادرات',
+          holderName: 'مریم احمدی',
+          accountNumber: '1112223334',
+          iban: 'IR000000000000000000000000',
+          cardNumber: '6104337700000000',
+        },
+      ],
+      personTxns: [
+        {
+          id: 't1',
+          personId: 'p1',
+          kind: 'receipt',
+          accountId: 'a1',
+          title: 'دریافت قرض',
+          amount: 1_000_000,
+          year: 1405,
+          month: 8,
+          day: 20,
+          note: 'نقدی',
+          createdAt: '2026-11-11T00:00:00.000Z',
+        },
+      ],
+    }
+
+    expect(importDataFile(exportDataFile(full))).toEqual(full)
+  })
 })
