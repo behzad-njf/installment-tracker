@@ -2,6 +2,9 @@ import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest'
 
 import {
   buildMultipart,
+  disconnect,
+  isConnected,
+  isLinked,
   pickLatest,
   restoreAttachments,
   stageAttachments,
@@ -27,16 +30,15 @@ Object.defineProperty(globalThis, 'fetch', {
 const fakeBlob = () => new Blob(['fake-bytes'], { type: 'image/png' })
 
 const localStorageStore: Record<string, string> = {}
-const sessionStorageStore: Record<string, string> = {}
 
 let storedCallback: ((resp: any) => void) | null = null
 
-Object.defineProperty(globalThis, 'sessionStorage', {
+Object.defineProperty(globalThis, 'localStorage', {
   configurable: true,
   value: {
-    getItem: (k: string) => sessionStorageStore[k] ?? null,
-    setItem: (k: string, v: string) => { sessionStorageStore[k] = v },
-    removeItem: (k: string) => { delete sessionStorageStore[k] },
+    getItem: (k: string) => localStorageStore[k] ?? null,
+    setItem: (k: string, v: string) => { localStorageStore[k] = v },
+    removeItem: (k: string) => { delete localStorageStore[k] },
   },
 })
 
@@ -54,10 +56,12 @@ Object.defineProperty(globalThis, 'window', {
       removeItem: (k: string) => { delete localStorageStore[k] },
     },
     sessionStorage: {
-      getItem: (k: string) => sessionStorageStore[k] ?? null,
-      setItem: (k: string, v: string) => { sessionStorageStore[k] = v },
-      removeItem: (k: string) => { delete sessionStorageStore[k] },
+      getItem: () => null,
+      setItem: () => {},
+      removeItem: () => {},
     },
+    setTimeout: () => 0,
+    clearTimeout: () => {},
     google: {
       accounts: {
         oauth2: {
@@ -82,7 +86,7 @@ beforeEach(() => {
   mockFetch.mockClear()
   storedCallback = null
   Object.keys(localStorageStore).forEach((k) => delete localStorageStore[k])
-  Object.keys(sessionStorageStore).forEach((k) => delete sessionStorageStore[k])
+  localStorageStore['finance.drive.linked'] = '1'
 
   mockFetch.mockImplementation((input: RequestInfo | URL) => {
     const u = String(input)
@@ -104,6 +108,23 @@ beforeEach(() => {
 
 afterEach(() => {
   vi.restoreAllMocks()
+})
+
+describe('connection persistence', () => {
+  it('stays connected with a dead token while the link flag survives', () => {
+    disconnect()
+    expect(isConnected()).toBe(false)
+    localStorageStore['finance.drive.linked'] = '1'
+    expect(isLinked()).toBe(true)
+    expect(isConnected()).toBe(true)
+  })
+
+  it('disconnect clears the link so no silent refresh runs again', () => {
+    localStorageStore['finance.drive.linked'] = '1'
+    disconnect()
+    expect(isLinked()).toBe(false)
+    expect(isConnected()).toBe(false)
+  })
 })
 
 describe('stageAttachments', () => {

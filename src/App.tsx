@@ -4,6 +4,7 @@ import { UpdateDialog } from '@/components/dashboard/UpdateDialog'
 import { AppShell } from '@/components/layout/AppShell'
 import { Toaster } from '@/components/ui/sonner'
 import { useRoute } from '@/hooks/useRoute'
+import { warmUp } from '@/lib/googleDrive'
 import { APP_VERSION } from '@/lib/version'
 import { ChecksPage } from '@/pages/ChecksPage'
 import { DashboardPage } from '@/pages/DashboardPage'
@@ -20,6 +21,11 @@ export function App() {
   const [updateVersion, setUpdateVersion] = useState('')
   const [reloading, setReloading] = useState(false)
   const swRegRef = useRef<ServiceWorkerRegistration | null>(null)
+
+  // Keep a previously connected Google Drive session alive without any click.
+  useEffect(() => {
+    warmUp()
+  }, [])
 
   useEffect(() => {
     if (!('serviceWorker' in navigator)) return

@@ -138,9 +138,11 @@ export function GoogleDriveCard() {
         if (cancelled) return
         setEmail(user?.emailAddress ?? null)
         setLastBackup(existing?.modifiedTime ?? null)
-      } catch {
+      } catch (cause) {
         if (cancelled) return
         setEmail(null)
+        // Silent refresh failed for good — surface the connect button instead of a stale "connected".
+        if (cause instanceof Error && cause.message === 'auth') setConnected(false)
       }
     })()
     return () => {

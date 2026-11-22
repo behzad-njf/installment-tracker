@@ -1,9 +1,11 @@
 /**
  * Google Drive backup: one file `finance-backup.json` in the user's own Drive.
  * Uses the Google Identity Services token model — no backend, no client secret.
- * ponytail: browser tokens live ~1h and cannot be refreshed without a backend;
- * silent re-request keeps the session alive while the Google login exists.
- * Ceiling: no per-device conflict resolution — last backup wins.
+ * ponytail: access tokens live ~1h and cannot be extended without a backend, so the
+ * token sits in localStorage and is renewed silently ~5 min before expiry — the user
+ * stays connected for as long as their Google login lives.
+ * Ceiling: browsers that block third-party cookies to accounts.google.com (Safari)
+ * cannot refresh silently; there the user reconnects when the token dies.
  */
 const SCOPE = 'https://www.googleapis.com/auth/drive.file'
 const FILE_NAME = 'finance-backup.json'
@@ -12,6 +14,7 @@ const DRIVE = 'https://www.googleapis.com/drive/v3'
 const UPLOAD = 'https://www.googleapis.com/upload/drive/v3'
 const GIS_SRC = 'https://accounts.google.com/gsi/client'
 const TOKEN_KEY = 'finance.drive.token'
+const LINK_KEY = 'finance.drive.linked'
 
 import type { Attachment, PersonTxn } from './types'
 import { clearAttachments, getAttachment, putAttachment } from './attachments'
@@ -47,10 +50,12 @@ declare global {
 }
 
 let token: { value: string; expiresAt: number } | null = readToken()
+let refreshTimer: number | undefined
+let watching = false
 
 function readToken(): { value: string; expiresAt: number } | null {
   try {
-    const raw = sessionStorage.getItem(TOKEN_KEY)
+    const raw = localStorage.getItem(TOKEN_KEY)
     if (!raw) return null
     const parsed = JSON.parse(raw) as { value?: unknown; expiresAt?: unknown }
     if (typeof parsed.value !== 'string' || typeof parsed.expiresAt !== 'number') return null
@@ -62,8 +67,49 @@ function readToken(): { value: string; expiresAt: number } | null {
 
 function storeToken(next: { value: string; expiresAt: number } | null): void {
   token = next
-  if (next) sessionStorage.setItem(TOKEN_KEY, JSON.stringify(next))
-  else sessionStorage.removeItem(TOKEN_KEY)
+  try {
+    if (next) localStorage.setItem(TOKEN_KEY, JSON.stringify(next))
+    else localStorage.removeItem(TOKEN_KEY)
+  } catch {
+    /* private mode / storage disabled — session-only token */
+  }
+  if (next) scheduleRefresh(next.expiresAt)
+  else clearRefresh()
+}
+
+function markLinked(on: boolean): void {
+  try {
+    if (on) localStorage.setItem(LINK_KEY, '1')
+    else localStorage.removeItem(LINK_KEY)
+  } catch {
+    /* ignore */
+  }
+}
+
+/** True once this browser connected — a silent refresh can then restore access without a click. */
+export function isLinked(): boolean {
+  try {
+    return localStorage.getItem(LINK_KEY) === '1'
+  } catch {
+    return false
+  }
+}
+
+function clearRefresh(): void {
+  if (refreshTimer !== undefined) window.clearTimeout(refreshTimer)
+  refreshTimer = undefined
+}
+
+/** Renews silently 5 min before expiry so a long session never hits the 1 h wall. */
+function scheduleRefresh(expiresAt: number): void {
+  clearRefresh()
+  const delay = Math.max(30_000, expiresAt - Date.now() - 5 * 60_000)
+  refreshTimer = window.setTimeout(() => {
+    requestToken('').catch(() => {
+      storeToken(null)
+      markLinked(false)
+    })
+  }, delay)
 }
 
 function loadGis(): Promise<void> {
@@ -95,6 +141,7 @@ function requestToken(prompt: '' | 'select_account' | 'consent'): Promise<string
               return
             }
             const expiresAt = Date.now() + (response.expires_in ?? 3600) * 1000
+            markLinked(true)
             storeToken({ value: response.access_token, expiresAt })
             resolve(response.access_token)
           },
@@ -105,10 +152,33 @@ function requestToken(prompt: '' | 'select_account' | 'consent'): Promise<string
   )
 }
 
-/** Reuses the session token, silently refreshing it when the Google login is still alive. */
+/** Reuses the stored token, silently renewing it while the Google login is still alive. */
 export async function ensureAccess(): Promise<void> {
   if (token && token.expiresAt > Date.now() + 60_000) return
+  if (!token && !isLinked()) throw new Error('auth')
   await requestToken('')
+}
+
+/**
+ * Silent, gesture-free renewal on app start and whenever the tab regains focus.
+ * Keeps a previously connected browser connected without any user click.
+ */
+export function warmUp(): void {
+  if (!watching) {
+    watching = true
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible') warmUp()
+    })
+  }
+  if (!isLinked()) return
+  if (token && token.expiresAt > Date.now() + 5 * 60_000) {
+    scheduleRefresh(token.expiresAt)
+    return
+  }
+  requestToken('').catch(() => {
+    storeToken(null)
+    markLinked(false)
+  })
 }
 
 /** Explicit user gesture: opens the account picker / consent screen. */
@@ -119,10 +189,12 @@ export async function connect(): Promise<void> {
 
 export function disconnect(): void {
   storeToken(null)
+  markLinked(false)
 }
 
+/** Connected = a live token, or a previous connection a silent refresh can revive. */
 export function isConnected(): boolean {
-  return Boolean(token && token.expiresAt > Date.now())
+  return Boolean(token && token.expiresAt > Date.now()) || isLinked()
 }
 
 /** Newest file wins; Drive returns whatever order it likes. */
@@ -152,17 +224,23 @@ export function buildMultipart(metadata: Record<string, unknown>, json: string):
 }
 
 async function authorized(input: string, init: RequestInit = {}): Promise<Response> {
-  await ensureAccess()
-  const response = await fetch(input, {
-    ...init,
-    headers: { ...(init.headers ?? {}), Authorization: `Bearer ${token!.value}` },
-  })
-  if (response.status === 401) {
+  for (let attempt = 0; ; attempt++) {
+    await ensureAccess()
+    const response = await fetch(input, {
+      ...init,
+      headers: { ...(init.headers ?? {}), Authorization: `Bearer ${token!.value}` },
+    })
+    if (response.status !== 401) {
+      if (!response.ok) throw new Error(`drive ${response.status}`)
+      return response
+    }
+    // Revoked or rotated token: one silent renewal, then retry the same request.
     storeToken(null)
-    throw new Error('auth')
+    if (attempt > 0) {
+      markLinked(false)
+      throw new Error('auth')
+    }
   }
-  if (!response.ok) throw new Error(`drive ${response.status}`)
-  return response
 }
 
 export async function findBackup(): Promise<DriveBackup | null> {
