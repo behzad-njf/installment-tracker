@@ -35,7 +35,9 @@ export function UpdateDialog({
           <AlertTriangle className="mx-auto size-6 text-amber-500 dark:text-amber-400" aria-hidden />
         </DialogHeader>
         <DialogDescription className="text-center text-sm mb-4">
-          {t('update.available', { version: newVersion })}
+          {newVersion
+            ? t('update.available', { version: newVersion })
+            : t('update.availableGeneric')}
         </DialogDescription>
         <div className="grid grid-cols-2 gap-4 p-4 bg-muted border border-border rounded-lg">
           <div>
@@ -44,7 +46,9 @@ export function UpdateDialog({
           </div>
           <div>
             <p className="text-sm sm:text-xs text-muted-foreground">{t('update.newVersion')}</p>
-            <p className="text-base sm:text-sm font-mono text-center text-foreground">{newVersion}</p>
+            <p className="text-base sm:text-sm font-mono text-center text-foreground">
+              {newVersion || '—'}
+            </p>
           </div>
         </div>
         <p className="text-center text-sm sm:text-xs text-muted-foreground mb-4">

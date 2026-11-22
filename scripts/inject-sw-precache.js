@@ -47,4 +47,12 @@ swContent = swContent.replace(
 
 // dist/sw.js is what actually ships — Vite copies public/ before this script runs
 fs.writeFileSync(distSwPath, swContent)
-console.log(`Injected ${assetFiles.length + staticAssets.length} assets into SW (cache aghsat-${hash}): ${assetFiles.length} from dist/assets + ${staticAssets.length} static`)
+
+// The running page can't read APP_VERSION of a newer deploy, so publish it next to the build.
+const versionSrc = fs.readFileSync(path.resolve('src/lib/version.ts'), 'utf-8')
+const version = /APP_VERSION\s*=\s*'([^']+)'/.exec(versionSrc)?.[1]
+if (version) {
+  fs.writeFileSync(path.join(distDir, 'version.json'), JSON.stringify({ version }))
+}
+
+console.log(`Injected ${assetFiles.length + staticAssets.length} assets into SW (cache aghsat-${hash}): ${assetFiles.length} from dist/assets + ${staticAssets.length} static${version ? `, version ${version}` : ''}`)

@@ -355,6 +355,7 @@
   "update": {
     "title": "بروزرسانی برنامه",
     "available": "نسخه جدیدی {{version}} برای آپدیت موجود است",
+    "availableGeneric": "نسخه جدیدی برای آپدیت موجود است",
     "currentVersion": "نسخه فعلی",
     "newVersion": "نسخه جدید",
     "dataSafe": "داده‌های شما حذف نمی‌شوند.",

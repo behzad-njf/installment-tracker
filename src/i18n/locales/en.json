@@ -355,6 +355,7 @@
   "update": {
     "title": "App Update",
     "available": "New version {{version}} is available for update",
+    "availableGeneric": "A new version is available for update",
     "currentVersion": "Current Version",
     "newVersion": "New Version",
     "dataSafe": "Your data will not be deleted.",

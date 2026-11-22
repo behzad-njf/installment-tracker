@@ -30,13 +30,27 @@ export function App() {
   useEffect(() => {
     if (!('serviceWorker' in navigator)) return
 
+    // The new version number only exists in the deployed build — read it from version.json.
+    // ponytail: if a worker was already waiting from an older deploy, this can show a newer
+    // version than the one about to activate. Add a per-worker version channel when it matters.
+    const markUpdate = () => {
+      setUpdateAvailable(true)
+      fetch(`${import.meta.env.BASE_URL}version.json`, { cache: 'no-store' })
+        .then((response) => (response.ok ? response.json() : null))
+        .then((data: { version?: string } | null) => {
+          if (data?.version) setUpdateVersion(data.version)
+        })
+        .catch(() => {
+          /* offline — dialog falls back to "new version ready" */
+        })
+    }
+
     navigator.serviceWorker.ready.then((registration) => {
       swRegRef.current = registration
 
       // Check if there's already a waiting worker (update already downloaded)
       if (registration.waiting) {
-        setUpdateAvailable(true)
-        setUpdateVersion(APP_VERSION)
+        markUpdate()
         return
       }
 
@@ -48,8 +62,7 @@ export function App() {
         if (!installing) return
         installing.addEventListener('statechange', () => {
           if (installing.state === 'installed') {
-            setUpdateAvailable(true)
-            setUpdateVersion(APP_VERSION)
+            markUpdate()
             swRegRef.current = registration
           }
         })

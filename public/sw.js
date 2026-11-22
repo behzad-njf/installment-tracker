@@ -49,6 +49,12 @@ self.addEventListener('fetch', (event) => {
   const { request } = event;
   const url = new URL(request.url);
 
+  // Deployed version marker: always network, never cached, else the update dialog lies.
+  if (url.origin === self.location.origin && url.pathname.endsWith('/version.json')) {
+    event.respondWith(fetch(request, { cache: 'no-store' }));
+    return;
+  }
+
   // Cache-first for same-origin assets (HTML, JS, CSS, fonts, icons).
   if (url.origin === self.location.origin) {
     // Navigations: network-first so a new deploy is picked up immediately; cache when offline.
